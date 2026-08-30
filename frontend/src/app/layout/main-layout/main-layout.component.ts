@@ -16,7 +16,7 @@ import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
         <div class="desktop-sidebar-wrapper">
           <mv-sidebar></mv-sidebar>
         </div>
-        <main class="layout-main-content">
+        <main class="layout-main-content route-fade-in">
           <router-outlet></router-outlet>
         </main>
       </div>

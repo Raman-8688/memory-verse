@@ -69,11 +69,19 @@ import { JourneyService } from '@core/services/journey.service';
         </mat-form-field>
       </div>
 
-      <!-- Loading State -->
+      <!-- Loading State (Skeleton Grid) -->
       @if (isLoading()) {
-        <div class="loading-state">
-          <mat-spinner diameter="36"></mat-spinner>
-          <span>Gathering our memories...</span>
+        <div class="skeleton-grid">
+          @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            <div class="skeleton-card">
+              <div class="skeleton-thumb skeleton-box"></div>
+              <div class="skeleton-info">
+                <div class="skeleton-line sm skeleton-box"></div>
+                <div class="skeleton-line lg skeleton-box"></div>
+                <div class="skeleton-line md skeleton-box"></div>
+              </div>
+            </div>
+          }
         </div>
       } @else if (memories().length === 0) {
         <!-- Empty State -->
@@ -92,7 +100,7 @@ import { JourneyService } from '@core/services/journey.service';
         <!-- Memories Grid -->
         <div class="memories-grid">
           @for (memory of memories(); track memory.id) {
-            <article class="memory-card" [routerLink]="['/memories', memory.id]">
+            <article class="memory-card interactive-card" [routerLink]="['/memories', memory.id]">
               <!-- Media Section -->
               <div class="card-media">
                 @if (getCoverMedia(memory); as media) {
@@ -496,8 +504,57 @@ import { JourneyService } from '@core/services/journey.service';
       color: var(--mv-text-secondary);
     }
 
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .skeleton-card {
+      background-color: var(--mv-bg-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--mv-border);
+      overflow: hidden;
+      height: 380px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .skeleton-thumb {
+      height: 240px;
+      width: 100%;
+    }
+
+    .skeleton-info {
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: 4px;
+    }
+
+    .skeleton-line.sm {
+      width: 40%;
+      height: 10px;
+    }
+
+    .skeleton-line.lg {
+      width: 85%;
+      height: 18px;
+    }
+
+    .skeleton-line.md {
+      width: 65%;
+      height: 14px;
+    }
+
     @media (max-width: 640px) {
-      .memories-grid {
+      .memories-grid, .skeleton-grid {
         grid-template-columns: 1fr;
       }
     }
