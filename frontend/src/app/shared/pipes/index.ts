@@ -1,0 +1,2 @@
+// Shared pipes
+export {};

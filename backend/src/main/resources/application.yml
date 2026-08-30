@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: memory-verse
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 60MB
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000} # 24 hours
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:placeholder-cloud-name}
+    api-key: ${CLOUDINARY_API_KEY:placeholder-api-key}
+    api-secret: ${CLOUDINARY_API_SECRET:placeholder-api-secret}

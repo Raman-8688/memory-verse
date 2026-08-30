@@ -1,0 +1,2 @@
+// Feature: Journeys
+export {};

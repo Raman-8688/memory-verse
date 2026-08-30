@@ -1,0 +1,2 @@
+// Desktop Collapsible Sidebar
+export {};
