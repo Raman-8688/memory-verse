@@ -4,7 +4,9 @@ import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GalleryItem } from '@core/models/gallery.model';
+import { DownloadService } from '@core/services/download.service';
 
 export interface MediaViewerData {
   items: GalleryItem[];
@@ -14,7 +16,7 @@ export interface MediaViewerData {
 @Component({
   selector: 'mv-media-viewer-modal',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   template: `
     <div class="lightbox-overlay">
       <!-- Top Navigation & Controls Bar -->
@@ -26,6 +28,13 @@ export interface MediaViewerData {
         </div>
 
         <div class="top-actions">
+          <button mat-icon-button class="control-btn" (click)="downloadCurrentMedia()" [disabled]="isDownloadingCurrent()" title="Download High Quality File" aria-label="Download media">
+            @if (isDownloadingCurrent()) {
+              <mat-spinner diameter="18" class="download-spinner"></mat-spinner>
+            } @else {
+              <mat-icon>download</mat-icon>
+            }
+          </button>
           <button mat-icon-button class="control-btn" (click)="closeViewer()" aria-label="Close viewer">
             <mat-icon>close</mat-icon>
           </button>
@@ -318,10 +327,15 @@ export interface MediaViewerData {
         height: 24px;
       }
     }
+
+    .download-spinner ::ng-deep circle {
+      stroke: #ffffff !important;
+    }
   `]
 })
 export class MediaViewerModalComponent {
   readonly dialogRef = inject(MatDialogRef<MediaViewerModalComponent>);
+  readonly downloadService = inject(DownloadService);
   private readonly router = inject(Router);
 
   readonly currentIndex = signal<number>(0);
@@ -330,6 +344,23 @@ export class MediaViewerModalComponent {
     if (data && data.startIndex !== undefined) {
       this.currentIndex.set(data.startIndex);
     }
+  }
+
+  isDownloadingCurrent(): boolean {
+    const item = this.currentItem();
+    return item ? this.downloadService.isDownloading(item.mediaUrl) : false;
+  }
+
+  async downloadCurrentMedia(): Promise<void> {
+    const item = this.currentItem();
+    if (!item) return;
+
+    const ext = item.mediaType === 'VIDEO' ? '.mp4' : '.jpg';
+    let base = item.memoryTitle ? item.memoryTitle.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'memory';
+    while (base.includes('__')) base = base.replace('__', '_');
+    const fileName = `${base}${ext}`;
+
+    await this.downloadService.downloadMedia(item.mediaUrl, fileName);
   }
 
   currentItem(): GalleryItem | null {

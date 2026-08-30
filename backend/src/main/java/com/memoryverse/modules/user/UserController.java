@@ -1,27 +1,44 @@
 package com.memoryverse.modules.user;
 
 import com.memoryverse.common.api.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
-        List<UserDto> users = userRepository.findAll().stream()
-                .map(UserDto::fromEntity)
-                .collect(Collectors.toList());
+        List<UserDto> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.success(users));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserUpdateRequest request) {
+        UserDto updated = userService.updateUser(id, request);
+        return ResponseEntity.ok(ApiResponse.success("User updated successfully", updated));
+    }
+
+    @PostMapping("/{id}/avatar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> uploadAvatar(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file) {
+        UserDto updated = userService.updateUserAvatar(id, file);
+        return ResponseEntity.ok(ApiResponse.success("Avatar uploaded successfully", updated));
     }
 }
