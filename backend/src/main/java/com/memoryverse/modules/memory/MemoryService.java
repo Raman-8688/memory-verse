@@ -12,6 +12,8 @@ import com.memoryverse.modules.media.Media;
 import com.memoryverse.modules.media.MediaType;
 import com.memoryverse.modules.media.UploadedMediaResult;
 import com.memoryverse.modules.user.User;
+import com.memoryverse.modules.notification.NotificationService;
+import com.memoryverse.modules.notification.NotificationType;
 import com.memoryverse.modules.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ public class MemoryService {
     private final JourneySectionRepository journeySectionRepository;
     private final UserRepository userRepository;
     private final CloudinaryStorageService cloudinaryStorageService;
+    private final NotificationService notificationService;
 
     @Transactional
     @CacheEvict(value = {RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
@@ -113,7 +116,32 @@ public class MemoryService {
 
         Memory savedMemory = memoryRepository.save(memory);
         log.info("Created memory: id={}, title='{}', mediaCount={}", savedMemory.getId(), savedMemory.getTitle(), savedMemory.getMediaList().size());
+
+        // Synchronous MVP: Notify all tagged users
+        if (savedMemory.getTaggedUsers() != null) {
+            for (User taggedUser : savedMemory.getTaggedUsers()) {
+                if (!taggedUser.getId().equals(creator.getId())) {
+                    String notificationMsg = String.format("%s tagged you in a new memory: '%s'",
+                            creator.getFullName(), savedMemory.getTitle());
+                    notificationService.createNotification(taggedUser, notificationMsg, NotificationType.TAGGED, savedMemory.getId());
+                }
+            }
+        }
+
         return MemoryResponseDto.fromEntity(savedMemory);
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<MemoryResponseDto> getMemoriesTaggedWithUser(UUID userId, Pageable pageable) {
+        Page<Memory> page = memoryRepository.findMemoriesTaggedWithUser(userId, pageable);
+        return PagedResponse.<MemoryResponseDto>builder()
+                .content(page.getContent().stream().map(MemoryResponseDto::fromEntity).toList())
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
+                .build();
     }
 
     @Transactional(readOnly = true)

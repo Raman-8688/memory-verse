@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '@core/auth/auth.service';
+import { NotificationStateService } from '@core/services/notification-state.service';
 
 @Component({
   selector: 'mv-navbar',
@@ -21,7 +22,14 @@ import { AuthService } from '@core/auth/auth.service';
 
       <div class="navbar-actions">
         <button mat-icon-button class="notification-btn" routerLink="/notifications" aria-label="Notifications">
-          <mat-icon>notifications_none</mat-icon>
+          <div class="bell-wrapper">
+            <mat-icon>{{ notificationState.unreadCount() > 0 ? 'notifications' : 'notifications_none' }}</mat-icon>
+            @if (notificationState.unreadCount() > 0) {
+              <span class="unread-badge">
+                {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+              </span>
+            }
+          </div>
         </button>
 
         @if (authService.currentUser(); as user) {
@@ -141,6 +149,31 @@ import { AuthService } from '@core/auth/auth.service';
       text-transform: uppercase;
     }
 
+    .bell-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .unread-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background-color: #dc2626; /* Vibrant red badge */
+      color: #ffffff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
     @media (max-width: 640px) {
       .navbar {
         padding: 0 var(--space-2);
@@ -153,4 +186,5 @@ import { AuthService } from '@core/auth/auth.service';
 })
 export class NavbarComponent {
   readonly authService = inject(AuthService);
+  readonly notificationState = inject(NotificationStateService);
 }
