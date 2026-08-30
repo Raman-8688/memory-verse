@@ -32,4 +32,10 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID>, JpaSpecif
     Page<Memory> findByCreatedByIdOrderByMemoryDateDesc(UUID userId, Pageable pageable);
 
     long countByJourneyId(UUID journeyId);
+
+    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList", "taggedUsers"})
+    Optional<Memory> findFirstByIsFeaturedTrueOrderByMemoryDateDesc();
+
+    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList", "taggedUsers"})
+    Page<Memory> findAllByOrderByMemoryDateDesc(Pageable pageable);
 }

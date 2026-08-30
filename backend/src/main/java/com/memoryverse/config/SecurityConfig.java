@@ -54,6 +54,7 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/health/**",
                                 "/media/files/**",
+                                "/media/raw/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**"
                         ).permitAll()

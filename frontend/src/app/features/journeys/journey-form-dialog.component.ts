@@ -300,24 +300,29 @@ export class JourneyFormDialogComponent {
     endDate: [''],
     displayOrder: [0],
     sections: this.fb.array([
-      this.createSectionGroup('First Chapter')
+      this.createSectionGroup('First Chapter', 1)
     ])
   });
 
   get sectionsFormArray(): FormArray {
-    return this.form.get('sections') as FormArray;
+    return this.form?.get('sections') as FormArray;
   }
 
-  createSectionGroup(title = ''): FormGroup {
+  createSectionGroup(title = '', order?: number): FormGroup {
+    const currentOrder = order !== undefined 
+      ? order 
+      : (this.form?.get('sections') ? (this.form.get('sections') as FormArray).length + 1 : 1);
+
     return this.fb.group({
       title: [title, Validators.required],
       description: [''],
-      displayOrder: [this.sectionsFormArray ? this.sectionsFormArray.length + 1 : 1]
+      displayOrder: [currentOrder]
     });
   }
 
   addSectionField(): void {
-    this.sectionsFormArray.push(this.createSectionGroup(''));
+    const nextOrder = this.sectionsFormArray ? this.sectionsFormArray.length + 1 : 1;
+    this.sectionsFormArray.push(this.createSectionGroup('', nextOrder));
   }
 
   removeSectionField(index: number): void {

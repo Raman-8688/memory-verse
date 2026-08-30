@@ -14,8 +14,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'journeys',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
         path: 'journeys',
@@ -38,14 +42,13 @@ export const routes: Routes = [
         loadComponent: () => import('./features/memories/memory-detail.component').then(m => m.MemoryDetailComponent)
       },
       {
-        path: 'dashboard',
-        redirectTo: 'journeys',
-        pathMatch: 'full'
+        path: 'gallery',
+        loadComponent: () => import('./features/gallery/gallery-grid.component').then(m => m.GalleryGridComponent)
       }
     ]
   },
   {
     path: '**',
-    redirectTo: 'journeys'
+    redirectTo: 'dashboard'
   }
 ];
