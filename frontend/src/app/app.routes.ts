@@ -26,6 +26,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/journeys/journey-detail.component').then(m => m.JourneyDetailComponent)
       },
       {
+        path: 'memories',
+        loadComponent: () => import('./features/memories/memory-feed.component').then(m => m.MemoryFeedComponent)
+      },
+      {
+        path: 'memories/new',
+        loadComponent: () => import('./features/memories/memory-stepper-create.component').then(m => m.MemoryStepperCreateComponent)
+      },
+      {
+        path: 'memories/:id',
+        loadComponent: () => import('./features/memories/memory-detail.component').then(m => m.MemoryDetailComponent)
+      },
+      {
         path: 'dashboard',
         redirectTo: 'journeys',
         pathMatch: 'full'
