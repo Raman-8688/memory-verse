@@ -38,4 +38,8 @@ export class MemoryService {
       map(res => res.data)
     );
   }
+
+  getTaggedMemories(userId?: string, page = 0, size = 30): Observable<PagedResponse<Memory>> {
+    return this.api.get<PagedResponse<Memory>>('/memories/tagged', { userId, page, size });
+  }
 }

@@ -62,6 +62,16 @@ public class MemoryController {
         return ResponseEntity.ok(ApiResponse.success(memories));
     }
 
+    @GetMapping("/tagged")
+    public ResponseEntity<ApiResponse<PagedResponse<MemoryResponseDto>>> getTaggedMemories(
+            @RequestParam(required = false) UUID userId,
+            @Valid PageRequestDto pageRequest) {
+        UUID targetUserId = userId != null ? userId : SecurityUtils.getCurrentUserId();
+        PagedResponse<MemoryResponseDto> memories = memoryService.getMemoriesTaggedWithUser(
+                targetUserId, pageRequest.toPageable());
+        return ResponseEntity.ok(ApiResponse.success(memories));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<MemoryResponseDto>> getMemoryById(@PathVariable UUID id) {
         MemoryResponseDto memory = memoryService.getMemoryById(id);
