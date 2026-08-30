@@ -9,15 +9,12 @@ import com.memoryverse.modules.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import com.memoryverse.modules.memory.Memory;
-import com.memoryverse.modules.memory.MemoryRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -26,158 +23,142 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final JourneyRepository journeyRepository;
-    private final MemoryRepository memoryRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) {
-        if (userRepository.count() > 0) {
-            log.info("Database already contains users. Skipping initial data seeding.");
-            return;
+        log.info("Checking and seeding group members in DataInitializer...");
+
+        String defaultPass = passwordEncoder.encode("password123");
+
+        // 1. Migrate old dummy "ravi@memoryverse.com" to "ramesh@memoryverse.com" if needed
+        Optional<User> raviOpt = userRepository.findByEmail("ravi@memoryverse.com");
+        Optional<User> rameshOpt = userRepository.findByEmail("ramesh@memoryverse.com");
+
+        if (raviOpt.isPresent() && rameshOpt.isEmpty()) {
+            User ravi = raviOpt.get();
+            ravi.setEmail("ramesh@memoryverse.com");
+            ravi.setFullName("Ramesh");
+            ravi.setRole(Role.ADMIN);
+            ravi.setAvatarUrl("/api/media/raw/users_details/ramesh.jpg");
+            ravi.setPassword(defaultPass);
+            userRepository.save(ravi);
+            log.info("Migrated existing user ravi@memoryverse.com -> ramesh@memoryverse.com (Admin 2)");
+        } else if (raviOpt.isPresent() && rameshOpt.isPresent()) {
+            User ravi = raviOpt.get();
+            ravi.setEmail("ravi_archive@memoryverse.com");
+            userRepository.save(ravi);
         }
 
-        log.info("Starting initial seed data population for MemoryVerse...");
+        // 2. Seed or Update Admin 1: Raman (admin@memoryverse.com)
+        User raman = seedOrUpdateUser("admin@memoryverse.com", "Raman", Role.ADMIN,
+                "/api/media/raw/users_details/raman.jpg", defaultPass);
 
-        // 1. Seed Admin User
-        User admin = User.builder()
-                .email("admin@memoryverse.com")
-                .password(passwordEncoder.encode("password123"))
-                .fullName("Arjun Verma")
-                .avatarUrl("https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80")
-                .role(Role.ADMIN)
-                .build();
-        admin = userRepository.save(admin);
-        log.info("Seeded ADMIN user: admin@memoryverse.com / password123");
+        // 3. Seed or Update Admin 2: Ramesh (ramesh@memoryverse.com)
+        User ramesh = seedOrUpdateUser("ramesh@memoryverse.com", "Ramesh", Role.ADMIN,
+                "/api/media/raw/users_details/ramesh.jpg", defaultPass);
 
-        // 2. Seed Member User
-        User member = User.builder()
-                .email("ravi@memoryverse.com")
-                .password(passwordEncoder.encode("password123"))
-                .fullName("Ravi Teja")
-                .avatarUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80")
-                .role(Role.MEMBER)
-                .build();
-        member = userRepository.save(member);
-        log.info("Seeded MEMBER user: ravi@memoryverse.com / password123");
+        // 4. Seed or Update Standard Members
+        seedOrUpdateUser("govardhan@memoryverse.com", "Govardhan", Role.MEMBER,
+                "/api/media/raw/users_details/govardhan.jpg", defaultPass);
 
-        // 3. Seed College Journey
-        Journey btechJourney = Journey.builder()
-                .title("B.Tech College Days")
-                .slug("btech-college-days")
-                .description("Four unforgettable years of friendships, late night canteen talks, lab viva panics, and building memories that will last a lifetime.")
-                .coverImageUrl("https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80")
-                .startDate(LocalDate.of(2018, 8, 1))
-                .endDate(LocalDate.of(2022, 6, 30))
-                .displayOrder(1)
-                .isActive(true)
-                .createdBy(admin)
-                .build();
+        seedOrUpdateUser("shayam@memoryverse.com", "Shayam", Role.MEMBER,
+                "/api/media/raw/users_details/shayam.jpg", defaultPass);
 
-        btechJourney.addSection(JourneySection.builder()
-                .title("First Year & Hostel Beginnings")
-                .description("The nervous excitement of stepping into college, freshers welcome, and midnight chai runs.")
-                .displayOrder(1)
-                .startDate(LocalDate.of(2018, 8, 1))
-                .endDate(LocalDate.of(2019, 5, 31))
-                .build());
+        seedOrUpdateUser("narasimha@memoryverse.com", "Narasimha", Role.MEMBER,
+                "/api/media/raw/users_details/narasimha.jpg", defaultPass);
 
-        btechJourney.addSection(JourneySection.builder()
-                .title("Campus Fests & Hackathons")
-                .description("All-nighter coding sprints, cultural fest prep, and taking over the college auditorium.")
-                .displayOrder(2)
-                .startDate(LocalDate.of(2019, 8, 1))
-                .endDate(LocalDate.of(2020, 3, 15))
-                .build());
+        seedOrUpdateUser("raju@memoryverse.com", "Raju", Role.MEMBER,
+                "/api/media/raw/users_details/raju.jpg", defaultPass);
 
-        btechJourney.addSection(JourneySection.builder()
-                .title("Graduation & The Goa Trip")
-                .description("The legendary final trip, emotional goodbyes, throwing caps in the air, and promising to stay connected forever.")
-                .displayOrder(3)
-                .startDate(LocalDate.of(2022, 1, 1))
-                .endDate(LocalDate.of(2022, 6, 30))
-                .build());
+        seedOrUpdateUser("yugandar@memoryverse.com", "Yugandar", Role.MEMBER,
+                "/api/media/raw/users_details/yugandar.jpg", defaultPass);
 
-        journeyRepository.save(btechJourney);
+        seedOrUpdateUser("hemanth@memoryverse.com", "Hemanth", Role.MEMBER,
+                "/api/media/raw/users_details/hemanth.jpg", defaultPass);
 
-        // 4. Seed Reunion / Trips Journey
-        Journey tripsJourney = Journey.builder()
-                .title("Road Trips & Reunions")
-                .slug("road-trips-and-reunions")
-                .description("Catching up across different cities after graduation. Exploring the western ghats, camping, and reliving the good old days.")
-                .coverImageUrl("https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?auto=format&fit=crop&w=1200&q=80")
-                .startDate(LocalDate.of(2022, 10, 1))
-                .endDate(LocalDate.of(2024, 12, 31))
-                .displayOrder(2)
-                .isActive(true)
-                .createdBy(member)
-                .build();
+        // 5. If Journeys do not exist, seed initial B.Tech Journey
+        if (journeyRepository.count() == 0) {
+            log.info("Seeding initial B.Tech College Days Journey...");
+            Journey btechJourney = Journey.builder()
+                    .title("B.Tech College Days")
+                    .slug("btech-college-days")
+                    .description("Four unforgettable years of friendships, late night coding, mess food debates, exam panics, and countless memories.")
+                    .coverImageUrl("/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg")
+                    .startDate(LocalDate.of(2020, 8, 1))
+                    .endDate(LocalDate.of(2024, 5, 31))
+                    .displayOrder(1)
+                    .isActive(true)
+                    .createdBy(raman)
+                    .build();
 
-        tripsJourney.addSection(JourneySection.builder()
-                .title("Coorg Monsoon Escape")
-                .description("Coffee plantations, mist-covered hills, and non-stop reminiscing.")
-                .displayOrder(1)
-                .startDate(LocalDate.of(2023, 7, 14))
-                .endDate(LocalDate.of(2023, 7, 17))
-                .build());
+            JourneySection sec1 = JourneySection.builder()
+                    .title("First Year — Beginnings & Hostel Life")
+                    .description("Fresh faces, campus orientations, late-night hostel hangouts, and surviving early 8 AM lectures.")
+                    .displayOrder(1)
+                    .startDate(LocalDate.of(2020, 8, 1))
+                    .endDate(LocalDate.of(2021, 5, 31))
+                    .build();
 
-        journeyRepository.save(tripsJourney);
+            JourneySection sec2 = JourneySection.builder()
+                    .title("Second Year — Campus Life & Coding")
+                    .description("The core engineering grind, practical labs, canteen conversations, and hackathon all-nighters.")
+                    .displayOrder(2)
+                    .startDate(LocalDate.of(2021, 8, 1))
+                    .endDate(LocalDate.of(2022, 5, 31))
+                    .build();
 
-        // 5. Seed Initial Memories
-        JourneySection graduationSection = btechJourney.getSections().get(2); // Graduation & The Goa Trip
-        Memory goaMemory = Memory.builder()
-                .title("Sunset at Vagator Beach — Our Final College Evening")
-                .story("After 4 chaotic and beautiful years, all of us gathered at the edge of the cliffs watching the sun dip into the Arabian Sea. We promised each other that no matter which cities or careers we end up in, this bond will never fade.")
-                .memoryDate(LocalDate.of(2022, 5, 18))
-                .locationName("Vagator Beach, Goa")
-                .latitude(15.5997)
-                .longitude(73.7389)
-                .isFeatured(true)
-                .journey(btechJourney)
-                .section(graduationSection)
-                .createdBy(admin)
-                .build();
-        goaMemory.tagUser(member);
+            JourneySection sec3 = JourneySection.builder()
+                    .title("Third Year — Tech Fests & Road Trips")
+                    .description("Annual college fests, cultural nights, sunset chai sessions, and unforgettable road trips with the gang.")
+                    .displayOrder(3)
+                    .startDate(LocalDate.of(2022, 8, 1))
+                    .endDate(LocalDate.of(2023, 5, 31))
+                    .build();
 
-        goaMemory.addMedia(com.memoryverse.modules.media.Media.builder()
-                .mediaUrl("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80")
-                .thumbnailUrl("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80")
-                .mediaType(com.memoryverse.modules.media.MediaType.IMAGE)
-                .fileName("sunset_vagator.jpg")
-                .displayOrder(1)
-                .build());
+            JourneySection sec4 = JourneySection.builder()
+                    .title("Final Year — Capstone & Farewell")
+                    .description("Major project submissions, placement celebrations, campus goodbyes, and the grand farewell party.")
+                    .displayOrder(4)
+                    .startDate(LocalDate.of(2023, 8, 1))
+                    .endDate(LocalDate.of(2024, 5, 31))
+                    .build();
 
-        goaMemory.addMedia(com.memoryverse.modules.media.Media.builder()
-                .mediaUrl("https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80")
-                .thumbnailUrl("https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80")
-                .mediaType(com.memoryverse.modules.media.MediaType.IMAGE)
-                .fileName("friends_cheers.jpg")
-                .displayOrder(2)
-                .build());
+            btechJourney.addSection(sec1);
+            btechJourney.addSection(sec2);
+            btechJourney.addSection(sec3);
+            btechJourney.addSection(sec4);
 
-        memoryRepository.save(goaMemory);
+            journeyRepository.save(btechJourney);
+            log.info("Seeded B.Tech journey with 4 chapters.");
+        }
 
-        JourneySection hackathonSection = btechJourney.getSections().get(1); // Campus Fests & Hackathons
-        Memory hackathonMemory = Memory.builder()
-                .title("Winning 1st Place at National Smart India Hackathon")
-                .story("36 hours without sleep, 14 cups of Nescafe coffee, and our laptop chargers tangled in the lab corner. When they announced 'Team MemoryVerse' on stage, we couldn't believe we actually pulled it off!")
-                .memoryDate(LocalDate.of(2020, 2, 22))
-                .locationName("Campus Auditorium & CS Lab")
-                .isFeatured(true)
-                .journey(btechJourney)
-                .section(hackathonSection)
-                .createdBy(member)
-                .build();
-        hackathonMemory.tagUser(admin);
+        log.info("Group members initialization successfully completed.");
+    }
 
-        hackathonMemory.addMedia(com.memoryverse.modules.media.Media.builder()
-                .mediaUrl("https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80")
-                .thumbnailUrl("https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80")
-                .mediaType(com.memoryverse.modules.media.MediaType.IMAGE)
-                .fileName("hackathon_team.jpg")
-                .displayOrder(1)
-                .build());
-
-        memoryRepository.save(hackathonMemory);
-        log.info("Seeded initial journeys, chapters, and memories.");
+    private User seedOrUpdateUser(String email, String fullName, Role role, String avatarUrl, String encodedPassword) {
+        Optional<User> existing = userRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            User user = existing.get();
+            user.setFullName(fullName);
+            user.setRole(role);
+            user.setAvatarUrl(avatarUrl);
+            user.setPassword(encodedPassword);
+            User updated = userRepository.save(user);
+            log.info("Updated existing member: {} ({}) [{}] with avatar {}", fullName, email, role, avatarUrl);
+            return updated;
+        } else {
+            User newUser = User.builder()
+                    .email(email)
+                    .fullName(fullName)
+                    .password(encodedPassword)
+                    .role(role)
+                    .avatarUrl(avatarUrl)
+                    .build();
+            User saved = userRepository.save(newUser);
+            log.info("Seeded new member: {} ({}) [{}] with avatar {}", fullName, email, role, avatarUrl);
+            return saved;
+        }
     }
 }

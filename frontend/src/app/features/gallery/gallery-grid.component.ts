@@ -12,6 +12,7 @@ import { MediaType } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { GalleryService } from '@core/services/gallery.service';
 import { JourneyService } from '@core/services/journey.service';
+import { DownloadService } from '@core/services/download.service';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 
 @Component({
@@ -126,6 +127,16 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
                   @if (item.journeyTitle) {
                     <span class="journey-tag">{{ item.journeyTitle }}</span>
                   }
+                  <button mat-icon-button class="tile-dl-btn" 
+                          (click)="$event.stopPropagation(); downloadMedia(item)" 
+                          [disabled]="downloadService.isDownloading(item.mediaUrl)"
+                          title="Download high-quality file">
+                    @if (downloadService.isDownloading(item.mediaUrl)) {
+                      <mat-spinner diameter="16"></mat-spinner>
+                    } @else {
+                      <mat-icon>download</mat-icon>
+                    }
+                  </button>
                 </div>
 
                 <div class="overlay-bottom">
@@ -322,6 +333,38 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
       opacity: 1;
     }
 
+    .overlay-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .tile-dl-btn {
+      width: 32px !important;
+      height: 32px !important;
+      color: #ffffff !important;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+      margin-left: auto;
+      &:hover {
+        background: rgba(0, 0, 0, 0.85);
+      }
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+      ::ng-deep circle {
+        stroke: #ffffff !important;
+      }
+    }
+
     .journey-tag {
       font-size: 0.68rem;
       font-weight: 700;
@@ -480,5 +523,15 @@ export class GalleryGridComponent implements OnInit {
       day: 'numeric',
       year: 'numeric'
     });
+  }
+
+  readonly downloadService = inject(DownloadService);
+
+  async downloadMedia(item: GalleryItem): Promise<void> {
+    const ext = item.mediaType === 'VIDEO' ? '.mp4' : '.jpg';
+    let base = item.memoryTitle ? item.memoryTitle.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'memory';
+    while (base.includes('__')) base = base.replace('__', '_');
+    const fileName = `${base}${ext}`;
+    await this.downloadService.downloadMedia(item.mediaUrl, fileName);
   }
 }

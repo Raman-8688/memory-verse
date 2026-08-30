@@ -50,6 +50,12 @@ import { NotificationStateService } from '@core/services/notification-state.serv
               <mat-icon>person_outline</mat-icon>
               <span>Profile</span>
             </a>
+            @if (authService.isAdmin()) {
+              <a mat-menu-item routerLink="/admin/group">
+                <mat-icon>manage_accounts</mat-icon>
+                <span>Group Management</span>
+              </a>
+            }
             <button mat-menu-item (click)="authService.logout()">
               <mat-icon>logout</mat-icon>
               <span>Sign Out</span>

@@ -12,4 +12,14 @@ export class UserService {
   getAllUsers(): Observable<User[]> {
     return this.api.get<User[]>('/users');
   }
+
+  updateUser(id: string, payload: { fullName: string; role: string; avatarUrl?: string }): Observable<User> {
+    return this.api.put<User>(`/users/${id}`, payload);
+  }
+
+  uploadAvatar(id: string, file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.post<User>(`/users/${id}/avatar`, formData);
+  }
 }
