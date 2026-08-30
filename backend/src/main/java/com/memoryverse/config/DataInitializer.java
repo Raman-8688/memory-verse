@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.memoryverse.modules.memory.Memory;
+import com.memoryverse.modules.memory.MemoryRepository;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,6 +26,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final JourneyRepository journeyRepository;
+    private final MemoryRepository memoryRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -117,6 +121,63 @@ public class DataInitializer implements CommandLineRunner {
                 .build());
 
         journeyRepository.save(tripsJourney);
-        log.info("Seeded initial journeys and chapters.");
+
+        // 5. Seed Initial Memories
+        JourneySection graduationSection = btechJourney.getSections().get(2); // Graduation & The Goa Trip
+        Memory goaMemory = Memory.builder()
+                .title("Sunset at Vagator Beach — Our Final College Evening")
+                .story("After 4 chaotic and beautiful years, all of us gathered at the edge of the cliffs watching the sun dip into the Arabian Sea. We promised each other that no matter which cities or careers we end up in, this bond will never fade.")
+                .memoryDate(LocalDate.of(2022, 5, 18))
+                .locationName("Vagator Beach, Goa")
+                .latitude(15.5997)
+                .longitude(73.7389)
+                .isFeatured(true)
+                .journey(btechJourney)
+                .section(graduationSection)
+                .createdBy(admin)
+                .build();
+        goaMemory.tagUser(member);
+
+        goaMemory.addMedia(com.memoryverse.modules.media.Media.builder()
+                .mediaUrl("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80")
+                .thumbnailUrl("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80")
+                .mediaType(com.memoryverse.modules.media.MediaType.IMAGE)
+                .fileName("sunset_vagator.jpg")
+                .displayOrder(1)
+                .build());
+
+        goaMemory.addMedia(com.memoryverse.modules.media.Media.builder()
+                .mediaUrl("https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80")
+                .thumbnailUrl("https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80")
+                .mediaType(com.memoryverse.modules.media.MediaType.IMAGE)
+                .fileName("friends_cheers.jpg")
+                .displayOrder(2)
+                .build());
+
+        memoryRepository.save(goaMemory);
+
+        JourneySection hackathonSection = btechJourney.getSections().get(1); // Campus Fests & Hackathons
+        Memory hackathonMemory = Memory.builder()
+                .title("Winning 1st Place at National Smart India Hackathon")
+                .story("36 hours without sleep, 14 cups of Nescafe coffee, and our laptop chargers tangled in the lab corner. When they announced 'Team MemoryVerse' on stage, we couldn't believe we actually pulled it off!")
+                .memoryDate(LocalDate.of(2020, 2, 22))
+                .locationName("Campus Auditorium & CS Lab")
+                .isFeatured(true)
+                .journey(btechJourney)
+                .section(hackathonSection)
+                .createdBy(member)
+                .build();
+        hackathonMemory.tagUser(admin);
+
+        hackathonMemory.addMedia(com.memoryverse.modules.media.Media.builder()
+                .mediaUrl("https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80")
+                .thumbnailUrl("https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80")
+                .mediaType(com.memoryverse.modules.media.MediaType.IMAGE)
+                .fileName("hackathon_team.jpg")
+                .displayOrder(1)
+                .build());
+
+        memoryRepository.save(hackathonMemory);
+        log.info("Seeded initial journeys, chapters, and memories.");
     }
 }
