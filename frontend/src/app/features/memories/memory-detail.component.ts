@@ -4,8 +4,11 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Memory, Media } from '@core/models/memory.model';
+import { GalleryItem } from '@core/models/gallery.model';
 import { MemoryService } from '@core/services/memory.service';
+import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 
 @Component({
   selector: 'mv-memory-detail',
@@ -15,7 +18,8 @@ import { MemoryService } from '@core/services/memory.service';
     RouterModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   template: `
     @if (isLoading()) {
@@ -34,7 +38,7 @@ import { MemoryService } from '@core/services/memory.service';
 
           <!-- Primary Hero Media Showcase -->
           @if (activeMedia(); as hero) {
-            <div class="hero-media-container">
+            <div class="hero-media-container" (click)="openLightbox(0)" style="cursor: pointer;" title="Click to view fullscreen">
               @if (hero.mediaType === 'VIDEO') {
                 <video [src]="hero.mediaUrl" controls class="hero-media-element" autoplay [muted]="true"></video>
               } @else {
@@ -455,6 +459,44 @@ export class MemoryDetailComponent implements OnInit {
 
   setActiveMedia(media: Media): void {
     this.activeMedia.set(media);
+  }
+
+  private readonly dialog = inject(MatDialog);
+
+  openLightbox(startIndex: number = 0): void {
+    const mem = this.memory();
+    if (!mem || !mem.mediaList || mem.mediaList.length === 0) return;
+
+    const galleryItems: GalleryItem[] = mem.mediaList.map(m => ({
+      id: m.id,
+      mediaUrl: m.mediaUrl,
+      thumbnailUrl: m.thumbnailUrl,
+      mediaType: m.mediaType,
+      fileName: m.fileName,
+      width: m.width,
+      height: m.height,
+      durationSeconds: m.durationSeconds,
+      displayOrder: m.displayOrder,
+      memoryId: mem.id,
+      memoryTitle: mem.title,
+      memoryDate: mem.memoryDate,
+      locationName: mem.locationName,
+      journeyId: mem.journeyId,
+      journeyTitle: mem.journeyTitle,
+      uploader: mem.createdBy,
+      taggedUsers: mem.taggedUsers,
+      createdAt: m.createdAt
+    }));
+
+    this.dialog.open(MediaViewerModalComponent, {
+      data: { items: galleryItems, startIndex },
+      panelClass: 'fullscreen-dialog-panel',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      width: '100vw',
+      height: '100vh',
+      hasBackdrop: false
+    });
   }
 
   formatDate(dateStr: string): string {

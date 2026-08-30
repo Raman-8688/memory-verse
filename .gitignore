@@ -20,3 +20,9 @@ frontend/coverage/
 # Environment / Local Secrets
 .env
 *.local
+
+
+# Local testing media
+raw_data/
+"*.zip" 
+"raw_data/" 

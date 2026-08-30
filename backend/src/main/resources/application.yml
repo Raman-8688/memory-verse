@@ -21,3 +21,4 @@ app:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:placeholder-cloud-name}
     api-key: ${CLOUDINARY_API_KEY:placeholder-api-key}
     api-secret: ${CLOUDINARY_API_SECRET:placeholder-api-secret}
+  seed-local-media: ${SEED_LOCAL_MEDIA:false}
