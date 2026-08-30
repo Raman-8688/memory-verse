@@ -802,11 +802,33 @@ interface PreviewMedia {
     }
 
     @media (max-width: 640px) {
+      .stepper-page {
+        padding: var(--space-2);
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+      .stepper-card {
+        border-radius: var(--radius-md);
+      }
+      .step-content {
+        padding: var(--space-3) var(--space-2);
+      }
       .two-col {
         grid-template-columns: 1fr;
+        gap: var(--space-2);
       }
       .summary-hero-media {
         height: 200px;
+      }
+      .step-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+        button {
+          width: 100%;
+        }
+      }
+      .editorial-title {
+        font-size: 1.8rem;
       }
     }
   `]
