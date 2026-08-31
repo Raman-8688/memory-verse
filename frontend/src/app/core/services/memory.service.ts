@@ -39,6 +39,22 @@ export class MemoryService {
     );
   }
 
+  createMemoryWithProgress(dto: MemoryCreateDto, files?: File[]): Observable<any> {
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(dto));
+
+    if (files && files.length > 0) {
+      files.forEach(file => {
+        formData.append('files', file);
+      });
+    }
+
+    return this.http.post<ApiResponse<Memory>>(`${this.baseUrl}/memories`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
   getTaggedMemories(userId?: string, page = 0, size = 30): Observable<PagedResponse<Memory>> {
     return this.api.get<PagedResponse<Memory>>('/memories/tagged', { userId, page, size });
   }
