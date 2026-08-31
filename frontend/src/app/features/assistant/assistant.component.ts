@@ -218,6 +218,9 @@ import { MediaViewerData, MediaViewerModalComponent } from '@shared/components/m
     :host {
       display: block;
       height: 100%;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
 
     .assistant-page {
@@ -225,8 +228,11 @@ import { MediaViewerData, MediaViewerModalComponent } from '@shared/components/m
       flex-direction: column;
       height: calc(100vh - 72px);
       max-width: 1040px;
+      width: 100%;
       margin: 0 auto;
       background-color: var(--mv-bg-main);
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
 
     /* Header */

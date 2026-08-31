@@ -64,11 +64,12 @@ public class AiOrchestratorService {
 
         // 1. Resolve or Create Conversation
         AiConversation conversation = resolveOrCreateConversation(user, request.getConversationId());
+        long startTime = System.currentTimeMillis();
         String conversationIdStr = conversation.getId().toString();
         String userMessage = request.getMessage().trim();
 
-        log.info("Processing contextual AI Chat: userId={}, conversationId='{}', prompt='{}'",
-                userId, conversationIdStr, userMessage);
+        log.info("Processing contextual AI Chat: userId={}, conversationId='{}', promptLength={}",
+                userId, conversationIdStr, userMessage.length());
 
         // Security check: intercept attempts to probe system configurations or credentials
         String lower = userMessage.toLowerCase();
@@ -76,6 +77,10 @@ public class AiOrchestratorService {
                 || lower.contains("database url") || lower.contains("api key") || lower.contains("ignore previous instructions")) {
             String securityRefusal = "I am designed solely to help you explore and preserve your memories, and cannot discuss or disclose internal system configurations or credentials.";
             saveMessageHistory(conversation, userMessage, securityRefusal);
+
+            long durationMs = System.currentTimeMillis() - startTime;
+            log.info("AI Chat security intercepted: userId={}, conversationId={}, durationMs={}",
+                    userId, conversationIdStr, durationMs);
 
             return AiChatResponseDto.builder()
                     .conversationId(conversationIdStr)
@@ -86,31 +91,42 @@ public class AiOrchestratorService {
                     .build();
         }
 
-        // 2. Load Rolling History (Max 6 Messages to prevent context window overflow)
-        List<AiMessage> recentDbMessages = aiMessageRepository.findTop6ByConversationIdOrderByCreatedAtDesc(conversation.getId());
-        List<AiMessage> chronologicalHistory = new ArrayList<>(recentDbMessages);
-        Collections.reverse(chronologicalHistory); // Chronological order: oldest -> newest
+        try {
+            // 2. Load Rolling History (Max 6 Messages to prevent context window overflow)
+            List<AiMessage> recentDbMessages = aiMessageRepository.findTop6ByConversationIdOrderByCreatedAtDesc(conversation.getId());
+            List<AiMessage> chronologicalHistory = new ArrayList<>(recentDbMessages);
+            Collections.reverse(chronologicalHistory); // Chronological order: oldest -> newest
 
-        List<Message> springAiHistory = mapToSpringAiMessages(chronologicalHistory);
+            List<Message> springAiHistory = mapToSpringAiMessages(chronologicalHistory);
 
-        // 3. Structured Intent Extraction (Aware of Recent Conversation Topic)
-        MemorySearchCriteria criteria = extractContextualSearchCriteria(userMessage, chronologicalHistory);
-        log.info("Contextual Intent Extraction: mode={}, mediaType={}, keywords={}, journey={}, section={}",
-                criteria.getMode(), criteria.getMediaType(), criteria.getKeywords(),
-                criteria.getJourneyName(), criteria.getSectionName());
+            // 3. Structured Intent Extraction (Aware of Recent Conversation Topic)
+            MemorySearchCriteria criteria = extractContextualSearchCriteria(userMessage, chronologicalHistory);
+            log.info("Contextual Intent Extraction: mode={}, mediaType={}, keywordsCount={}, journey={}, section={}",
+                    criteria.getMode(), criteria.getMediaType(), criteria.getKeywords() != null ? criteria.getKeywords().size() : 0,
+                    criteria.getJourneyName(), criteria.getSectionName());
 
-        // 4. Dual-Mode Execution with Context
-        AiChatResponseDto response;
-        if ("MEMORY".equalsIgnoreCase(criteria.getMode())) {
-            response = executeMemoryMode(conversationIdStr, userMessage, criteria, springAiHistory);
-        } else {
-            response = executeGeneralMode(conversationIdStr, userMessage, springAiHistory);
+            // 4. Dual-Mode Execution with Context
+            AiChatResponseDto response;
+            if ("MEMORY".equalsIgnoreCase(criteria.getMode())) {
+                response = executeMemoryMode(conversationIdStr, userMessage, criteria, springAiHistory);
+            } else {
+                response = executeGeneralMode(conversationIdStr, userMessage, springAiHistory);
+            }
+
+            // 5. Persist Chat Messages to Database
+            saveMessageHistory(conversation, userMessage, response.getAnswer());
+
+            long durationMs = System.currentTimeMillis() - startTime;
+            log.info("AI Chat completed successfully: userId={}, conversationId={}, mode={}, durationMs={}",
+                    userId, conversationIdStr, response.getMode(), durationMs);
+
+            return response;
+        } catch (Exception ex) {
+            long durationMs = System.currentTimeMillis() - startTime;
+            log.error("AI Chat processing failed after {}ms for conversation {}: {}",
+                    durationMs, conversationIdStr, ex.getMessage());
+            throw new com.memoryverse.common.exception.AiServiceException("The Memory Assistant is currently busy. Please try again.", ex);
         }
-
-        // 5. Persist Chat Messages to Database
-        saveMessageHistory(conversation, userMessage, response.getAnswer());
-
-        return response;
     }
 
     /**

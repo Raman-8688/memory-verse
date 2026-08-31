@@ -120,6 +120,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ApiError> handleAiServiceException(AiServiceException ex, HttpServletRequest request) {
+        log.error("AI Assistant service error at {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiError error = ApiError.builder()
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .error("AI Service Unavailable")
+                .message("The Memory Assistant is currently busy or temporarily unavailable. Please try again.")
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneralException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled server exception at path: {}", request.getRequestURI(), ex);
