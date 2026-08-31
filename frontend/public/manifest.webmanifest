@@ -1,0 +1,17 @@
+{
+  "name": "MemoryVerse — Digital Memory Archive",
+  "short_name": "MemoryVerse",
+  "description": "Private digital nostalgia archive and storytelling application for close friends and batchmates.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fcfbf9",
+  "theme_color": "#fcfbf9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

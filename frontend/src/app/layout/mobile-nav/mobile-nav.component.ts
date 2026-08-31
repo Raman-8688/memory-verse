@@ -1,12 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import { MediaCaptureService } from '@core/services/media-capture.service';
 
 @Component({
   selector: 'mv-mobile-nav',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule],
+  imports: [CommonModule, RouterModule, MatIconModule, MatBottomSheetModule],
   template: `
     <nav class="mobile-bottom-nav">
       <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="mobile-tab">
@@ -17,12 +19,12 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-icon>auto_stories</mat-icon>
         <span>Journeys</span>
       </a>
-      <a routerLink="/memories" routerLinkActive="active" class="mobile-tab center-action">
+      <button type="button" class="mobile-tab center-action" (click)="openCapture()" aria-label="Quick Add Media">
         <div class="action-bubble">
-          <mat-icon>add</mat-icon>
+          <mat-icon>photo_camera</mat-icon>
         </div>
-        <span>Memory</span>
-      </a>
+        <span>Capture</span>
+      </button>
       <a routerLink="/gallery" routerLinkActive="active" class="mobile-tab">
         <mat-icon>collections</mat-icon>
         <span>Gallery</span>
@@ -98,6 +100,13 @@ import { MatIconModule } from '@angular/material/icon';
       height: 22px;
     }
 
+    .mobile-tab.center-action {
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
     @media (min-width: 1024px) {
       .mobile-bottom-nav {
         display: none;
@@ -105,4 +114,10 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class MobileNavComponent {}
+export class MobileNavComponent {
+  private readonly captureService = inject(MediaCaptureService);
+
+  openCapture(): void {
+    this.captureService.openCaptureFlow();
+  }
+}
