@@ -89,6 +89,54 @@ public class NvidiaNimProvider implements AiModelProvider {
     }
 
     @Override
+    public String generateWithHistory(String systemPrompt, List<org.springframework.ai.chat.messages.Message> history, String userPrompt) {
+        if (apiKey == null || apiKey.isBlank() || apiKey.contains("placeholder")) {
+            log.warn("NVIDIA NIM API key is not configured or placeholder.");
+            return "NVIDIA NIM API key is not configured in environment (NVIDIA_API_KEY).";
+        }
+
+        List<org.springframework.ai.chat.messages.Message> allMessages = new java.util.ArrayList<>();
+        allMessages.add(new SystemMessage(systemPrompt));
+        if (history != null && !history.isEmpty()) {
+            allMessages.addAll(history);
+        }
+        allMessages.add(new UserMessage(userPrompt));
+
+        try {
+            log.info("Calling NVIDIA NIM API with model: {} and {} history messages", primaryModel, history != null ? history.size() : 0);
+            return executeCallWithMessages(primaryModel, allMessages);
+        } catch (Exception e) {
+            log.warn("Primary model {} invocation failed: {}. Attempting fallback models...", primaryModel, e.getMessage());
+
+            for (String fallbackModel : FALLBACK_MODELS) {
+                if (fallbackModel.equalsIgnoreCase(primaryModel)) {
+                    continue;
+                }
+                try {
+                    log.info("Attempting fallback with NVIDIA NIM model: {}", fallbackModel);
+                    return executeCallWithMessages(fallbackModel, allMessages);
+                } catch (Exception fallbackEx) {
+                    log.warn("Fallback model {} failed: {}", fallbackModel, fallbackEx.getMessage());
+                }
+            }
+
+            log.error("All configured NVIDIA NIM models failed to generate response.");
+            return "The AI service encountered difficulty communicating with the language model provider.";
+        }
+    }
+
+    private String executeCallWithMessages(String targetModel, List<org.springframework.ai.chat.messages.Message> messages) {
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .withModel(targetModel)
+                .withTemperature(0.2)
+                .withMaxTokens(2048)
+                .build();
+
+        Prompt prompt = new Prompt(messages, options);
+        return chatModel.call(prompt).getResult().getOutput().getContent();
+    }
+
+    @Override
     public String getActiveModelName() {
         return primaryModel;
     }
