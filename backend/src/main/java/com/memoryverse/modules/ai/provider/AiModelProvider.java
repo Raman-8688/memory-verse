@@ -22,6 +22,12 @@ public interface AiModelProvider {
     String generateWithModel(String modelName, String systemPrompt, String userPrompt);
 
     /**
+     * Generate text completion taking into account a limited rolling window
+     * of prior conversation messages.
+     */
+    String generateWithHistory(String systemPrompt, java.util.List<org.springframework.ai.chat.messages.Message> history, String userPrompt);
+
+    /**
      * Returns the current active model identifier.
      */
     String getActiveModelName();
