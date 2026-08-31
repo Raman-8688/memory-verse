@@ -4,13 +4,15 @@ import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { AuthService } from '@core/auth/auth.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
+import { MediaCaptureService } from '@core/services/media-capture.service';
 
 @Component({
   selector: 'mv-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [CommonModule, RouterModule, MatButtonModule, MatIconModule, MatMenuModule, MatBottomSheetModule],
   template: `
     <header class="navbar">
       <div class="navbar-brand">
@@ -21,6 +23,11 @@ import { NotificationStateService } from '@core/services/notification-state.serv
       </div>
 
       <div class="navbar-actions">
+        <button mat-stroked-button class="quick-capture-btn" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
+          <mat-icon>add_a_photo</mat-icon>
+          <span class="btn-text">Capture</span>
+        </button>
+
         <button mat-icon-button class="assistant-btn" routerLink="/assistant" aria-label="Memory Assistant" title="Memory Assistant">
           <mat-icon>auto_awesome</mat-icon>
         </button>
@@ -194,12 +201,30 @@ import { NotificationStateService } from '@core/services/notification-state.serv
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
 
+    .quick-capture-btn {
+      border-color: var(--mv-primary);
+      color: var(--mv-primary);
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0 14px;
+      height: 36px;
+    }
+
+    .quick-capture-btn:hover {
+      background-color: #fef3c7;
+    }
+
     @media (max-width: 640px) {
       .navbar {
         padding: 0 var(--space-2);
       }
-      .user-name {
+      .user-name, .btn-text {
         display: none;
+      }
+      .quick-capture-btn {
+        padding: 0 8px;
+        min-width: 36px;
       }
     }
   `]
@@ -207,4 +232,5 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 export class NavbarComponent {
   readonly authService = inject(AuthService);
   readonly notificationState = inject(NotificationStateService);
+  readonly captureService = inject(MediaCaptureService);
 }
