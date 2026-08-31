@@ -109,6 +109,7 @@ export class SidebarComponent {
     { path: '/journeys', label: 'Journeys', icon: 'auto_stories' },
     { path: '/memories', label: 'Memories', icon: 'photo_library' },
     { path: '/gallery', label: 'Media Gallery', icon: 'collections' },
+    { path: '/assistant', label: 'AI Assistant', icon: 'auto_awesome' },
     { path: '/notifications', label: 'Notifications', icon: 'notifications' },
     { path: '/profile', label: 'My Profile', icon: 'person' }
   ];

@@ -21,6 +21,10 @@ import { NotificationStateService } from '@core/services/notification-state.serv
       </div>
 
       <div class="navbar-actions">
+        <button mat-icon-button class="assistant-btn" routerLink="/assistant" aria-label="Memory Assistant" title="Memory Assistant">
+          <mat-icon>auto_awesome</mat-icon>
+        </button>
+
         <button mat-icon-button class="notification-btn" routerLink="/notifications" aria-label="Notifications">
           <div class="bell-wrapper">
             <mat-icon>{{ notificationState.unreadCount() > 0 ? 'notifications' : 'notifications_none' }}</mat-icon>
@@ -153,6 +157,16 @@ import { NotificationStateService } from '@core/services/notification-state.serv
       color: var(--mv-primary);
       font-weight: 600;
       text-transform: uppercase;
+    }
+
+    .assistant-btn {
+      color: var(--mv-primary);
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .assistant-btn:hover {
+      background-color: var(--mv-bg-subtle);
+      transform: scale(1.05);
     }
 
     .bell-wrapper {

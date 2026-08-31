@@ -27,6 +27,10 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-icon>collections</mat-icon>
         <span>Gallery</span>
       </a>
+      <a routerLink="/assistant" routerLinkActive="active" class="mobile-tab">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>Assistant</span>
+      </a>
       <a routerLink="/profile" routerLinkActive="active" class="mobile-tab">
         <mat-icon>person</mat-icon>
         <span>Profile</span>
