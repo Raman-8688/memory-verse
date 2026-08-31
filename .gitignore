@@ -19,7 +19,12 @@ frontend/coverage/
 
 # Environment / Local Secrets
 .env
+.env.*
+*.env
 *.local
+*secrets.yml
+*secrets.properties
+backend/src/main/resources/application-secrets.yml
 
 
 # Local testing media

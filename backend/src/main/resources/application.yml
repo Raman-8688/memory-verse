@@ -1,12 +1,24 @@
 spring:
   application:
     name: memory-verse
+  config:
+    import:
+      - optional:classpath:application-secrets.yml
   profiles:
     active: dev
   servlet:
     multipart:
       max-file-size: 50MB
       max-request-size: 60MB
+  ai:
+    openai:
+      base-url: ${NVIDIA_BASE_URL:https://integrate.api.nvidia.com/v1}
+      api-key: ${NVIDIA_API_KEY:nvapi-placeholder-key}
+      chat:
+        options:
+          model: ${NVIDIA_MODEL:meta/llama-3.1-70b-instruct}
+          temperature: 0.2
+          max-tokens: 2048
 
 server:
   port: 8080
