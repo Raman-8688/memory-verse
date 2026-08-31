@@ -50,6 +50,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/notifications/notifications-list.component').then(m => m.NotificationsListComponent)
       },
       {
+        path: 'assistant',
+        loadComponent: () => import('./features/assistant/assistant.component').then(m => m.AssistantComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },
