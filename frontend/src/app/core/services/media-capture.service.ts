@@ -28,7 +28,6 @@ export class MediaCaptureService {
 
     ref.afterDismissed().subscribe((files: File[] | undefined) => {
       if (files && files.length > 0) {
-        console.log(`Successfully captured ${files.length} media file(s) in memory:`, files.map(f => f.name));
         this.setCapturedFiles(files);
         // Transition directly into dedicated quick add review screen
         this.router.navigate(['/capture/review']);

@@ -51,17 +51,26 @@ public class CloudinaryStorageService {
             }
         }
 
+        long startTime = System.currentTimeMillis();
+        UploadedMediaResult result;
+
         // Check if Cloudinary credentials are valid or placeholder
         if (cloudName != null && !cloudName.equals("placeholder-cloud-name") && !cloudName.isBlank()) {
             try {
-                return uploadToCloudinary(file, isVideo, originalFilename);
+                result = uploadToCloudinary(file, isVideo, originalFilename);
             } catch (Exception ex) {
                 log.warn("Cloudinary upload failed, falling back to local storage: {}", ex.getMessage());
+                result = uploadToLocal(file, isVideo, originalFilename);
             }
+        } else {
+            result = uploadToLocal(file, isVideo, originalFilename);
         }
 
-        // Local storage fallback
-        return uploadToLocal(file, isVideo, originalFilename);
+        long durationMs = System.currentTimeMillis() - startTime;
+        log.info("Media upload completed: filename='{}', sizeBytes={}, isVideo={}, durationMs={}",
+                originalFilename, file.getSize(), isVideo, durationMs);
+
+        return result;
     }
 
     @SuppressWarnings("rawtypes")

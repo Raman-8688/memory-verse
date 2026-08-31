@@ -232,13 +232,22 @@ interface PreviewItem {
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+
     .review-page {
       max-width: 1100px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: var(--space-4);
-      padding-bottom: var(--space-8);
+      padding: var(--space-3) var(--space-3) var(--space-8);
+      box-sizing: border-box;
+      width: 100%;
     }
 
     .review-header {
@@ -501,11 +510,19 @@ interface PreviewItem {
     }
 
     @media (max-width: 860px) {
+      .review-page {
+        padding: var(--space-2) var(--space-2) 90px;
+      }
       .review-layout {
         grid-template-columns: 1fr;
+        gap: var(--space-3);
       }
       .editorial-title {
         font-size: 1.75rem;
+      }
+      .previews-rail {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        max-height: 340px;
       }
       .form-row {
         flex-direction: column;
