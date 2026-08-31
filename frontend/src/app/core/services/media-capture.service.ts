@@ -30,8 +30,8 @@ export class MediaCaptureService {
       if (files && files.length > 0) {
         console.log(`Successfully captured ${files.length} media file(s) in memory:`, files.map(f => f.name));
         this.setCapturedFiles(files);
-        // Direct transition into creation wizard with captured files in memory
-        this.router.navigate(['/memories/new']);
+        // Transition directly into dedicated quick add review screen
+        this.router.navigate(['/capture/review']);
       }
     });
   }

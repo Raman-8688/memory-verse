@@ -42,6 +42,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/memories/memory-detail.component').then(m => m.MemoryDetailComponent)
       },
       {
+        path: 'capture/review',
+        loadComponent: () => import('./features/capture/quick-add-review.component').then(m => m.QuickAddReviewComponent)
+      },
+      {
         path: 'gallery',
         loadComponent: () => import('./features/gallery/gallery-grid.component').then(m => m.GalleryGridComponent)
       },
