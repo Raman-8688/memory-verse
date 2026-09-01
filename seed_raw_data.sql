@@ -121,33 +121,41 @@ BEGIN
     SELECT id INTO v_sec1_id FROM journey_sections WHERE journey_id = v_journey_id AND title LIKE 'First Year%';
     IF v_sec1_id IS NULL THEN
         v_sec1_id := gen_random_uuid();
-        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, created_at)
+        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, image_url, created_at)
         VALUES (v_sec1_id, 'First Year — Beginnings & Hostel Life', 'Fresh faces, campus orientations, late-night hostel hangouts, and surviving early 8 AM lectures.',
-                '2020-08-01', '2021-05-31', 1, v_journey_id, NOW());
+                '2020-08-01', '2021-05-31', 1, v_journey_id, '/api/media/raw/images/btech-2024/first_year/Screenshot_20210301_165025.jpg', NOW());
+    ELSE
+        UPDATE journey_sections SET image_url = '/api/media/raw/images/btech-2024/first_year/Screenshot_20210301_165025.jpg' WHERE id = v_sec1_id;
     END IF;
 
     SELECT id INTO v_sec2_id FROM journey_sections WHERE journey_id = v_journey_id AND title LIKE 'Second Year%';
     IF v_sec2_id IS NULL THEN
         v_sec2_id := gen_random_uuid();
-        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, created_at)
+        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, image_url, created_at)
         VALUES (v_sec2_id, 'Second Year — Campus Life & Coding', 'The core engineering grind, practical labs, canteen conversations, and hackathon all-nighters.',
-                '2021-08-01', '2022-05-31', 2, v_journey_id, NOW());
+                '2021-08-01', '2022-05-31', 2, v_journey_id, '/api/media/raw/images/btech-2024/second_year/IMG-20211231-WA0003.jpg', NOW());
+    ELSE
+        UPDATE journey_sections SET image_url = '/api/media/raw/images/btech-2024/second_year/IMG-20211231-WA0003.jpg' WHERE id = v_sec2_id;
     END IF;
 
     SELECT id INTO v_sec3_id FROM journey_sections WHERE journey_id = v_journey_id AND title LIKE 'Third Year%';
     IF v_sec3_id IS NULL THEN
         v_sec3_id := gen_random_uuid();
-        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, created_at)
+        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, image_url, created_at)
         VALUES (v_sec3_id, 'Third Year — Tech Fests & Road Trips', 'Annual college fests, cultural nights, sunset chai sessions, and unforgettable road trips with the gang.',
-                '2022-08-01', '2023-05-31', 3, v_journey_id, NOW());
+                '2022-08-01', '2023-05-31', 3, v_journey_id, '/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg', NOW());
+    ELSE
+        UPDATE journey_sections SET image_url = '/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg' WHERE id = v_sec3_id;
     END IF;
 
     SELECT id INTO v_sec4_id FROM journey_sections WHERE journey_id = v_journey_id AND title LIKE 'Final Year%';
     IF v_sec4_id IS NULL THEN
         v_sec4_id := gen_random_uuid();
-        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, created_at)
+        INSERT INTO journey_sections (id, title, description, start_date, end_date, display_order, journey_id, image_url, created_at)
         VALUES (v_sec4_id, 'Final Year — Capstone & Farewell', 'Major project submissions, placement celebrations, campus goodbyes, and the grand farewell party.',
-                '2023-08-01', '2024-05-31', 4, v_journey_id, NOW());
+                '2023-08-01', '2024-05-31', 4, v_journey_id, '/api/media/raw/images/btech-2024/final_year/IMG_20240523_155906.jpg', NOW());
+    ELSE
+        UPDATE journey_sections SET image_url = '/api/media/raw/images/btech-2024/final_year/IMG_20240523_155906.jpg' WHERE id = v_sec4_id;
     END IF;
 
     -- ====================================================================

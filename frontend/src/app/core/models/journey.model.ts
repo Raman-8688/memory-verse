@@ -5,6 +5,7 @@ export interface JourneySection {
   journeyId: string;
   title: string;
   description?: string;
+  imageUrl?: string;
   displayOrder: number;
   startDate?: string;
   endDate?: string;
@@ -30,9 +31,19 @@ export interface Journey {
 export interface JourneySectionCreateDto {
   title: string;
   description?: string;
+  imageUrl?: string | null;
   displayOrder?: number;
   startDate?: string;
   endDate?: string;
+}
+
+export interface JourneySectionUpdateDto {
+  title: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  displayOrder?: number;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 export interface JourneyCreateDto {

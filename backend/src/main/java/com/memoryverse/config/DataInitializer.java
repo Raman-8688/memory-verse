@@ -99,6 +99,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(1)
                     .startDate(LocalDate.of(2020, 8, 1))
                     .endDate(LocalDate.of(2021, 5, 31))
+                    .imageUrl("/api/media/raw/images/btech-2024/first_year/Screenshot_20210301_165025.jpg")
                     .build();
 
             JourneySection sec2 = JourneySection.builder()
@@ -107,6 +108,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(2)
                     .startDate(LocalDate.of(2021, 8, 1))
                     .endDate(LocalDate.of(2022, 5, 31))
+                    .imageUrl("/api/media/raw/images/btech-2024/second_year/IMG-20211231-WA0003.jpg")
                     .build();
 
             JourneySection sec3 = JourneySection.builder()
@@ -115,6 +117,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(3)
                     .startDate(LocalDate.of(2022, 8, 1))
                     .endDate(LocalDate.of(2023, 5, 31))
+                    .imageUrl("/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg")
                     .build();
 
             JourneySection sec4 = JourneySection.builder()
@@ -123,6 +126,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(4)
                     .startDate(LocalDate.of(2023, 8, 1))
                     .endDate(LocalDate.of(2024, 5, 31))
+                    .imageUrl("/api/media/raw/images/btech-2024/final_year/IMG_20240523_155906.jpg")
                     .build();
 
             btechJourney.addSection(sec1);
@@ -132,6 +136,32 @@ public class DataInitializer implements CommandLineRunner {
 
             journeyRepository.save(btechJourney);
             log.info("Seeded B.Tech journey with 4 chapters.");
+        } else {
+            // Update section images for existing sections if missing
+            journeyRepository.findAll().forEach(j -> {
+                boolean updated = false;
+                for (JourneySection sec : j.getSections()) {
+                    if (sec.getImageUrl() == null || sec.getImageUrl().isBlank()) {
+                        if (sec.getTitle().contains("First Year")) {
+                            sec.setImageUrl("/api/media/raw/images/btech-2024/first_year/Screenshot_20210301_165025.jpg");
+                            updated = true;
+                        } else if (sec.getTitle().contains("Second Year")) {
+                            sec.setImageUrl("/api/media/raw/images/btech-2024/second_year/IMG-20211231-WA0003.jpg");
+                            updated = true;
+                        } else if (sec.getTitle().contains("Third Year")) {
+                            sec.setImageUrl("/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg");
+                            updated = true;
+                        } else if (sec.getTitle().contains("Final Year")) {
+                            sec.setImageUrl("/api/media/raw/images/btech-2024/final_year/IMG_20240523_155906.jpg");
+                            updated = true;
+                        }
+                    }
+                }
+                if (updated) {
+                    journeyRepository.save(j);
+                    log.info("Populated chapter cover images for journey: {}", j.getTitle());
+                }
+            });
         }
 
         log.info("Group members initialization successfully completed.");

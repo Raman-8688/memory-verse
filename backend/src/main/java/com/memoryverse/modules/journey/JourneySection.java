@@ -47,6 +47,9 @@ public class JourneySection {
     @Column(name = "end_date")
     private LocalDate endDate;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

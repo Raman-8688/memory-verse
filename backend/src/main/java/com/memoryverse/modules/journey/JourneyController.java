@@ -49,6 +49,17 @@ public class JourneyController {
         return new ResponseEntity<>(ApiResponse.success("Section added successfully", section), HttpStatus.CREATED);
     }
 
+    @PutMapping("/{journeyId}/sections/{sectionId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER')")
+    public ResponseEntity<ApiResponse<JourneySectionResponseDto>> updateSection(
+            @PathVariable UUID journeyId,
+            @PathVariable UUID sectionId,
+            @Valid @RequestBody JourneySectionUpdateDto dto) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        JourneySectionResponseDto updated = journeyService.updateSection(journeyId, sectionId, dto, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Section updated successfully", updated));
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER')")
     public ResponseEntity<ApiResponse<JourneyResponseDto>> updateJourney(

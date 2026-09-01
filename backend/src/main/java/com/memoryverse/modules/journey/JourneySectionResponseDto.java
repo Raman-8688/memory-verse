@@ -22,6 +22,7 @@ public class JourneySectionResponseDto {
     private Integer displayOrder;
     private LocalDate startDate;
     private LocalDate endDate;
+    private String imageUrl;
     private Instant createdAt;
 
     public static JourneySectionResponseDto fromEntity(JourneySection section) {
@@ -34,6 +35,7 @@ public class JourneySectionResponseDto {
                 .displayOrder(section.getDisplayOrder())
                 .startDate(section.getStartDate())
                 .endDate(section.getEndDate())
+                .imageUrl(section.getImageUrl())
                 .createdAt(section.getCreatedAt())
                 .build();
     }

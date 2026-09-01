@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class JourneySectionCreateDto {
+public class JourneySectionUpdateDto {
 
     @NotBlank(message = "Section title is required")
     @Size(min = 2, max = 150, message = "Section title must be between 2 and 150 characters")
@@ -21,8 +21,7 @@ public class JourneySectionCreateDto {
 
     private String description;
 
-    @Builder.Default
-    private Integer displayOrder = 0;
+    private Integer displayOrder;
 
     private LocalDate startDate;
 

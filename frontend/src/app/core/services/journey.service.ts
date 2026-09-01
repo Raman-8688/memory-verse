@@ -28,4 +28,8 @@ export class JourneyService {
   updateJourney(id: string, dto: JourneyUpdateDto): Observable<Journey> {
     return this.api.put<Journey>(`/journeys/${id}`, dto);
   }
+
+  updateSection(journeyId: string, sectionId: string, dto: JourneySectionCreateDto): Observable<JourneySection> {
+    return this.api.put<JourneySection>(`/journeys/${journeyId}/sections/${sectionId}`, dto);
+  }
 }

@@ -74,6 +74,7 @@ public class JourneyService {
                         .displayOrder(secDto.getDisplayOrder() != null ? secDto.getDisplayOrder() : 0)
                         .startDate(secDto.getStartDate())
                         .endDate(secDto.getEndDate())
+                        .imageUrl(secDto.getImageUrl())
                         .build();
                 journey.addSection(section);
             }
@@ -97,11 +98,47 @@ public class JourneyService {
                 .displayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : journey.getSections().size())
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
+                .imageUrl(dto.getImageUrl())
                 .build();
 
         JourneySection savedSection = journeySectionRepository.save(section);
         log.info("Section '{}' added to journey '{}'", savedSection.getTitle(), journey.getTitle());
         return JourneySectionResponseDto.fromEntity(savedSection);
+    }
+
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
+    public JourneySectionResponseDto updateSection(UUID journeyId, UUID sectionId, JourneySectionUpdateDto dto, UUID currentUserId) {
+        Journey journey = journeyRepository.findById(journeyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Journey", "id", journeyId));
+
+        boolean isCreator = journey.getCreatedBy() != null && journey.getCreatedBy().getId().equals(currentUserId);
+        boolean isAdmin = com.memoryverse.common.util.SecurityUtils.hasRole("ADMIN");
+        if (!isCreator && !isAdmin) {
+            throw new com.memoryverse.common.exception.ForbiddenException("You do not have permission to update this chapter");
+        }
+
+        JourneySection section = journeySectionRepository.findById(sectionId)
+                .orElseThrow(() -> new ResourceNotFoundException("JourneySection", "id", sectionId));
+
+        if (!section.getJourney().getId().equals(journeyId)) {
+            throw new BusinessValidationException("Chapter does not belong to the specified journey");
+        }
+
+        section.setTitle(dto.getTitle().trim());
+        section.setDescription(dto.getDescription());
+        section.setStartDate(dto.getStartDate());
+        section.setEndDate(dto.getEndDate());
+        if (dto.getImageUrl() != null) {
+            section.setImageUrl(dto.getImageUrl().trim());
+        }
+        if (dto.getDisplayOrder() != null) {
+            section.setDisplayOrder(dto.getDisplayOrder());
+        }
+
+        JourneySection saved = journeySectionRepository.save(section);
+        log.info("Journey section updated: id={}, title='{}', journeyId={}", saved.getId(), saved.getTitle(), journeyId);
+        return JourneySectionResponseDto.fromEntity(saved);
     }
 
     @Transactional
