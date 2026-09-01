@@ -13,16 +13,16 @@ export class AiAssistantService {
   readonly isLoading = signal<boolean>(false);
 
   readonly defaultModels: AiModelInfo[] = [
-    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (Fast & Verified Working)', badge: 'Fast & Verified', isDefault: true },
-    { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B (High Intelligence)', badge: 'High Intelligence' },
-    { id: 'deepseek-ai/deepseek-r1', name: 'DeepSeek R1 (Reasoning AI)', badge: 'Reasoning AI' },
-    { id: 'mistralai/mistral-large-2-instruct', name: 'Mistral Large 2', badge: 'Creative' },
-    { id: 'google/gemma-2-9b-it', name: 'Google Gemma 2 9B', badge: 'Google AI' }
+    { id: 'meta/llama-3.2-11b-vision-instruct', name: 'Llama 3.2 11B (Fast & Verified Working)', badge: 'Fast & Verified', isDefault: true },
+    { id: 'openai/gpt-oss-120b', name: 'OpenAI GPT-OSS 120B (High Intelligence)', badge: 'High Intelligence' },
+    { id: 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning', name: 'Nemotron 3 Reasoning (Reasoning AI)', badge: 'Reasoning AI' },
+    { id: 'nvidia/nemotron-3.5-lightning-30b-a3b', name: 'Nemotron 3.5 Lightning (High Speed)', badge: 'High Speed' },
+    { id: 'minimaxai/minimax-m3', name: 'MiniMax M3 (Conversational)', badge: 'Dialogue' }
   ];
 
   readonly availableModels = signal<AiModelInfo[]>(this.defaultModels);
   readonly selectedModel = signal<string>(
-    (typeof localStorage !== 'undefined' && localStorage.getItem('mv_ai_model')) || 'meta/llama-3.1-8b-instruct'
+    (typeof localStorage !== 'undefined' && localStorage.getItem('mv_ai_model')) || 'meta/llama-3.2-11b-vision-instruct'
   );
 
   private readonly initialWelcomeMessage: ChatMessage = {

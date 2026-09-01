@@ -16,7 +16,7 @@ spring:
       api-key: ${NVIDIA_API_KEY:nvapi-placeholder-key}
       chat:
         options:
-          model: ${NVIDIA_MODEL:meta/llama-3.1-70b-instruct}
+          model: ${NVIDIA_MODEL:meta/llama-3.2-11b-vision-instruct}
           temperature: 0.2
           max-tokens: 2048
 

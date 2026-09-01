@@ -19,7 +19,7 @@ public class NvidiaNimProvider implements AiModelProvider {
 
     private final ChatModel chatModel;
 
-    @Value("${spring.ai.openai.chat.options.model:meta/llama-3.1-70b-instruct}")
+    @Value("${spring.ai.openai.chat.options.model:meta/llama-3.2-11b-vision-instruct}")
     private String primaryModel;
 
     @Value("${spring.ai.openai.api-key:nvapi-placeholder-key}")
@@ -27,48 +27,48 @@ public class NvidiaNimProvider implements AiModelProvider {
 
     public static final List<AiModelInfoDto> CATALOG_MODELS = List.of(
             AiModelInfoDto.builder()
-                    .id("meta/llama-3.1-8b-instruct")
-                    .name("Llama 3.1 8B (Fast & Verified Working)")
-                    .description("Ultra-fast inference, optimal for memory search and QA")
+                    .id("meta/llama-3.2-11b-vision-instruct")
+                    .name("Llama 3.2 11B (Fast & Verified Working)")
+                    .description("Ultra-fast latency, optimal for memory search and QA")
                     .badge("Fast & Verified")
                     .isDefault(true)
                     .build(),
             AiModelInfoDto.builder()
-                    .id("meta/llama-3.3-70b-instruct")
-                    .name("Llama 3.3 70B (High Intelligence)")
-                    .description("Advanced reasoning, deep memory synthesis & storytelling")
+                    .id("openai/gpt-oss-120b")
+                    .name("OpenAI GPT-OSS 120B (High Intelligence)")
+                    .description("Deep contextual synthesis, rich storytelling & analysis")
                     .badge("High Intelligence")
                     .isDefault(false)
                     .build(),
             AiModelInfoDto.builder()
-                    .id("deepseek-ai/deepseek-r1")
-                    .name("DeepSeek R1 (Reasoning AI)")
-                    .description("Chain-of-thought reasoning AI")
+                    .id("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning")
+                    .name("Nemotron 3 Reasoning (Reasoning AI)")
+                    .description("Step-by-step chain-of-thought logic & timeline deduction")
                     .badge("Reasoning AI")
                     .isDefault(false)
                     .build(),
             AiModelInfoDto.builder()
-                    .id("mistralai/mistral-large-2-instruct")
-                    .name("Mistral Large 2")
-                    .description("Flagship multilingual model with nuanced context")
-                    .badge("Creative")
+                    .id("nvidia/nemotron-3.5-lightning-30b-a3b")
+                    .name("Nemotron 3.5 Lightning (High Speed)")
+                    .description("Ultra-responsive conversational memory agent")
+                    .badge("High Speed")
                     .isDefault(false)
                     .build(),
             AiModelInfoDto.builder()
-                    .id("google/gemma-2-9b-it")
-                    .name("Google Gemma 2 9B")
-                    .description("Precise factual recall and high efficiency")
-                    .badge("Google AI")
+                    .id("minimaxai/minimax-m3")
+                    .name("MiniMax M3 (Conversational)")
+                    .description("Warm, natural dialogue and empathetic responses")
+                    .badge("Dialogue")
                     .isDefault(false)
                     .build()
     );
 
     private static final List<String> FALLBACK_MODELS = List.of(
-            "meta/llama-3.1-8b-instruct",
-            "meta/llama-3.3-70b-instruct",
-            "meta/llama-3.1-70b-instruct",
-            "mistralai/mistral-large-2-instruct",
-            "google/gemma-2-9b-it"
+            "meta/llama-3.2-11b-vision-instruct",
+            "openai/gpt-oss-120b",
+            "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+            "nvidia/nemotron-3.5-lightning-30b-a3b",
+            "minimaxai/minimax-m3"
     );
 
     public NvidiaNimProvider(ChatModel chatModel) {
