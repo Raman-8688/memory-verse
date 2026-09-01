@@ -25,11 +25,20 @@ public class DataInitializer implements CommandLineRunner {
     private final JourneyRepository journeyRepository;
     private final PasswordEncoder passwordEncoder;
     private final com.memoryverse.modules.notification.NotificationRepository notificationRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @Override
     @Transactional
     public void run(String... args) {
         log.info("Checking and seeding group members in DataInitializer...");
+
+        // Drop legacy notifications_type_check constraint created when enum had fewer types
+        try {
+            jdbcTemplate.execute("ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check;");
+            log.info("Successfully dropped legacy notifications_type_check constraint");
+        } catch (Exception ex) {
+            log.warn("Could not drop notifications_type_check constraint: {}", ex.getMessage());
+        }
 
         String defaultPass = passwordEncoder.encode("password123");
 

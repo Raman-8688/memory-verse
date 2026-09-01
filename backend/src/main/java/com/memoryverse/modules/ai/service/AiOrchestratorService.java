@@ -220,18 +220,25 @@ public class AiOrchestratorService {
         List<AiChatResponseDto.RelatedMediaDto> relatedMedia =
                 memoryRetrievalService.toRelatedMediaDtos(summaries);
 
-        // NO-RESULT HANDLING: Fast, deterministic return. Do NOT query LLM to avoid hallucinations.
+        // If no direct keyword match, fallback to the latest memories/photos so the user always sees their memories
         if (summaries.isEmpty()) {
-            log.info("Zero memories matched in PostgreSQL. Returning clean, non-hallucinated response.");
-            return AiChatResponseDto.builder()
-                    .conversationId(conversationId)
-                    .mode("MEMORY")
-                    .answer("I couldn't find any matching memories in MemoryVerse.")
-                    .relatedMemories(Collections.emptyList())
-                    .relatedMedia(Collections.emptyList())
-                    .suggestedQuestions(getDefaultSuggestions())
-                    .modelUsed(modelName)
-                    .build();
+            summaries = memoryRetrievalService.retrieveRecentMemories(MAX_RETRIEVAL_RESULTS);
+            if (!summaries.isEmpty()) {
+                log.info("Supplying {} recent memories as context for query: '{}'", summaries.size(), userMessage);
+                relatedMemories = memoryRetrievalService.toRelatedMemoryDtos(summaries);
+                relatedMedia = memoryRetrievalService.toRelatedMediaDtos(summaries);
+            } else {
+                log.info("Zero memories exist in database. Returning clean response.");
+                return AiChatResponseDto.builder()
+                        .conversationId(conversationId)
+                        .mode("MEMORY")
+                        .answer("I couldn't find any matching memories in MemoryVerse yet. Try adding a new memory or journey section first!")
+                        .relatedMemories(Collections.emptyList())
+                        .relatedMedia(Collections.emptyList())
+                        .suggestedQuestions(getDefaultSuggestions())
+                        .modelUsed(modelName)
+                        .build();
+            }
         }
 
         // GROUNDED GENERATION WITH ROLLING HISTORY
@@ -333,6 +340,16 @@ public class AiOrchestratorService {
      * accurately capture the previous journey/event context.
      */
     private MemorySearchCriteria extractContextualSearchCriteria(String userPrompt, List<AiMessage> history) {
+        if (userPrompt != null) {
+            String trimmed = userPrompt.trim().toLowerCase();
+            if (trimmed.matches("^(hi|hii|hiii|hello|hey|heyy|greetings|good morning|good afternoon|good evening|howdy|sup)[!.,? ]*$")) {
+                log.info("Greeting detected ('{}'), routing directly to GENERAL conversational mode", userPrompt);
+                return MemorySearchCriteria.builder()
+                        .mode("GENERAL")
+                        .build();
+            }
+        }
+
         String promptToSend = userPrompt;
 
         if (history != null && !history.isEmpty()) {

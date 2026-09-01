@@ -31,18 +31,19 @@ public final class MemorySpecification {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Keywords matching title, story, or location
+            // 1. Keywords matching title, story, or location (combine with OR across all keywords)
             if (criteria.getKeywords() != null && !criteria.getKeywords().isEmpty()) {
+                List<Predicate> keywordPredicates = new ArrayList<>();
                 for (String kw : criteria.getKeywords()) {
                     if (kw != null && !kw.trim().isEmpty()) {
                         String pattern = "%" + kw.trim().toLowerCase() + "%";
-                        Predicate keywordPredicate = cb.or(
-                                cb.like(cb.lower(root.get("title")), pattern),
-                                cb.like(cb.lower(root.get("story")), pattern),
-                                cb.like(cb.lower(root.get("locationName")), pattern)
-                        );
-                        predicates.add(keywordPredicate);
+                        keywordPredicates.add(cb.like(cb.lower(root.get("title")), pattern));
+                        keywordPredicates.add(cb.like(cb.lower(root.get("story")), pattern));
+                        keywordPredicates.add(cb.like(cb.lower(root.get("locationName")), pattern));
                     }
+                }
+                if (!keywordPredicates.isEmpty()) {
+                    predicates.add(cb.or(keywordPredicates.toArray(new Predicate[0])));
                 }
             }
 

@@ -72,18 +72,22 @@ public class NotificationService {
     @Transactional
     @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, allEntries = true)
     public void notifyGroup(User actor, String actorMessage, String othersMessage, NotificationType type, UUID relatedEntityId) {
-        java.util.List<User> allUsers = userRepository.findAll();
-        for (User user : allUsers) {
-            String msg = (actor != null && user.getId().equals(actor.getId())) ? actorMessage : othersMessage;
-            Notification notification = Notification.builder()
-                    .recipient(user)
-                    .message(msg)
-                    .type(type)
-                    .relatedEntityId(relatedEntityId)
-                    .isRead(false)
-                    .build();
-            notificationRepository.save(notification);
+        try {
+            java.util.List<User> allUsers = userRepository.findAll();
+            for (User user : allUsers) {
+                String msg = (actor != null && user.getId().equals(actor.getId())) ? actorMessage : othersMessage;
+                Notification notification = Notification.builder()
+                        .recipient(user)
+                        .message(msg)
+                        .type(type)
+                        .relatedEntityId(relatedEntityId)
+                        .isRead(false)
+                        .build();
+                notificationRepository.save(notification);
+            }
+            log.info("Broadcasted notification type='{}' to {} members", type, allUsers.size());
+        } catch (Exception ex) {
+            log.error("Failed to broadcast group notification (type={}): {}", type, ex.getMessage());
         }
-        log.info("Broadcasted notification type='{}' to {} members", type, allUsers.size());
     }
 }

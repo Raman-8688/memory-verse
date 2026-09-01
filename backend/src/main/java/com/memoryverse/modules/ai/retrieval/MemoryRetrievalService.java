@@ -37,6 +37,12 @@ public class MemoryRetrievalService {
      * and maps results into lightweight AI context summaries.
      * Guaranteed ZERO raw SQL.
      */
+    private static final java.util.Set<String> META_STOP_WORDS = java.util.Set.of(
+            "recent", "recently", "updated", "update", "latest", "new", "newest",
+            "any", "all", "some", "show", "tell", "photos", "photo", "image", "images",
+            "picture", "pictures", "video", "videos", "media", "memories", "memory"
+    );
+
     @Transactional(readOnly = true)
     public List<AiMemorySummaryDto> retrieveMemories(MemorySearchCriteria criteria) {
         return retrieveMemories(criteria, DEFAULT_MAX_RETRIEVAL);
@@ -49,21 +55,65 @@ public class MemoryRetrievalService {
             return Collections.emptyList();
         }
 
-        Specification<Memory> spec = MemorySpecification.withCriteria(criteria);
-        PageRequest pageRequest = PageRequest.of(0, maxResults, Sort.by(Sort.Direction.DESC, "memoryDate"));
+        // Clean out temporal/meta words from keywords (e.g. "recent", "photos", "updated")
+        MemorySearchCriteria cleanedCriteria = sanitizeCriteria(criteria);
+
+        Specification<Memory> spec = MemorySpecification.withCriteria(cleanedCriteria);
+        PageRequest pageRequest = PageRequest.of(0, maxResults, Sort.by(Sort.Direction.DESC, "memoryDate", "createdAt"));
 
         log.info("Executing Memory retrieval query for criteria: keywords={}, journey={}, section={}, dates=[{} to {}]",
-                criteria.getKeywords(), criteria.getJourneyName(), criteria.getSectionName(),
-                criteria.getStartDate(), criteria.getEndDate());
+                cleanedCriteria.getKeywords(), cleanedCriteria.getJourneyName(), cleanedCriteria.getSectionName(),
+                cleanedCriteria.getStartDate(), cleanedCriteria.getEndDate());
 
         Page<Memory> page = memoryRepository.findAll(spec, pageRequest);
         List<Memory> memories = page.getContent();
+
+        // If specific keyword search returned 0 results, try fetching recent memories
+        if (memories.isEmpty() && (cleanedCriteria.getKeywords() != null && !cleanedCriteria.getKeywords().isEmpty())) {
+            log.info("Keyword-specific search yielded 0 results, attempting fallback to latest available memories");
+            PageRequest fallbackPage = PageRequest.of(0, maxResults, Sort.by(Sort.Direction.DESC, "memoryDate", "createdAt"));
+            Page<Memory> fallback = memoryRepository.findAll(fallbackPage);
+            memories = fallback.getContent();
+        }
 
         log.info("Memory retrieval matched {} records in PostgreSQL", memories.size());
 
         return memories.stream()
                 .map(this::mapToSummaryDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<AiMemorySummaryDto> retrieveRecentMemories(int maxResults) {
+        PageRequest pageRequest = PageRequest.of(0, maxResults, Sort.by(Sort.Direction.DESC, "memoryDate", "createdAt"));
+        Page<Memory> page = memoryRepository.findAll(pageRequest);
+        return page.getContent().stream()
+                .map(this::mapToSummaryDto)
+                .collect(Collectors.toList());
+    }
+
+    private MemorySearchCriteria sanitizeCriteria(MemorySearchCriteria original) {
+        if (original.getKeywords() == null || original.getKeywords().isEmpty()) {
+            return original;
+        }
+
+        List<String> contentKeywords = original.getKeywords().stream()
+                .map(String::trim)
+                .filter(k -> !k.isBlank() && !META_STOP_WORDS.contains(k.toLowerCase()))
+                .collect(Collectors.toList());
+
+        return MemorySearchCriteria.builder()
+                .mode(original.getMode())
+                .mediaType(original.getMediaType())
+                .keywords(contentKeywords)
+                .journeyName(original.getJourneyName())
+                .sectionName(original.getSectionName())
+                .startDate(original.getStartDate())
+                .endDate(original.getEndDate())
+                .location(original.getLocation())
+                .taggedFriendNames(original.getTaggedFriendNames())
+                .featuredOnly(null) // Never artificially restrict to featured-only unless explicitly requested
+                .build();
     }
 
     private AiMemorySummaryDto mapToSummaryDto(Memory memory) {
