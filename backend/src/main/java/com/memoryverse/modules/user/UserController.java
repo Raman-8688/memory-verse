@@ -34,10 +34,14 @@ public class UserController {
     }
 
     @PostMapping("/{id}/avatar")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER')")
     public ResponseEntity<ApiResponse<UserDto>> uploadAvatar(
             @PathVariable UUID id,
             @RequestParam("file") MultipartFile file) {
+        UUID currentUserId = com.memoryverse.common.util.SecurityUtils.getCurrentUserId();
+        if (!currentUserId.equals(id) && !com.memoryverse.common.util.SecurityUtils.hasRole("ADMIN")) {
+            throw new com.memoryverse.common.exception.ForbiddenException("You do not have permission to update this avatar");
+        }
         UserDto updated = userService.updateUserAvatar(id, file);
         return ResponseEntity.ok(ApiResponse.success("Avatar uploaded successfully", updated));
     }

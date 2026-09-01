@@ -1,20 +1,36 @@
 package com.memoryverse.modules.media;
 
+import com.memoryverse.common.api.ApiResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/media")
+@RequiredArgsConstructor
 public class MediaController {
 
+    private final CloudinaryStorageService cloudinaryStorageService;
+
     private static final String LOCAL_UPLOAD_DIR = "uploads/media";
+
+    @PostMapping(value = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<ApiResponse<UploadedMediaResult>> uploadSingleFile(
+            @RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Upload file cannot be empty");
+        }
+        UploadedMediaResult result = cloudinaryStorageService.uploadFile(file);
+        return ResponseEntity.ok(ApiResponse.success("File uploaded successfully", result));
+    }
 
     @GetMapping("/files/{fileName:.+}")
     public ResponseEntity<Resource> getLocalFile(@PathVariable String fileName) {

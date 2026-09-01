@@ -104,6 +104,39 @@ public class JourneyService {
         return JourneySectionResponseDto.fromEntity(savedSection);
     }
 
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
+    public JourneyResponseDto updateJourney(UUID journeyId, JourneyUpdateDto dto, UUID currentUserId) {
+        Journey journey = journeyRepository.findWithDetailsById(journeyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Journey", "id", journeyId));
+
+        boolean isCreator = journey.getCreatedBy() != null && journey.getCreatedBy().getId().equals(currentUserId);
+        boolean isAdmin = com.memoryverse.common.util.SecurityUtils.hasRole("ADMIN");
+        if (!isCreator && !isAdmin) {
+            throw new com.memoryverse.common.exception.ForbiddenException("You do not have permission to update this journey");
+        }
+
+        String newTitle = dto.getTitle().trim();
+        if (!journey.getTitle().equalsIgnoreCase(newTitle)) {
+            journey.setTitle(newTitle);
+            journey.setSlug(generateUniqueSlug(newTitle));
+        }
+
+        journey.setDescription(dto.getDescription());
+        journey.setStartDate(dto.getStartDate());
+        journey.setEndDate(dto.getEndDate());
+        if (dto.getCoverImageUrl() != null) {
+            journey.setCoverImageUrl(dto.getCoverImageUrl().trim());
+        }
+        if (dto.getDisplayOrder() != null) {
+            journey.setDisplayOrder(dto.getDisplayOrder());
+        }
+
+        Journey updated = journeyRepository.save(journey);
+        log.info("Journey updated: id={}, title='{}'", updated.getId(), updated.getTitle());
+        return JourneyResponseDto.fromEntity(updated);
+    }
+
     private String generateUniqueSlug(String input) {
         if (input == null) input = "journey";
         String nowhitespace = WHITESPACE.matcher(input.trim()).replaceAll("-");

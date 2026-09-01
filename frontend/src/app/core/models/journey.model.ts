@@ -44,3 +44,12 @@ export interface JourneyCreateDto {
   displayOrder?: number;
   sections?: JourneySectionCreateDto[];
 }
+
+export interface JourneyUpdateDto {
+  title: string;
+  description?: string | null;
+  coverImageUrl?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  displayOrder?: number;
+}

@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { Memory } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { MemoryService } from '@core/services/memory.service';
@@ -25,7 +26,8 @@ import { JourneyService } from '@core/services/journey.service';
     MatSelectModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ImageFallbackDirective
   ],
   template: `
     <div class="feed-page">
@@ -110,7 +112,7 @@ import { JourneyService } from '@core/services/journey.service';
                       <mat-icon>play_circle</mat-icon> Video
                     </span>
                   } @else {
-                    <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="memory.title" loading="lazy" class="card-img">
+                    <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="memory.title" loading="lazy" mvFallback class="card-img">
                   }
                 } @else {
                   <div class="placeholder-media">
@@ -152,6 +154,7 @@ import { JourneyService } from '@core/services/journey.service';
                   <div class="creator-info">
                     <img [src]="memory.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                          [alt]="memory.createdBy.fullName" 
+                         mvFallback
                          class="creator-img">
                     <span class="creator-name">{{ memory.createdBy.fullName }}</span>
                   </div>
@@ -161,6 +164,7 @@ import { JourneyService } from '@core/services/journey.service';
                       @for (friend of memory.taggedUsers.slice(0, 3); track friend.id) {
                         <img [src]="friend.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80'" 
                              [alt]="friend.fullName" 
+                             mvFallback
                              class="stacked-avatar">
                       }
                       @if (memory.taggedUsers.length > 3) {

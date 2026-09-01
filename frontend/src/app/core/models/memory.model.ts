@@ -50,6 +50,13 @@ export interface MemoryCreateDto {
   externalImageUrls?: string[];
 }
 
+export interface MemoryUpdateDto {
+  title: string;
+  story: string;
+  memoryDate: string;
+  locationName?: string;
+}
+
 export interface MemoryFilterParams {
   journeyId?: string;
   sectionId?: string;

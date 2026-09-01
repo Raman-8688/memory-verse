@@ -1,7 +1,9 @@
 package com.memoryverse.modules.memory;
 
 import com.memoryverse.common.api.PagedResponse;
+import com.memoryverse.common.exception.ForbiddenException;
 import com.memoryverse.common.exception.ResourceNotFoundException;
+import com.memoryverse.common.util.SecurityUtils;
 import com.memoryverse.config.RedisConfig;
 import com.memoryverse.modules.journey.Journey;
 import com.memoryverse.modules.journey.JourneyRepository;
@@ -181,5 +183,74 @@ public class MemoryService {
         Memory memory = memoryRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", id));
         return MemoryResponseDto.fromEntity(memory);
+    }
+
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    public MemoryResponseDto updateMemory(UUID memoryId, MemoryUpdateDto dto, UUID currentUserId) {
+        Memory memory = memoryRepository.findWithDetailsById(memoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
+
+        boolean isCreator = memory.getCreatedBy() != null && memory.getCreatedBy().getId().equals(currentUserId);
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        if (!isCreator && !isAdmin) {
+            throw new ForbiddenException("You do not have permission to update this memory");
+        }
+
+        memory.setTitle(dto.getTitle().trim());
+        memory.setStory(dto.getStory().trim());
+        memory.setMemoryDate(dto.getMemoryDate());
+        memory.setLocationName(dto.getLocationName() != null ? dto.getLocationName().trim() : null);
+
+        Memory updated = memoryRepository.save(memory);
+        log.info("Memory updated: id={}, title='{}'", updated.getId(), updated.getTitle());
+        return MemoryResponseDto.fromEntity(updated);
+    }
+
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    public MemoryResponseDto appendMedia(UUID memoryId, List<MultipartFile> files, UUID currentUserId) {
+        Memory memory = memoryRepository.findWithDetailsById(memoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
+
+        boolean isCreator = memory.getCreatedBy() != null && memory.getCreatedBy().getId().equals(currentUserId);
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        if (!isCreator && !isAdmin) {
+            throw new ForbiddenException("You do not have permission to append media to this memory");
+        }
+
+        if (files == null || files.isEmpty()) {
+            return MemoryResponseDto.fromEntity(memory);
+        }
+
+        int displayOrder = memory.getMediaList().stream()
+                .mapToInt(Media::getDisplayOrder)
+                .max()
+                .orElse(0) + 1;
+
+        int addedCount = 0;
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                UploadedMediaResult uploaded = cloudinaryStorageService.uploadFile(file);
+                Media media = Media.builder()
+                        .mediaUrl(uploaded.getMediaUrl())
+                        .thumbnailUrl(uploaded.getThumbnailUrl())
+                        .mediaType(uploaded.getMediaType())
+                        .publicId(uploaded.getPublicId())
+                        .fileName(uploaded.getFileName())
+                        .fileSizeBytes(uploaded.getFileSizeBytes())
+                        .width(uploaded.getWidth())
+                        .height(uploaded.getHeight())
+                        .durationSeconds(uploaded.getDurationSeconds())
+                        .displayOrder(displayOrder++)
+                        .build();
+                memory.addMedia(media);
+                addedCount++;
+            }
+        }
+
+        Memory updated = memoryRepository.save(memory);
+        log.info("Appended {} media files to memory id={}, total media={}", addedCount, updated.getId(), updated.getMediaList().size());
+        return MemoryResponseDto.fromEntity(updated);
     }
 }
