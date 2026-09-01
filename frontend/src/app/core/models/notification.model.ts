@@ -1,4 +1,11 @@
-export type NotificationType = 'MEMORY_CREATED' | 'TAGGED' | 'SYSTEM';
+export type NotificationType = 
+  | 'MEMORY_CREATED' 
+  | 'MEMORY_UPDATED' 
+  | 'MEDIA_ADDED' 
+  | 'JOURNEY_UPDATED' 
+  | 'CHAPTER_UPDATED' 
+  | 'TAGGED' 
+  | 'SYSTEM';
 
 export interface NotificationItem {
   id: string;

@@ -14,6 +14,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
+import { NotificationStateService } from '@core/services/notification-state.service';
 
 @Component({
   selector: 'mv-memory-detail',
@@ -540,6 +541,7 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
 export class MemoryDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly memoryService = inject(MemoryService);
+  private readonly notificationState = inject(NotificationStateService);
 
   readonly memory = signal<Memory | null>(null);
   readonly activeMedia = signal<Media | null>(null);
@@ -649,6 +651,7 @@ export class MemoryDetailComponent implements OnInit {
           mediaList: curr.mediaList,
           taggedUsers: curr.taggedUsers
         } : updated);
+        this.notificationState.refresh();
       }
     });
   }
@@ -679,6 +682,7 @@ export class MemoryDetailComponent implements OnInit {
               this.activeMedia.set(updatedMemory.mediaList[0]);
             }
           }
+          this.notificationState.refresh();
           this.snackBar.open(`${files.length} photo(s) added successfully!`, 'OK', { duration: 3500 });
           input.value = '';
         }

@@ -119,7 +119,15 @@ public class MemoryService {
         Memory savedMemory = memoryRepository.save(memory);
         log.info("Created memory: id={}, title='{}', mediaCount={}", savedMemory.getId(), savedMemory.getTitle(), savedMemory.getMediaList().size());
 
-        // Synchronous MVP: Notify all tagged users
+        // Broadcast to group and notify tagged users
+        notificationService.notifyGroup(
+                creator,
+                String.format("You preserved a new memory: '%s'", savedMemory.getTitle()),
+                String.format("%s preserved a new memory: '%s'", creator.getFullName(), savedMemory.getTitle()),
+                NotificationType.MEMORY_CREATED,
+                savedMemory.getId()
+        );
+
         if (savedMemory.getTaggedUsers() != null) {
             for (User taggedUser : savedMemory.getTaggedUsers()) {
                 if (!taggedUser.getId().equals(creator.getId())) {
@@ -204,6 +212,17 @@ public class MemoryService {
 
         Memory updated = memoryRepository.save(memory);
         log.info("Memory updated: id={}, title='{}'", updated.getId(), updated.getTitle());
+
+        User updater = userRepository.findById(currentUserId).orElse(null);
+        String updaterName = updater != null ? updater.getFullName() : "A friend";
+        notificationService.notifyGroup(
+                updater,
+                String.format("You updated memory: '%s'", updated.getTitle()),
+                String.format("%s updated the memory '%s'", updaterName, updated.getTitle()),
+                NotificationType.MEMORY_UPDATED,
+                updated.getId()
+        );
+
         return MemoryResponseDto.fromEntity(updated);
     }
 
@@ -251,6 +270,20 @@ public class MemoryService {
 
         Memory updated = memoryRepository.save(memory);
         log.info("Appended {} media files to memory id={}, total media={}", addedCount, updated.getId(), updated.getMediaList().size());
+
+        if (addedCount > 0) {
+            User updater = userRepository.findById(currentUserId).orElse(null);
+            String updaterName = updater != null ? updater.getFullName() : "A friend";
+            String photoWord = addedCount == 1 ? "photo" : "photos";
+            notificationService.notifyGroup(
+                    updater,
+                    String.format("You added %d new %s to '%s'", addedCount, photoWord, updated.getTitle()),
+                    String.format("%s added %d new %s to '%s'", updaterName, addedCount, photoWord, updated.getTitle()),
+                    NotificationType.MEDIA_ADDED,
+                    updated.getId()
+            );
+        }
+
         return MemoryResponseDto.fromEntity(updated);
     }
 }

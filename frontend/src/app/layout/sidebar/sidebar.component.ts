@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { NotificationStateService } from '@core/services/notification-state.service';
 
 interface NavItem {
   path: string;
@@ -24,6 +25,11 @@ interface NavItem {
              class="nav-link">
             <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
             <span class="nav-label">{{ item.label }}</span>
+            @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
+              <span class="sidebar-badge">
+                {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+              </span>
+            }
           </a>
         }
       </nav>
@@ -94,16 +100,26 @@ interface NavItem {
       border-left: 3px solid var(--mv-primary);
     }
 
-    .quote-text {
-      font-family: var(--font-editorial);
-      font-style: italic;
-      font-size: 0.875rem;
-      line-height: 1.4;
-      color: var(--mv-text-secondary);
+    .sidebar-badge {
+      margin-left: auto;
+      background-color: #ef4444;
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4);
     }
   `]
 })
 export class SidebarComponent {
+  readonly notificationState = inject(NotificationStateService);
+
   readonly navItems: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard', exact: true },
     { path: '/journeys', label: 'Journeys', icon: 'auto_stories' },

@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Memory, MemoryUpdateDto } from '@core/models/memory.model';
 import { MemoryService } from '@core/services/memory.service';
+import { NotificationStateService } from '@core/services/notification-state.service';
 
 @Component({
   selector: 'mv-memory-edit-dialog',
@@ -212,6 +213,7 @@ export class MemoryEditDialogComponent implements OnInit {
   readonly dialogRef = inject(MatDialogRef<MemoryEditDialogComponent>);
   private readonly fb = inject(FormBuilder);
   private readonly memoryService = inject(MemoryService);
+  private readonly notificationState = inject(NotificationStateService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly isSaving = signal<boolean>(false);
@@ -251,6 +253,7 @@ export class MemoryEditDialogComponent implements OnInit {
     this.memoryService.updateMemory(this.memory.id, payload).subscribe({
       next: (updated) => {
         this.isSaving.set(false);
+        this.notificationState.refresh();
         this.snackBar.open('Memory updated successfully', 'OK', { duration: 3000 });
         this.dialogRef.close(updated);
       },

@@ -17,6 +17,7 @@ import { Journey, JourneySection } from '@core/models/journey.model';
 import { JourneyService } from '@core/services/journey.service';
 import { MediaService } from '@core/services/media.service';
 import { AuthService } from '@core/auth/auth.service';
+import { NotificationStateService } from '@core/services/notification-state.service';
 
 @Component({
   selector: 'mv-journey-detail',
@@ -923,6 +924,7 @@ export class JourneyDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly notificationState = inject(NotificationStateService);
   readonly authService = inject(AuthService);
 
   readonly journey = signal<Journey | null>(null);
@@ -1001,6 +1003,7 @@ export class JourneyDetailComponent implements OnInit {
           this.selectedChapterFile = null;
           this.newChapterImagePreview.set(null);
           this.showAddSectionForm.set(false);
+          this.notificationState.refresh();
           this.snackBar.open('Chapter added successfully!', 'OK', { duration: 3000 });
           this.loadJourney(journeyId);
         },
@@ -1100,6 +1103,7 @@ export class JourneyDetailComponent implements OnInit {
           const updatedSections = curr.sections.map(s => s.id === updated.id ? updated : s);
           return { ...curr, sections: updatedSections };
         });
+        this.notificationState.refresh();
       }
     });
   }
@@ -1134,6 +1138,7 @@ export class JourneyDetailComponent implements OnInit {
     ref.afterClosed().subscribe((updated: Journey | undefined) => {
       if (updated) {
         this.journey.update(curr => curr ? { ...curr, ...updated, sections: curr.sections } : updated);
+        this.notificationState.refresh();
       }
     });
   }

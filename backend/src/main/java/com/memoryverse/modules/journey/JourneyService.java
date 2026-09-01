@@ -27,6 +27,7 @@ public class JourneyService {
     private final JourneyRepository journeyRepository;
     private final JourneySectionRepository journeySectionRepository;
     private final UserRepository userRepository;
+    private final com.memoryverse.modules.notification.NotificationService notificationService;
 
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
@@ -103,6 +104,17 @@ public class JourneyService {
 
         JourneySection savedSection = journeySectionRepository.save(section);
         log.info("Section '{}' added to journey '{}'", savedSection.getTitle(), journey.getTitle());
+
+        User creator = journey.getCreatedBy();
+        String creatorName = creator != null ? creator.getFullName() : "A friend";
+        notificationService.notifyGroup(
+                creator,
+                String.format("You added a new chapter '%s' to '%s'", savedSection.getTitle(), journey.getTitle()),
+                String.format("%s added chapter '%s' to '%s'", creatorName, savedSection.getTitle(), journey.getTitle()),
+                com.memoryverse.modules.notification.NotificationType.CHAPTER_UPDATED,
+                journey.getId()
+        );
+
         return JourneySectionResponseDto.fromEntity(savedSection);
     }
 
@@ -138,6 +150,17 @@ public class JourneyService {
 
         JourneySection saved = journeySectionRepository.save(section);
         log.info("Journey section updated: id={}, title='{}', journeyId={}", saved.getId(), saved.getTitle(), journeyId);
+
+        User updater = userRepository.findById(currentUserId).orElse(null);
+        String updaterName = updater != null ? updater.getFullName() : "A friend";
+        notificationService.notifyGroup(
+                updater,
+                String.format("You updated chapter: '%s'", saved.getTitle()),
+                String.format("%s updated chapter '%s' in '%s'", updaterName, saved.getTitle(), journey.getTitle()),
+                com.memoryverse.modules.notification.NotificationType.CHAPTER_UPDATED,
+                journeyId
+        );
+
         return JourneySectionResponseDto.fromEntity(saved);
     }
 
@@ -171,6 +194,17 @@ public class JourneyService {
 
         Journey updated = journeyRepository.save(journey);
         log.info("Journey updated: id={}, title='{}'", updated.getId(), updated.getTitle());
+
+        User updater = userRepository.findById(currentUserId).orElse(null);
+        String updaterName = updater != null ? updater.getFullName() : "A friend";
+        notificationService.notifyGroup(
+                updater,
+                String.format("You updated journey narrative: '%s'", updated.getTitle()),
+                String.format("%s updated journey '%s'", updaterName, updated.getTitle()),
+                com.memoryverse.modules.notification.NotificationType.JOURNEY_UPDATED,
+                updated.getId()
+        );
+
         return JourneyResponseDto.fromEntity(updated);
     }
 

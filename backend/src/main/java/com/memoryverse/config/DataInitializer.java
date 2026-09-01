@@ -24,6 +24,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final JourneyRepository journeyRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.memoryverse.modules.notification.NotificationRepository notificationRepository;
 
     @Override
     @Transactional
@@ -162,6 +163,37 @@ public class DataInitializer implements CommandLineRunner {
                     log.info("Populated chapter cover images for journey: {}", j.getTitle());
                 }
             });
+        }
+
+        // Seed initial notifications if empty so Activity Center is lively
+        if (notificationRepository.count() == 0) {
+            userRepository.findByEmail("admin@memoryverse.com").ifPresent(adminUser -> {
+                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                        .recipient(adminUser)
+                        .message("Welcome to MemoryVerse, Raman! Your group's shared archive is ready.")
+                        .type(com.memoryverse.modules.notification.NotificationType.SYSTEM)
+                        .isRead(false)
+                        .build());
+                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                        .recipient(adminUser)
+                        .message("Ramesh preserved a new memory: 'Late Night Canteen Talks'")
+                        .type(com.memoryverse.modules.notification.NotificationType.MEMORY_CREATED)
+                        .isRead(false)
+                        .build());
+                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                        .recipient(adminUser)
+                        .message("Govardhan tagged you in: 'B.Tech Freshers Welcome'")
+                        .type(com.memoryverse.modules.notification.NotificationType.TAGGED)
+                        .isRead(false)
+                        .build());
+                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                        .recipient(adminUser)
+                        .message("Shyam added 4 new photos to 'Goa Road Trip & Sunset'")
+                        .type(com.memoryverse.modules.notification.NotificationType.MEDIA_ADDED)
+                        .isRead(false)
+                        .build());
+            });
+            log.info("Seeded initial notifications for testing.");
         }
 
         log.info("Group members initialization successfully completed.");

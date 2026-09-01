@@ -210,7 +210,14 @@ BEGIN
     (gen_random_uuid(), '/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg', '/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg', 'IMAGE', 'IMG20220620104600.jpg', 3206647, 1, v_mem_id, NOW()),
     (gen_random_uuid(), '/api/media/raw/images/btech-2024/third_year/IMG20220620104603.jpg', '/api/media/raw/images/btech-2024/third_year/IMG20220620104603.jpg', 'IMAGE', 'IMG20220620104603.jpg', 2739182, 2, v_mem_id, NOW()),
     (gen_random_uuid(), '/api/media/raw/images/btech-2024/third_year/IMG20220620104607.jpg', '/api/media/raw/images/btech-2024/third_year/IMG20220620104607.jpg', 'IMAGE', 'IMG20220620104607.jpg', 2477825, 3, v_mem_id, NOW()),
-    (gen_random_uuid(), '/api/media/raw/videos/thred_year/Snapchat-404247653.mp4', '/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg', 'VIDEO', 'Snapchat-404247653.mp4', 1453444, 4, v_mem_id, NOW());
+    -- 7. Seed Initial Notifications for Raman if none exist
+    IF NOT EXISTS (SELECT 1 FROM notifications WHERE user_id = v_raman_id) THEN
+        INSERT INTO notifications (id, user_id, message, type, related_entity_id, is_read, created_at) VALUES
+        (gen_random_uuid(), v_raman_id, 'Welcome to MemoryVerse, Raman! Your group shared archive is ready.', 'SYSTEM', v_journey_id, false, NOW() - INTERVAL '3 hours'),
+        (gen_random_uuid(), v_raman_id, 'Ramesh tagged you in a new memory: ''Late Night Canteen Talks''', 'TAGGED', v_mem_id, false, NOW() - INTERVAL '2 hours'),
+        (gen_random_uuid(), v_raman_id, 'Govardhan added 3 new photos to ''Campus Fests & Hackathons''', 'MEDIA_ADDED', v_mem_id, false, NOW() - INTERVAL '1 hour'),
+        (gen_random_uuid(), v_raman_id, 'Shyam updated journey: ''B.Tech College Days''', 'JOURNEY_UPDATED', v_journey_id, false, NOW() - INTERVAL '30 minutes');
+    END IF;
 
-    RAISE NOTICE 'SUCCESS: Real group members (Raman, Ramesh, Govardhan, Shayam, Narasimha, Raju, Yugandar, Hemanth) seeded successfully!';
+    RAISE NOTICE 'SUCCESS: Real group members (Raman, Ramesh, Govardhan, Shayam, Narasimha, Raju, Yugandar, Hemanth) and activity notifications seeded successfully!';
 END $$;

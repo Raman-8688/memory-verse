@@ -29,14 +29,17 @@ import { NotificationItem } from '@core/models/notification.model';
           </p>
         </div>
 
-        @if (notificationState.notifications().length > 0 && notificationState.unreadCount() > 0) {
-          <button mat-button class="mark-all-btn" (click)="notificationState.markAllAsRead()">
-            <ng-container>
+        <div class="header-actions">
+          <button mat-icon-button class="refresh-btn" (click)="notificationState.loadNotifications()" title="Refresh notifications">
+            <mat-icon>refresh</mat-icon>
+          </button>
+          @if (notificationState.notifications().length > 0 && notificationState.unreadCount() > 0) {
+            <button mat-button class="mark-all-btn" (click)="notificationState.markAllAsRead()">
               <mat-icon>done_all</mat-icon>
               <span>Mark all as read</span>
-            </ng-container>
-          </button>
-        }
+            </button>
+          }
+        </div>
       </header>
 
       <!-- Content -->
@@ -277,7 +280,12 @@ export class NotificationsListComponent implements OnInit {
   getNotificationIcon(type: string): string {
     switch (type) {
       case 'TAGGED': return 'local_offer';
-      case 'MEMORY_CREATED': return 'photo';
+      case 'MEMORY_CREATED': return 'photo_library';
+      case 'MEMORY_UPDATED': return 'edit_note';
+      case 'MEDIA_ADDED': return 'add_photo_alternate';
+      case 'JOURNEY_UPDATED': return 'auto_stories';
+      case 'CHAPTER_UPDATED': return 'bookmark';
+      case 'SYSTEM': return 'notifications';
       default: return 'info';
     }
   }
@@ -288,7 +296,11 @@ export class NotificationsListComponent implements OnInit {
     }
 
     if (item.relatedEntityId) {
-      this.router.navigate(['/memories', item.relatedEntityId]);
+      if (item.type === 'JOURNEY_UPDATED' || item.type === 'CHAPTER_UPDATED') {
+        this.router.navigate(['/journeys', item.relatedEntityId]);
+      } else {
+        this.router.navigate(['/memories', item.relatedEntityId]);
+      }
     }
   }
 

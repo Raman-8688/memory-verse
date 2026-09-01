@@ -20,6 +20,7 @@ import java.util.UUID;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final com.memoryverse.modules.user.UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public PagedResponse<NotificationResponseDto> getNotifications(UUID userId, Pageable pageable) {
@@ -56,7 +57,7 @@ public class NotificationService {
     }
 
     @Transactional
-    @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, key = "#recipient.id")
+    @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, allEntries = true)
     public Notification createNotification(User recipient, String message, NotificationType type, UUID relatedEntityId) {
         Notification notification = Notification.builder()
                 .recipient(recipient)
@@ -66,5 +67,23 @@ public class NotificationService {
                 .isRead(false)
                 .build();
         return notificationRepository.save(notification);
+    }
+
+    @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, allEntries = true)
+    public void notifyGroup(User actor, String actorMessage, String othersMessage, NotificationType type, UUID relatedEntityId) {
+        java.util.List<User> allUsers = userRepository.findAll();
+        for (User user : allUsers) {
+            String msg = (actor != null && user.getId().equals(actor.getId())) ? actorMessage : othersMessage;
+            Notification notification = Notification.builder()
+                    .recipient(user)
+                    .message(msg)
+                    .type(type)
+                    .relatedEntityId(relatedEntityId)
+                    .isRead(false)
+                    .build();
+            notificationRepository.save(notification);
+        }
+        log.info("Broadcasted notification type='{}' to {} members", type, allUsers.size());
     }
 }
