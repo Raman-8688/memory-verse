@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
-import { AiChatRequest, AiChatResponse, ChatMessage } from '../models/ai.model';
+import { AiChatRequest, AiChatResponse, AiModelInfo, ChatMessage } from '../models/ai.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,19 @@ export class AiAssistantService {
 
   readonly conversationId = signal<string | null>(null);
   readonly isLoading = signal<boolean>(false);
+
+  readonly defaultModels: AiModelInfo[] = [
+    { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B (Fast & Verified Working)', badge: 'Fast & Verified', isDefault: true },
+    { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B (High Intelligence)', badge: 'High Intelligence' },
+    { id: 'deepseek-ai/deepseek-r1', name: 'DeepSeek R1 (Reasoning AI)', badge: 'Reasoning AI' },
+    { id: 'mistralai/mistral-large-2-instruct', name: 'Mistral Large 2', badge: 'Creative' },
+    { id: 'google/gemma-2-9b-it', name: 'Google Gemma 2 9B', badge: 'Google AI' }
+  ];
+
+  readonly availableModels = signal<AiModelInfo[]>(this.defaultModels);
+  readonly selectedModel = signal<string>(
+    (typeof localStorage !== 'undefined' && localStorage.getItem('mv_ai_model')) || 'meta/llama-3.1-8b-instruct'
+  );
 
   private readonly initialWelcomeMessage: ChatMessage = {
     id: 'welcome-msg',
@@ -34,9 +47,41 @@ export class AiAssistantService {
     'Show me photos from our campus road trips'
   ]);
 
-  async sendMessage(prompt: string): Promise<void> {
+  constructor() {
+    this.loadModels();
+    this.loadInitialSuggestions();
+  }
+
+  setModel(modelId: string): void {
+    this.selectedModel.set(modelId);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('mv_ai_model', modelId);
+    }
+  }
+
+  getSelectedModelInfo(): AiModelInfo {
+    const currentId = this.selectedModel();
+    return this.availableModels().find(m => m.id === currentId) || this.defaultModels[0];
+  }
+
+  async loadModels(): Promise<void> {
+    try {
+      const models = await firstValueFrom(
+        this.api.get<AiModelInfo[]>('/ai/models')
+      );
+      if (models && models.length > 0) {
+        this.availableModels.set(models);
+      }
+    } catch {
+      // Keep default models catalog
+    }
+  }
+
+  async sendMessage(prompt: string, modelOverride?: string): Promise<void> {
     const cleanPrompt = prompt?.trim();
     if (!cleanPrompt || this.isLoading()) return;
+
+    const chosenModel = modelOverride || this.selectedModel();
 
     const userMessageId = 'msg-' + Date.now();
     const userMsg: ChatMessage = {
@@ -53,7 +98,8 @@ export class AiAssistantService {
     try {
       const payload: AiChatRequest = {
         message: cleanPrompt,
-        conversationId: this.conversationId() || undefined
+        conversationId: this.conversationId() || undefined,
+        model: chosenModel
       };
 
       const response = await firstValueFrom(
@@ -72,7 +118,8 @@ export class AiAssistantService {
         mode: response.mode,
         relatedMemories: response.relatedMemories || [],
         relatedMedia: response.relatedMedia || [],
-        suggestedQuestions: response.suggestedQuestions || []
+        suggestedQuestions: response.suggestedQuestions || [],
+        modelUsed: response.modelUsed || chosenModel
       };
 
       this.messages.update(prev => [...prev, assistantMsg]);
@@ -85,9 +132,10 @@ export class AiAssistantService {
       const errorMsg: ChatMessage = {
         id: 'err-' + Date.now(),
         role: 'assistant',
-        content: 'I encountered an issue connecting to the memory assistant service. Please verify network connectivity and try again.',
+        content: 'I am having trouble connecting to my neural network right now. Please check your API configuration or try again in a moment.',
         timestamp: new Date(),
-        mode: 'GENERAL'
+        mode: 'GENERAL',
+        modelUsed: chosenModel
       };
       this.messages.update(prev => [...prev, errorMsg]);
     } finally {

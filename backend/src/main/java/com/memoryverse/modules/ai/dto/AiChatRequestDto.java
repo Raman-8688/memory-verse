@@ -16,4 +16,6 @@ public class AiChatRequestDto {
     private String message;
 
     private String conversationId;
+
+    private String model;
 }

@@ -12,7 +12,7 @@ spring:
       max-request-size: 60MB
   ai:
     openai:
-      base-url: ${NVIDIA_BASE_URL:https://integrate.api.nvidia.com/v1}
+      base-url: ${NVIDIA_BASE_URL:https://integrate.api.nvidia.com}
       api-key: ${NVIDIA_API_KEY:nvapi-placeholder-key}
       chat:
         options:

@@ -1,6 +1,15 @@
 export interface AiChatRequest {
   message: string;
   conversationId?: string;
+  model?: string;
+}
+
+export interface AiModelInfo {
+  id: string;
+  name: string;
+  description?: string;
+  badge?: string;
+  isDefault?: boolean;
 }
 
 export interface RelatedMemory {
@@ -45,4 +54,5 @@ export interface ChatMessage {
   relatedMemories?: RelatedMemory[];
   relatedMedia?: RelatedMedia[];
   suggestedQuestions?: string[];
+  modelUsed?: string;
 }
