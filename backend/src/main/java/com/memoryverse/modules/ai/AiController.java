@@ -38,4 +38,11 @@ public class AiController {
         List<String> suggestions = aiOrchestratorService.getDefaultSuggestions();
         return ResponseEntity.ok(ApiResponse.success(suggestions));
     }
+
+    @GetMapping("/models")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<com.memoryverse.modules.ai.dto.AiModelInfoDto>>> getModels() {
+        List<com.memoryverse.modules.ai.dto.AiModelInfoDto> models = aiOrchestratorService.getAvailableModels();
+        return ResponseEntity.ok(ApiResponse.success(models));
+    }
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, inject, signal, effect, afterNextRender } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, HostListener, inject, signal, effect, afterNextRender } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -39,10 +39,41 @@ import { MediaViewerData, MediaViewerModalComponent } from '@shared/components/m
           </p>
         </div>
 
-        <button mat-stroked-button class="reset-chat-btn" (click)="resetConversation()" title="Start a fresh conversation">
-          <mat-icon>restart_alt</mat-icon>
-          <span>New Chat</span>
-        </button>
+        <div class="header-actions">
+          <!-- Model Selector Dropdown -->
+          <div class="model-picker-container" (click)="$event.stopPropagation()">
+            <button type="button" 
+                    class="model-picker-btn" 
+                    (click)="toggleModelDropdown()" 
+                    [class.active]="showModelDropdown()"
+                    title="Switch AI Model">
+              <span class="model-bot-icon">🤖</span>
+              <span class="model-label-text">{{ getSelectedModelName() }}</span>
+              <mat-icon class="chevron-icon">{{ showModelDropdown() ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+
+            @if (showModelDropdown()) {
+              <div class="model-dropdown-menu">
+                @for (model of aiService.availableModels(); track model.id) {
+                  <button type="button" 
+                          class="model-dropdown-item" 
+                          [class.selected]="aiService.selectedModel() === model.id"
+                          (click)="onSelectModel(model.id)">
+                    <span class="item-name">{{ model.name }}</span>
+                    @if (model.badge) {
+                      <span class="item-badge">{{ model.badge }}</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <button mat-stroked-button class="reset-chat-btn" (click)="resetConversation()" title="Start a fresh conversation">
+            <mat-icon>restart_alt</mat-icon>
+            <span>New Chat</span>
+          </button>
+        </div>
       </header>
 
       <!-- Scrollable Message Feed -->
@@ -266,6 +297,127 @@ import { MediaViewerData, MediaViewerModalComponent } from '@shared/components/m
       font-size: 0.88rem;
       margin: 0;
       line-height: 1.4;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Model Picker Styles matching user reference */
+    .model-picker-container {
+      position: relative;
+    }
+
+    .model-picker-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .model-picker-btn:hover, .model-picker-btn.active {
+      border-color: #3b82f6;
+      background: #1e293b;
+    }
+
+    .model-bot-icon {
+      font-size: 1rem;
+      line-height: 1;
+    }
+
+    .model-label-text {
+      max-width: 210px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chevron-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #94a3b8;
+    }
+
+    .model-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      min-width: 290px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      padding: 4px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      animation: fadeInDropdown 0.15s ease-out;
+    }
+
+    @keyframes fadeInDropdown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .model-dropdown-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      color: #cbd5e1;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .model-dropdown-item:hover {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    .model-dropdown-item.selected {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      font-weight: 600;
+    }
+
+    .item-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-badge {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.18);
+      color: inherit;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      margin-left: 8px;
+      white-space: nowrap;
     }
 
     .reset-chat-btn {
@@ -803,6 +955,25 @@ export class AssistantComponent implements OnInit {
   @ViewChild('messageInput') private messageInputRef!: ElementRef<HTMLInputElement>;
 
   userInput: string = '';
+  readonly showModelDropdown = signal<boolean>(false);
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(): void {
+    this.showModelDropdown.set(false);
+  }
+
+  toggleModelDropdown(): void {
+    this.showModelDropdown.update(v => !v);
+  }
+
+  onSelectModel(modelId: string): void {
+    this.aiService.setModel(modelId);
+    this.showModelDropdown.set(false);
+  }
+
+  getSelectedModelName(): string {
+    return this.aiService.getSelectedModelInfo().name;
+  }
 
   constructor() {
     // Automatically scroll to bottom whenever messages or loading state updates

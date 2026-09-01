@@ -105,27 +105,41 @@ public class AiOrchestratorService {
                     criteria.getMode(), criteria.getMediaType(), criteria.getKeywords() != null ? criteria.getKeywords().size() : 0,
                     criteria.getJourneyName(), criteria.getSectionName());
 
+            String targetModel = (request.getModel() != null && !request.getModel().isBlank())
+                    ? request.getModel().trim()
+                    : aiModelProvider.getActiveModelName();
+
             // 4. Dual-Mode Execution with Context
             AiChatResponseDto response;
             if ("MEMORY".equalsIgnoreCase(criteria.getMode())) {
-                response = executeMemoryMode(conversationIdStr, userMessage, criteria, springAiHistory);
+                response = executeMemoryMode(conversationIdStr, userMessage, criteria, springAiHistory, targetModel);
             } else {
-                response = executeGeneralMode(conversationIdStr, userMessage, springAiHistory);
+                response = executeGeneralMode(conversationIdStr, userMessage, springAiHistory, targetModel);
             }
 
             // 5. Persist Chat Messages to Database
             saveMessageHistory(conversation, userMessage, response.getAnswer());
 
             long durationMs = System.currentTimeMillis() - startTime;
-            log.info("AI Chat completed successfully: userId={}, conversationId={}, mode={}, durationMs={}",
-                    userId, conversationIdStr, response.getMode(), durationMs);
+            log.info("AI Chat completed successfully: userId={}, conversationId={}, mode={}, model={}, durationMs={}",
+                    userId, conversationIdStr, response.getMode(), targetModel, durationMs);
 
             return response;
         } catch (Exception ex) {
             long durationMs = System.currentTimeMillis() - startTime;
-            log.error("AI Chat processing failed after {}ms for conversation {}: {}",
-                    durationMs, conversationIdStr, ex.getMessage());
-            throw new com.memoryverse.common.exception.AiServiceException("The Memory Assistant is currently busy. Please try again.", ex);
+            log.error("AI Chat processing failed gracefully after {}ms for conversation {}: {}",
+                    durationMs, conversationIdStr, ex.getMessage(), ex);
+
+            String fallbackMessage = "I am having trouble connecting to my neural network right now. Please check your API configuration or try again in a moment.";
+            return AiChatResponseDto.builder()
+                    .conversationId(conversationIdStr)
+                    .mode("GENERAL")
+                    .answer(fallbackMessage)
+                    .relatedMemories(Collections.emptyList())
+                    .relatedMedia(Collections.emptyList())
+                    .suggestedQuestions(getDefaultSuggestions())
+                    .modelUsed(request.getModel() != null ? request.getModel() : aiModelProvider.getActiveModelName())
+                    .build();
         }
     }
 
@@ -198,8 +212,13 @@ public class AiOrchestratorService {
      * MODE A — Memory Intelligence with Contextual Grounded QA.
      */
     private AiChatResponseDto executeMemoryMode(String conversationId, String userMessage,
-                                                MemorySearchCriteria criteria, List<Message> history) {
+                                                MemorySearchCriteria criteria, List<Message> history, String modelName) {
         List<AiMemorySummaryDto> summaries = memoryRetrievalService.retrieveMemories(criteria, MAX_RETRIEVAL_RESULTS);
+
+        List<AiChatResponseDto.RelatedMemoryDto> relatedMemories =
+                memoryRetrievalService.toRelatedMemoryDtos(summaries);
+        List<AiChatResponseDto.RelatedMediaDto> relatedMedia =
+                memoryRetrievalService.toRelatedMediaDtos(summaries);
 
         // NO-RESULT HANDLING: Fast, deterministic return. Do NOT query LLM to avoid hallucinations.
         if (summaries.isEmpty()) {
@@ -211,7 +230,7 @@ public class AiOrchestratorService {
                     .relatedMemories(Collections.emptyList())
                     .relatedMedia(Collections.emptyList())
                     .suggestedQuestions(getDefaultSuggestions())
-                    .modelUsed(aiModelProvider.getActiveModelName())
+                    .modelUsed(modelName)
                     .build();
         }
 
@@ -226,61 +245,86 @@ public class AiOrchestratorService {
                 Please answer the user's question with warmth, nostalgia, and precision using ONLY the records above.
                 """, userMessage, contextText);
 
-        log.info("Calling NVIDIA NIM for Grounded QA with history ({} msgs) and {} memory records...",
-                history.size(), summaries.size());
+        log.info("Calling NVIDIA NIM ({}) for Grounded QA with history ({} msgs) and {} memory records...",
+                modelName, history.size(), summaries.size());
 
-        String rawOutput = aiModelProvider.generateWithHistory(
-                AiPromptTemplates.GROUNDED_QA_SYSTEM_PROMPT,
-                history,
-                userPromptWithContext
-        );
+        try {
+            String rawOutput = aiModelProvider.generateWithHistory(
+                    modelName,
+                    AiPromptTemplates.GROUNDED_QA_SYSTEM_PROMPT,
+                    history,
+                    userPromptWithContext
+            );
 
-        ParsedCompletion parsed = parseAnswerAndSuggestions(rawOutput, getDefaultSuggestions());
+            ParsedCompletion parsed = parseAnswerAndSuggestions(rawOutput, getDefaultSuggestions());
 
-        List<AiChatResponseDto.RelatedMemoryDto> relatedMemories =
-                memoryRetrievalService.toRelatedMemoryDtos(summaries);
-        List<AiChatResponseDto.RelatedMediaDto> relatedMedia =
-                memoryRetrievalService.toRelatedMediaDtos(summaries);
-
-        return AiChatResponseDto.builder()
-                .conversationId(conversationId)
-                .mode("MEMORY")
-                .answer(parsed.answer())
-                .relatedMemories(relatedMemories)
-                .relatedMedia(relatedMedia)
-                .suggestedQuestions(parsed.suggestions())
-                .modelUsed(aiModelProvider.getActiveModelName())
-                .build();
+            return AiChatResponseDto.builder()
+                    .conversationId(conversationId)
+                    .mode("MEMORY")
+                    .answer(parsed.answer())
+                    .relatedMemories(relatedMemories)
+                    .relatedMedia(relatedMedia)
+                    .suggestedQuestions(parsed.suggestions())
+                    .modelUsed(modelName)
+                    .build();
+        } catch (Exception e) {
+            log.warn("Memory QA completion failed for model {}: {}. Returning retrieved memories with graceful message.",
+                    modelName, e.getMessage());
+            return AiChatResponseDto.builder()
+                    .conversationId(conversationId)
+                    .mode("MEMORY")
+                    .answer("I found memories matching your query in the archive, but I am having trouble connecting to my neural network right now. Please check your API configuration or try again in a moment.")
+                    .relatedMemories(relatedMemories)
+                    .relatedMedia(relatedMedia)
+                    .suggestedQuestions(getDefaultSuggestions())
+                    .modelUsed(modelName)
+                    .build();
+        }
     }
 
     /**
      * MODE B — General AI Assistant with Rolling History.
      */
-    private AiChatResponseDto executeGeneralMode(String conversationId, String userMessage, List<Message> history) {
-        log.info("Executing General AI mode with history ({} msgs) for: '{}'", history.size(), userMessage);
-
-        String rawOutput = aiModelProvider.generateWithHistory(
-                AiPromptTemplates.GENERAL_AI_SYSTEM_PROMPT,
-                history,
-                userMessage
-        );
+    private AiChatResponseDto executeGeneralMode(String conversationId, String userMessage, List<Message> history, String modelName) {
+        log.info("Executing General AI mode ({}) with history ({} msgs) for: '{}'", modelName, history.size(), userMessage);
 
         List<String> generalFallbacks = List.of(
                 "Show me our first year memories",
                 "Do we have any farewell photos?",
                 "What happened during the annual cultural fest?"
         );
-        ParsedCompletion parsed = parseAnswerAndSuggestions(rawOutput, generalFallbacks);
 
-        return AiChatResponseDto.builder()
-                .conversationId(conversationId)
-                .mode("GENERAL")
-                .answer(parsed.answer())
-                .relatedMemories(Collections.emptyList())
-                .relatedMedia(Collections.emptyList())
-                .suggestedQuestions(parsed.suggestions())
-                .modelUsed(aiModelProvider.getActiveModelName())
-                .build();
+        try {
+            String rawOutput = aiModelProvider.generateWithHistory(
+                    modelName,
+                    AiPromptTemplates.GENERAL_AI_SYSTEM_PROMPT,
+                    history,
+                    userMessage
+            );
+
+            ParsedCompletion parsed = parseAnswerAndSuggestions(rawOutput, generalFallbacks);
+
+            return AiChatResponseDto.builder()
+                    .conversationId(conversationId)
+                    .mode("GENERAL")
+                    .answer(parsed.answer())
+                    .relatedMemories(Collections.emptyList())
+                    .relatedMedia(Collections.emptyList())
+                    .suggestedQuestions(parsed.suggestions())
+                    .modelUsed(modelName)
+                    .build();
+        } catch (Exception e) {
+            log.warn("General AI completion failed for model {}: {}", modelName, e.getMessage());
+            return AiChatResponseDto.builder()
+                    .conversationId(conversationId)
+                    .mode("GENERAL")
+                    .answer("I am having trouble connecting to my neural network right now. Please check your API configuration or try again in a moment.")
+                    .relatedMemories(Collections.emptyList())
+                    .relatedMedia(Collections.emptyList())
+                    .suggestedQuestions(generalFallbacks)
+                    .modelUsed(modelName)
+                    .build();
+        }
     }
 
     /**
@@ -423,5 +467,9 @@ public class AiOrchestratorService {
                 "What happened during the annual cultural fest?",
                 "Show me photos from our campus road trips"
         );
+    }
+
+    public List<com.memoryverse.modules.ai.dto.AiModelInfoDto> getAvailableModels() {
+        return aiModelProvider.getAvailableModels();
     }
 }

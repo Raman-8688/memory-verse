@@ -23,12 +23,23 @@ public interface AiModelProvider {
 
     /**
      * Generate text completion taking into account a limited rolling window
-     * of prior conversation messages.
+     * of prior conversation messages using default model.
      */
     String generateWithHistory(String systemPrompt, java.util.List<org.springframework.ai.chat.messages.Message> history, String userPrompt);
 
     /**
-     * Returns the current active model identifier.
+     * Generate text completion taking into account a limited rolling window
+     * of prior conversation messages using a specified model.
+     */
+    String generateWithHistory(String modelName, String systemPrompt, java.util.List<org.springframework.ai.chat.messages.Message> history, String userPrompt);
+
+    /**
+     * Returns the current active default model identifier.
      */
     String getActiveModelName();
+
+    /**
+     * Returns the list of verified, available models in the catalog.
+     */
+    java.util.List<com.memoryverse.modules.ai.dto.AiModelInfoDto> getAvailableModels();
 }
