@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { AuthService } from '@core/auth/auth.service';
 import { DashboardService } from '@core/services/dashboard.service';
 import { DashboardResponse, TimelineMilestone } from '@core/models/dashboard.model';
@@ -17,7 +18,8 @@ import { Memory } from '@core/models/memory.model';
     RouterModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ImageFallbackDirective
   ],
   template: `
     <div class="dashboard-container">
@@ -86,7 +88,7 @@ import { Memory } from '@core/models/memory.model';
             <div class="motd-card">
               <!-- Cover Visual -->
               <div class="motd-media-pane">
-                <img [src]="getCoverUrl(motd)" [alt]="motd.title" class="motd-img">
+                <img [src]="getCoverUrl(motd)" [alt]="motd.title" mvFallback class="motd-img">
                 <div class="motd-overlay"></div>
                 <div class="motd-context-badge">
                   <mat-icon>auto_awesome</mat-icon>
@@ -123,6 +125,7 @@ import { Memory } from '@core/models/memory.model';
                   <div class="motd-creator">
                     <img [src]="motd.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                          [alt]="motd.createdBy.fullName" 
+                         mvFallback
                          class="motd-avatar">
                     <div class="motd-author-info">
                       <span class="by-label">Narrated by</span>
@@ -169,6 +172,7 @@ import { Memory } from '@core/models/memory.model';
                     <img [src]="milestone.coverImageUrl || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80'" 
                          [alt]="milestone.periodTitle" 
                          loading="lazy" 
+                         mvFallback
                          class="milestone-img">
                     <div class="milestone-overlay"></div>
                     <span class="milestone-year">{{ milestone.year }}</span>
@@ -209,7 +213,7 @@ import { Memory } from '@core/models/memory.model';
               @for (memory of data.recentMemories; track memory.id) {
                 <article class="recent-card" [routerLink]="['/memories', memory.id]">
                   <div class="recent-media">
-                    <img [src]="getCoverUrl(memory)" [alt]="memory.title" loading="lazy" class="recent-img">
+                    <img [src]="getCoverUrl(memory)" [alt]="memory.title" loading="lazy" mvFallback class="recent-img">
                     <div class="recent-overlay"></div>
                     <span class="recent-date">{{ formatDate(memory.memoryDate) }}</span>
                   </div>
@@ -223,6 +227,7 @@ import { Memory } from '@core/models/memory.model';
                       <div class="recent-author">
                         <img [src]="memory.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                              [alt]="memory.createdBy.fullName" 
+                             mvFallback
                              class="recent-avatar">
                         <span>{{ memory.createdBy.fullName }}</span>
                       </div>

@@ -77,4 +77,22 @@ public class MemoryController {
         MemoryResponseDto memory = memoryService.getMemoryById(id);
         return ResponseEntity.ok(ApiResponse.success(memory));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<MemoryResponseDto>> updateMemory(
+            @PathVariable UUID id,
+            @Valid @RequestBody MemoryUpdateDto dto) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        MemoryResponseDto updated = memoryService.updateMemory(id, dto, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Memory updated successfully", updated));
+    }
+
+    @PostMapping(value = "/{id}/media", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<ApiResponse<MemoryResponseDto>> appendMedia(
+            @PathVariable UUID id,
+            @RequestPart("files") List<MultipartFile> files) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        MemoryResponseDto updated = memoryService.appendMedia(id, files, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Media appended successfully", updated));
+    }
 }

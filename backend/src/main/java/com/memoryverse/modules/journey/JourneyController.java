@@ -48,4 +48,14 @@ public class JourneyController {
         JourneySectionResponseDto section = journeyService.addSection(id, dto);
         return new ResponseEntity<>(ApiResponse.success("Section added successfully", section), HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MEMBER')")
+    public ResponseEntity<ApiResponse<JourneyResponseDto>> updateJourney(
+            @PathVariable UUID id,
+            @Valid @RequestBody JourneyUpdateDto dto) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        JourneyResponseDto updated = journeyService.updateJourney(id, dto, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Journey updated successfully", updated));
+    }
 }

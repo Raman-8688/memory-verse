@@ -4,9 +4,12 @@ import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '@core/auth/auth.service';
+import { UserService } from '@core/services/user.service';
 import { MemoryService } from '@core/services/memory.service';
 import { Memory } from '@core/models/memory.model';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 
 @Component({
   selector: 'mv-profile',
@@ -16,7 +19,8 @@ import { Memory } from '@core/models/memory.model';
     RouterModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ImageFallbackDirective
   ],
   template: `
     <div class="profile-page">
@@ -24,7 +28,29 @@ import { Memory } from '@core/models/memory.model';
       @if (auth.currentUser(); as user) {
         <section class="profile-hero">
           <div class="profile-avatar-wrap">
-            <img [src]="user.avatarUrl || defaultAvatar" [alt]="user.fullName" class="profile-avatar" />
+            <img [src]="user.avatarUrl || defaultAvatar" [alt]="user.fullName" mvFallback class="profile-avatar" />
+
+            <!-- Single Avatar Image File Input -->
+            <input 
+              type="file" 
+              #avatarFileInput 
+              accept="image/*" 
+              (change)="onAvatarFileSelected($event, user.id)" 
+              style="display: none;" />
+
+            <button 
+              mat-mini-fab 
+              class="avatar-camera-fab" 
+              (click)="avatarFileInput.click()" 
+              [disabled]="isUploadingAvatar()" 
+              title="Change Profile Photo (Select 1 image)">
+              @if (isUploadingAvatar()) {
+                <mat-spinner diameter="16" class="avatar-spinner"></mat-spinner>
+              } @else {
+                <mat-icon>photo_camera</mat-icon>
+              }
+            </button>
+
             <span class="role-badge" [class.admin]="user.role === 'ADMIN'">
               {{ user.role }}
             </span>
@@ -81,7 +107,8 @@ import { Memory } from '@core/models/memory.model';
                       </div>
                     } @else {
                       <img [src]="memory.mediaList[0].thumbnailUrl || memory.mediaList[0].mediaUrl" 
-                           [alt]="memory.title" />
+                           [alt]="memory.title" 
+                           mvFallback />
                     }
                   } @else {
                     <div class="no-thumb"><mat-icon>image</mat-icon></div>
@@ -154,6 +181,40 @@ import { Memory } from '@core/models/memory.model';
       border-radius: var(--radius-full);
       text-transform: uppercase;
       letter-spacing: 0.05em;
+    }
+
+    .avatar-camera-fab {
+      position: absolute !important;
+      top: -4px;
+      right: -4px;
+      width: 34px !important;
+      height: 34px !important;
+      background-color: #ffffff !important;
+      color: var(--mv-primary) !important;
+      border: 1px solid var(--mv-border) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer;
+      transition: all 0.2s ease !important;
+      z-index: 2;
+    }
+
+    .avatar-camera-fab:hover {
+      background-color: #fef3c7 !important;
+      transform: scale(1.1);
+    }
+
+    .avatar-camera-fab mat-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+      line-height: 18px !important;
+    }
+
+    .avatar-spinner {
+      margin: 0 !important;
     }
 
     .role-badge.admin {
@@ -382,13 +443,39 @@ import { Memory } from '@core/models/memory.model';
 export class ProfileComponent implements OnInit {
   readonly auth = inject(AuthService);
   private readonly memoryService = inject(MemoryService);
+  private readonly userService = inject(UserService);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly taggedMemories = signal<Memory[]>([]);
   readonly isLoading = signal<boolean>(false);
+  readonly isUploadingAvatar = signal<boolean>(false);
   readonly defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
 
   ngOnInit(): void {
     this.loadTaggedMemories();
+  }
+
+  onAvatarFileSelected(event: Event, userId: string): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+
+    this.isUploadingAvatar.set(true);
+    this.userService.uploadAvatar(userId, file).subscribe({
+      next: (updatedUser) => {
+        this.isUploadingAvatar.set(false);
+        this.auth.updateCurrentUser(updatedUser);
+        this.snackBar.open('Profile photo updated successfully!', 'OK', { duration: 3500 });
+        input.value = '';
+      },
+      error: (err) => {
+        this.isUploadingAvatar.set(false);
+        console.error('Failed to update avatar:', err);
+        const msg = err.error?.message || 'Failed to upload profile photo. Please try again.';
+        this.snackBar.open(msg, 'Close', { duration: 4000 });
+        input.value = '';
+      }
+    });
   }
 
   private loadTaggedMemories(): void {

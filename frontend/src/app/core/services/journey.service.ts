@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Journey, JourneyCreateDto, JourneySection, JourneySectionCreateDto } from '../models/journey.model';
+import { Journey, JourneyCreateDto, JourneySection, JourneySectionCreateDto, JourneyUpdateDto } from '../models/journey.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,5 +23,9 @@ export class JourneyService {
 
   addSection(journeyId: string, dto: JourneySectionCreateDto): Observable<JourneySection> {
     return this.api.post<JourneySection>(`/journeys/${journeyId}/sections`, dto);
+  }
+
+  updateJourney(id: string, dto: JourneyUpdateDto): Observable<Journey> {
+    return this.api.put<Journey>(`/journeys/${id}`, dto);
   }
 }

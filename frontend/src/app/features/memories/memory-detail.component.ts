@@ -1,13 +1,18 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { HttpEventType } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Memory, Media } from '@core/models/memory.model';
 import { GalleryItem } from '@core/models/gallery.model';
 import { MemoryService } from '@core/services/memory.service';
+import { AuthService } from '@core/auth/auth.service';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 
 @Component({
@@ -19,7 +24,8 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    ImageFallbackDirective
   ],
   template: `
     @if (isLoading()) {
@@ -42,7 +48,7 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
               @if (hero.mediaType === 'VIDEO') {
                 <video [src]="hero.mediaUrl" controls class="hero-media-element" autoplay [muted]="true"></video>
               } @else {
-                <img [src]="hero.mediaUrl" [alt]="m.title" class="hero-media-element">
+                <img [src]="hero.mediaUrl" [alt]="m.title" mvFallback class="hero-media-element">
               }
             </div>
           }
@@ -60,7 +66,15 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
               }
             </div>
 
-            <h1 class="story-title">{{ m.title }}</h1>
+            <div class="story-title-row">
+              <h1 class="story-title">{{ m.title }}</h1>
+              @if (canEdit()) {
+                <button mat-stroked-button class="edit-story-btn" (click)="openEditDialog(m)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit Story</span>
+                </button>
+              }
+            </div>
 
             <div class="story-meta-bar">
               <div class="meta-item">
@@ -78,6 +92,7 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
               <div class="meta-item author">
                 <img [src]="m.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                      [alt]="m.createdBy.fullName" 
+                     mvFallback
                      class="author-avatar">
                 <span>Shared by <strong>{{ m.createdBy.fullName }}</strong></span>
               </div>
@@ -99,6 +114,7 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
                     <div class="friend-pill">
                       <img [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80'" 
                            [alt]="user.fullName" 
+                           mvFallback
                            class="friend-pill-avatar">
                       <span>{{ user.fullName }}</span>
                     </div>
@@ -108,14 +124,39 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
             }
           </article>
 
-          <!-- Media Gallery Grid (If memory has more than 1 asset) -->
-          @if (m.mediaList.length > 1) {
-            <section class="gallery-section">
+          <!-- Media Gallery Section (Spotlight & Append Flow) -->
+          <section class="gallery-section">
+            <div class="gallery-heading-row">
               <div class="gallery-heading">
                 <h2 class="editorial-title">Gallery Assets ({{ m.mediaList.length }})</h2>
-                <p>Click any photo or video to spotlight it in the player above.</p>
+                <p>Preserved snapshots and recordings from this moment.</p>
               </div>
 
+              @if (canEdit()) {
+                <div class="append-media-action">
+                  <input type="file" #mediaFileInput multiple accept="image/*,video/*" (change)="onFilesSelected($event)" style="display: none;">
+                  <button mat-flat-button class="add-photos-btn" (click)="mediaFileInput.click()" [disabled]="isUploadingMedia()">
+                    @if (isUploadingMedia()) {
+                      <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                      <span>Uploading ({{ uploadProgress() }}%)...</span>
+                    } @else {
+                      <ng-container>
+                        <mat-icon>add_a_photo</mat-icon>
+                        <span>Add Photos to this Memory</span>
+                      </ng-container>
+                    }
+                  </button>
+                </div>
+              }
+            </div>
+
+            @if (isUploadingMedia()) {
+              <div class="upload-progress-bar-container">
+                <div class="upload-progress-fill" [style.width.%]="uploadProgress()"></div>
+              </div>
+            }
+
+            @if (m.mediaList.length > 0) {
               <div class="gallery-grid">
                 @for (media of m.mediaList; track media.id) {
                   <div class="gallery-thumb" 
@@ -127,13 +168,13 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
                         <mat-icon>play_arrow</mat-icon>
                       </span>
                     } @else {
-                      <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="media.fileName || 'photo'" class="thumb-img">
+                      <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="media.fileName || 'photo'" mvFallback class="thumb-img">
                     }
                   </div>
                 }
               </div>
-            </section>
-          }
+            }
+          </section>
         </div>
       } @else {
         <div class="empty-state">
@@ -237,11 +278,36 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
       font-weight: 500;
     }
 
+    .story-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .edit-story-btn {
+      border-color: var(--mv-border) !important;
+      color: var(--mv-text-secondary) !important;
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 500;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .edit-story-btn:hover {
+      border-color: var(--mv-primary) !important;
+      color: var(--mv-primary) !important;
+      background-color: #fef3c7 !important;
+    }
+
     .story-title {
       font-family: var(--font-editorial);
       font-size: 2.8rem;
       font-weight: 700;
-      margin: 0 0 var(--space-2) 0;
+      margin: 0;
       line-height: 1.15;
       color: var(--mv-text-primary);
     }
@@ -280,30 +346,30 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
       border-radius: var(--radius-lg);
       border: 1px solid var(--mv-border);
       padding: var(--space-6);
-      box-shadow: var(--shadow-card);
+      box-shadow: var(--shadow-subtle);
     }
 
     .narrative-body {
-      font-family: var(--font-ui);
-      font-size: 1.1rem;
+      font-family: var(--font-editorial);
+      font-size: 1.35rem;
       line-height: 1.8;
       color: var(--mv-text-primary);
       white-space: pre-line;
-      margin-bottom: var(--space-4);
     }
 
     .tagged-section {
-      padding-top: var(--space-3);
+      margin-top: var(--space-6);
+      padding-top: var(--space-4);
       border-top: 1px solid var(--mv-border);
     }
 
     .tagged-heading {
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       color: var(--mv-text-muted);
-      margin-bottom: 10px;
+      margin-bottom: var(--space-2);
     }
 
     .tagged-chips {
@@ -333,11 +399,16 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
     }
 
     .gallery-section {
-      margin-top: var(--space-2);
+      margin-top: var(--space-4);
     }
 
-    .gallery-heading {
+    .gallery-heading-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
       margin-bottom: var(--space-3);
+      flex-wrap: wrap;
     }
 
     .gallery-heading .editorial-title {
@@ -349,6 +420,49 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
       margin: 0;
       color: var(--mv-text-muted);
       font-size: 0.88rem;
+    }
+
+    .add-photos-btn {
+      background-color: var(--mv-primary) !important;
+      color: #ffffff !important;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      padding: 0 18px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-subtle);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .add-photos-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-card);
+    }
+
+    .add-photos-btn:disabled {
+      background-color: #e5e7eb !important;
+      color: #9ca3af !important;
+    }
+
+    .btn-spinner {
+      margin-right: 6px;
+    }
+
+    .upload-progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background-color: #fef3c7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: var(--space-3);
+    }
+
+    .upload-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #f59e0b, var(--mv-primary));
+      transition: width 0.25s ease;
     }
 
     .gallery-grid {
@@ -505,6 +619,77 @@ export class MemoryDetailComponent implements OnInit {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
+    });
+  }
+
+  readonly authService = inject(AuthService);
+  private readonly snackBar = inject(MatSnackBar);
+
+  readonly isUploadingMedia = signal<boolean>(false);
+  readonly uploadProgress = signal<number>(0);
+
+  canEdit(): boolean {
+    const user = this.authService.currentUser();
+    const m = this.memory();
+    if (!user || !m) return false;
+    return user.id === m.createdBy?.id || this.authService.isAdmin();
+  }
+
+  openEditDialog(m: Memory): void {
+    const ref = this.dialog.open(MemoryEditDialogComponent, {
+      data: m,
+      width: '580px'
+    });
+
+    ref.afterClosed().subscribe((updated: Memory | undefined) => {
+      if (updated) {
+        this.memory.update(curr => curr ? {
+          ...curr,
+          ...updated,
+          mediaList: curr.mediaList,
+          taggedUsers: curr.taggedUsers
+        } : updated);
+      }
+    });
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const files = Array.from(input.files);
+    const m = this.memory();
+    if (!m) return;
+
+    this.isUploadingMedia.set(true);
+    this.uploadProgress.set(0);
+
+    this.memoryService.appendMediaWithProgress(m.id, files).subscribe({
+      next: (httpEvent) => {
+        if (httpEvent.type === HttpEventType.UploadProgress) {
+          if (httpEvent.total) {
+            const progress = Math.round((100 * httpEvent.loaded) / httpEvent.total);
+            this.uploadProgress.set(progress);
+          }
+        } else if (httpEvent.type === HttpEventType.Response) {
+          this.isUploadingMedia.set(false);
+          const updatedMemory: Memory = httpEvent.body?.data || httpEvent.body;
+          if (updatedMemory) {
+            this.memory.set(updatedMemory);
+            if (!this.activeMedia() && updatedMemory.mediaList?.length > 0) {
+              this.activeMedia.set(updatedMemory.mediaList[0]);
+            }
+          }
+          this.snackBar.open(`${files.length} photo(s) added successfully!`, 'OK', { duration: 3500 });
+          input.value = '';
+        }
+      },
+      error: (err) => {
+        this.isUploadingMedia.set(false);
+        console.error('Failed to append media:', err);
+        const msg = err.error?.message || 'Failed to upload photos. Please try again.';
+        this.snackBar.open(msg, 'Close', { duration: 4000 });
+        input.value = '';
+      }
     });
   }
 }

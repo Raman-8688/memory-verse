@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { Journey } from '@core/models/journey.model';
 import { JourneyService } from '@core/services/journey.service';
 import { AuthService } from '@core/auth/auth.service';
@@ -19,7 +20,8 @@ import { JourneyFormDialogComponent } from './journey-form-dialog.component';
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ImageFallbackDirective
   ],
   template: `
     <div class="journeys-page">
@@ -67,6 +69,7 @@ import { JourneyFormDialogComponent } from './journey-form-dialog.component';
                 <img [src]="journey.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80'" 
                      [alt]="journey.title" 
                      loading="lazy" 
+                     mvFallback
                      class="card-img">
                 <div class="media-overlay"></div>
                 <div class="card-badges">
@@ -90,6 +93,7 @@ import { JourneyFormDialogComponent } from './journey-form-dialog.component';
                   <div class="creator-badge">
                     <img [src]="journey.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                          [alt]="journey.createdBy.fullName || 'Member'" 
+                         mvFallback
                          class="creator-avatar">
                     <span class="creator-name">{{ journey.createdBy.fullName || 'Member' }}</span>
                   </div>

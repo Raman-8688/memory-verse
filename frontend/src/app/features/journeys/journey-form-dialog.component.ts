@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { JourneyService } from '@core/services/journey.service';
+import { MediaService } from '@core/services/media.service';
 
 @Component({
   selector: 'mv-journey-form-dialog',
@@ -50,11 +51,44 @@ import { JourneyService } from '@core/services/journey.service';
             <textarea matInput formControlName="description" rows="3" placeholder="What does this period mean to us? What were the highlights?"></textarea>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Cover Image URL</mat-label>
-            <input matInput formControlName="coverImageUrl" placeholder="https://images.unsplash.com/...">
-            <mat-icon matPrefix class="field-icon">image</mat-icon>
-          </mat-form-field>
+          <!-- Cover Artwork Upload Section (Device / Mobile Camera Pick) -->
+          <div class="cover-upload-block">
+            <label class="section-label">Cover Artwork</label>
+
+            <!-- Hidden single file input -->
+            <input 
+              type="file" 
+              #coverFileInput 
+              accept="image/*" 
+              (change)="onCoverFileSelected($event)" 
+              style="display: none;" />
+
+            @if (coverPreviewUrl()) {
+              <div class="cover-preview-card">
+                <img [src]="coverPreviewUrl()" alt="Cover preview" class="cover-preview-img" />
+                <div class="preview-actions-overlay">
+                  <button type="button" mat-flat-button class="overlay-btn change-btn" (click)="coverFileInput.click()" [disabled]="isSubmitting()">
+                    <mat-icon>photo_camera</mat-icon>
+                    <span>Change Photo</span>
+                  </button>
+                  <button type="button" mat-stroked-button class="overlay-btn remove-btn" (click)="removeCover()" [disabled]="isSubmitting()">
+                    <mat-icon>delete</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="upload-dropzone" (click)="coverFileInput.click()">
+                <div class="dropzone-icon">
+                  <mat-icon>add_photo_alternate</mat-icon>
+                </div>
+                <div class="dropzone-text">
+                  <strong>Select Cover Photo from Device</strong>
+                  <span>Tap to choose from phone gallery, camera, or computer</span>
+                </div>
+              </div>
+            }
+          </div>
 
           <!-- Quick Curated Photo Inspiration -->
           <div class="preset-covers">
@@ -185,8 +219,121 @@ import { JourneyService } from '@core/services/journey.service';
       gap: 12px;
     }
 
+    /* Cover Upload Styles */
+    .cover-upload-block {
+      margin: 4px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--mv-text-secondary);
+    }
+
+    .upload-dropzone {
+      border: 2px dashed #fde68a;
+      background-color: #fef9ee;
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .upload-dropzone:hover {
+      border-color: var(--mv-primary);
+      background-color: #fef3c7;
+      transform: translateY(-1px);
+    }
+
+    .dropzone-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      color: var(--mv-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-subtle);
+      flex-shrink: 0;
+    }
+
+    .dropzone-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .dropzone-text strong {
+      font-size: 0.9rem;
+      color: var(--mv-text-primary);
+    }
+
+    .dropzone-text span {
+      font-size: 0.78rem;
+      color: var(--mv-text-muted);
+    }
+
+    .cover-preview-card {
+      position: relative;
+      width: 100%;
+      height: 150px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--mv-border);
+      box-shadow: var(--shadow-subtle);
+      background-color: #1c1917;
+    }
+
+    .cover-preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preview-actions-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(28, 25, 23, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay-btn {
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: 36px;
+    }
+
+    .change-btn {
+      background-color: #ffffff !important;
+      color: var(--mv-text-primary) !important;
+    }
+
+    .remove-btn {
+      background-color: rgba(239, 68, 68, 0.9) !important;
+      color: #ffffff !important;
+      border: none !important;
+    }
+
     .preset-covers {
-      margin-top: -6px;
+      margin-top: 2px;
       margin-bottom: 8px;
     }
 
@@ -288,14 +435,17 @@ import { JourneyService } from '@core/services/journey.service';
 export class JourneyFormDialogComponent {
   private readonly fb = inject(FormBuilder);
   private readonly journeyService = inject(JourneyService);
+  private readonly mediaService = inject(MediaService);
   private readonly dialogRef = inject(MatDialogRef<JourneyFormDialogComponent>);
 
   readonly isSubmitting = signal<boolean>(false);
+  readonly isUploadingCover = signal<boolean>(false);
+  readonly coverPreviewUrl = signal<string | null>(null);
+  readonly selectedCoverFile = signal<File | null>(null);
 
   readonly form: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
     description: [''],
-    coverImageUrl: [''],
     startDate: [''],
     endDate: [''],
     displayOrder: [0],
@@ -331,15 +481,54 @@ export class JourneyFormDialogComponent {
     }
   }
 
+  onCoverFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    this.selectedCoverFile.set(file);
+    this.coverPreviewUrl.set(URL.createObjectURL(file));
+    input.value = '';
+  }
+
   setCover(url: string): void {
-    this.form.patchValue({ coverImageUrl: url });
+    this.selectedCoverFile.set(null);
+    this.coverPreviewUrl.set(url);
+  }
+
+  removeCover(): void {
+    this.selectedCoverFile.set(null);
+    this.coverPreviewUrl.set(null);
   }
 
   saveJourney(): void {
     if (this.form.invalid || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
-    const formValue = this.form.value;
+
+    const file = this.selectedCoverFile();
+    if (file) {
+      this.isUploadingCover.set(true);
+      this.mediaService.uploadSingleFile(file).subscribe({
+        next: (uploaded) => {
+          this.isUploadingCover.set(false);
+          this.executeCreate(uploaded.mediaUrl);
+        },
+        error: (err) => {
+          this.isUploadingCover.set(false);
+          this.isSubmitting.set(false);
+          console.error('Failed to upload cover photo:', err);
+        }
+      });
+    } else {
+      this.executeCreate(this.coverPreviewUrl());
+    }
+  }
+
+  private executeCreate(coverUrl: string | null): void {
+    const formValue = {
+      ...this.form.value,
+      coverImageUrl: coverUrl || undefined
+    };
 
     this.journeyService.createJourney(formValue).subscribe({
       next: (created) => {

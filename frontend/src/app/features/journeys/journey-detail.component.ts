@@ -7,6 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { JourneyEditDialogComponent } from './journey-edit-dialog.component';
 import { Journey, JourneySection } from '@core/models/journey.model';
 import { JourneyService } from '@core/services/journey.service';
 import { AuthService } from '@core/auth/auth.service';
@@ -22,7 +25,9 @@ import { AuthService } from '@core/auth/auth.service';
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule,
+    ImageFallbackDirective
   ],
   template: `
     @if (isLoading()) {
@@ -43,13 +48,23 @@ import { AuthService } from '@core/auth/auth.service';
           <div class="hero-banner">
             <img [src]="j.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80'" 
                  [alt]="j.title" 
+                 mvFallback
                  class="hero-banner-img">
             <div class="banner-overlay"></div>
             
             <div class="banner-content">
-              <div class="period-pill">
-                <mat-icon>event</mat-icon>
-                <span>{{ formatDateRange(j.startDate, j.endDate) }}</span>
+              <div class="banner-top-actions">
+                <div class="period-pill">
+                  <mat-icon>event</mat-icon>
+                  <span>{{ formatDateRange(j.startDate, j.endDate) }}</span>
+                </div>
+
+                @if (canEdit()) {
+                  <button mat-stroked-button class="edit-hero-btn" (click)="openEditDialog(j)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Edit Journey</span>
+                  </button>
+                }
               </div>
 
               <h1 class="hero-title">{{ j.title }}</h1>
@@ -59,6 +74,7 @@ import { AuthService } from '@core/auth/auth.service';
                 <div class="creator-badge">
                   <img [src]="j.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
                        [alt]="j.createdBy.fullName || 'Creator'" 
+                       mvFallback
                        class="creator-avatar">
                   <span>Created by <strong>{{ j.createdBy.fullName || 'Friend' }}</strong></span>
                 </div>
@@ -240,6 +256,30 @@ import { AuthService } from '@core/auth/auth.service';
       z-index: 10;
       max-width: 800px;
       color: #ffffff;
+    }
+
+    .banner-top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .edit-hero-btn {
+      background: rgba(28, 25, 23, 0.55) !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.4) !important;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    .edit-hero-btn:hover {
+      background: rgba(180, 83, 9, 0.85) !important;
+      border-color: var(--mv-primary) !important;
     }
 
     .period-pill {
@@ -543,6 +583,7 @@ export class JourneyDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly journeyService = inject(JourneyService);
   private readonly fb = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
   readonly authService = inject(AuthService);
 
   readonly journey = signal<Journey | null>(null);
@@ -611,5 +652,25 @@ export class JourneyDetailComponent implements OnInit {
     const s = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
     const e = end ? new Date(end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present';
     return s && e ? `${s} to ${e}` : (s || e);
+  }
+
+  canEdit(): boolean {
+    const user = this.authService.currentUser();
+    const j = this.journey();
+    if (!user || !j) return false;
+    return user.id === j.createdBy?.id || this.authService.isAdmin();
+  }
+
+  openEditDialog(j: Journey): void {
+    const ref = this.dialog.open(JourneyEditDialogComponent, {
+      data: j,
+      width: '580px'
+    });
+
+    ref.afterClosed().subscribe((updated: Journey | undefined) => {
+      if (updated) {
+        this.journey.update(curr => curr ? { ...curr, ...updated, sections: curr.sections } : updated);
+      }
+    });
   }
 }

@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ApiResponse, PagedResponse } from '../models/api-response.model';
-import { Memory, MemoryCreateDto, MemoryFilterParams } from '../models/memory.model';
+import { Memory, MemoryCreateDto, MemoryUpdateDto, MemoryFilterParams } from '../models/memory.model';
 
 @Injectable({
   providedIn: 'root'
@@ -57,5 +57,21 @@ export class MemoryService {
 
   getTaggedMemories(userId?: string, page = 0, size = 30): Observable<PagedResponse<Memory>> {
     return this.api.get<PagedResponse<Memory>>('/memories/tagged', { userId, page, size });
+  }
+
+  updateMemory(id: string, dto: MemoryUpdateDto): Observable<Memory> {
+    return this.api.put<Memory>(`/memories/${id}`, dto);
+  }
+
+  appendMediaWithProgress(id: string, files: File[]): Observable<any> {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    return this.http.post<ApiResponse<Memory>>(`${this.baseUrl}/memories/${id}/media`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
   }
 }
