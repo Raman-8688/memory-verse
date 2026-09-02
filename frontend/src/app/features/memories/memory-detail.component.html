@@ -203,6 +203,41 @@
 
       </div>
 
+      <!-- Related Memories Section -->
+      @if (relatedMemories().length > 0) {
+        <section class="related-memories-section">
+          <div class="related-header-row">
+            <div class="related-title-box">
+              <mat-icon class="related-icon">auto_stories</mat-icon>
+              <h3 class="related-title">Related Memories from {{ m.journeyTitle || m.locationName || 'This Circle' }}</h3>
+            </div>
+            <span class="related-count-tag">{{ relatedMemories().length }} moments</span>
+          </div>
+
+          <div class="related-scroll-container">
+            <div class="related-track">
+              @for (rel of relatedMemories(); track rel.id) {
+                <article class="related-memory-card" [routerLink]="['/memories', rel.id]">
+                  <div class="related-thumb-wrapper">
+                    <img [src]="getCoverUrl(rel)" [alt]="rel.title" mvFallback class="related-thumb-img" />
+                    <span class="related-date-chip">{{ formatDate(rel.memoryDate) }}</span>
+                  </div>
+                  <div class="related-info-pane">
+                    <h4 class="related-card-title">{{ rel.title }}</h4>
+                    @if (rel.locationName) {
+                      <span class="related-loc-line">
+                        <mat-icon>place</mat-icon>
+                        <span>{{ rel.locationName }}</span>
+                      </span>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
     </article>
   } @else {
     <div class="empty-state">

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -10,9 +10,16 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { HttpEventType } from '@angular/common/http';
 import { Memory, MemoryUpdateDto } from '@core/models/memory.model';
 import { MemoryService } from '@core/services/memory.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
+
+interface EditPreviewItem {
+  file: File;
+  url: string;
+  isVideo: boolean;
+}
 
 @Component({
   selector: 'mv-memory-edit-dialog',
@@ -76,11 +83,51 @@ import { NotificationStateService } from '@core/services/notification-state.serv
         <!-- Story Narrative -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>The Story & Notes *</mat-label>
-          <textarea matInput formControlName="story" rows="5" placeholder="Share what happened in this moment..."></textarea>
+          <textarea matInput formControlName="story" rows="4" placeholder="Share what happened in this moment..."></textarea>
           @if (editForm.get('story')?.hasError('required') && editForm.get('story')?.touched) {
             <mat-error>The story narrative cannot be empty.</mat-error>
           }
         </mat-form-field>
+
+        <!-- Upload & Append Photos Section -->
+        <div class="media-upload-section">
+          <div class="upload-section-header">
+            <div>
+              <span class="upload-title">Capture & Append Photos</span>
+              <span class="upload-desc">Add new snapshots directly into this memory.</span>
+            </div>
+            <label class="add-photos-pill">
+              <mat-icon>add_a_photo</mat-icon>
+              <span>Choose Files</span>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*,video/*" 
+                (change)="onFilesSelected($event)" 
+                hidden 
+                [disabled]="isSaving()"
+              />
+            </label>
+          </div>
+
+          @if (filePreviews().length > 0) {
+            <div class="new-media-previews">
+              @for (item of filePreviews(); track item.file.name; let idx = $index) {
+                <div class="edit-preview-tile">
+                  @if (item.isVideo) {
+                    <video [src]="item.url" class="preview-img"></video>
+                    <div class="video-indicator"><mat-icon>videocam</mat-icon></div>
+                  } @else {
+                    <img [src]="item.url" [alt]="item.file.name" class="preview-img" />
+                  }
+                  <button type="button" class="remove-btn" (click)="removeFile(idx)" [disabled]="isSaving()">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
 
         <footer class="dialog-actions">
           <button mat-button type="button" (click)="dialogRef.close()" [disabled]="isSaving()" class="cancel-btn">
@@ -89,7 +136,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
           <button mat-flat-button color="primary" type="submit" [disabled]="editForm.invalid || isSaving()" class="save-btn">
             @if (isSaving()) {
               <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
-              <span>Saving...</span>
+              <span>{{ savingStatus() }}</span>
             } @else {
               <ng-container>
                 <mat-icon>save</mat-icon>
@@ -103,7 +150,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
   `,
   styles: [`
     .edit-dialog-container {
-      padding: var(--space-4);
+      padding: var(--mv-space-20);
       background-color: var(--mv-bg-surface);
       max-width: 580px;
     }
@@ -112,7 +159,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
       display: flex;
       align-items: center;
       gap: 12px;
-      padding-bottom: var(--space-2);
+      padding-bottom: var(--mv-space-12);
       border-bottom: 1px solid var(--mv-border);
       position: relative;
     }
@@ -155,48 +202,138 @@ import { NotificationStateService } from '@core/services/notification-state.serv
     .dialog-form {
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
-      padding-top: var(--space-3);
-    }
-
-    .form-row {
-      display: flex;
-      gap: 12px;
+      gap: var(--mv-space-12);
+      padding-top: var(--mv-space-16);
     }
 
     .full-width {
       width: 100%;
     }
 
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
     .half-width {
       flex: 1;
+    }
+
+    /* Media Upload Section */
+    .media-upload-section {
+      background-color: var(--mv-bg-subtle);
+      border: 1px dashed var(--mv-border);
+      border-radius: var(--mv-radius-md);
+      padding: var(--mv-space-12) var(--mv-space-16);
+      display: flex;
+      flex-direction: column;
+      gap: var(--mv-space-12);
+    }
+
+    .upload-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--mv-space-8);
+    }
+
+    .upload-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--mv-text-primary);
+      display: block;
+    }
+
+    .upload-desc {
+      font-size: 0.75rem;
+      color: var(--mv-text-muted);
+      display: block;
+    }
+
+    .add-photos-pill {
+      background-color: var(--mv-primary-light);
+      border: 1px solid var(--mv-primary);
+      color: var(--mv-primary);
+      padding: 6px 14px;
+      border-radius: var(--mv-radius-full);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--mv-transition-fast);
+
+      &:hover { background-color: #fde68a; }
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    }
+
+    .new-media-previews {
+      display: flex;
+      gap: var(--mv-space-8);
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .edit-preview-tile {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: var(--mv-radius-md);
+      overflow: hidden;
+      border: 1px solid var(--mv-border);
+      flex-shrink: 0;
+    }
+
+    .preview-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-indicator {
+      position: absolute;
+      bottom: 2px;
+      left: 2px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border-radius: 50%;
+      padding: 1px;
+      mat-icon { font-size: 12px; width: 12px; height: 12px; }
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      color: #fff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
+      &:hover { background: #dc2626; }
     }
 
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
-      align-items: center;
       gap: 12px;
-      padding-top: var(--space-2);
+      padding-top: var(--mv-space-12);
       border-top: 1px solid var(--mv-border);
-      margin-top: 4px;
     }
 
     .save-btn {
       background-color: var(--mv-primary) !important;
-      color: #ffffff !important;
+      border-radius: var(--mv-radius-full) !important;
       font-weight: 600;
-      border-radius: var(--radius-md);
+      min-height: 40px;
       padding: 0 20px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .save-btn:disabled {
-      background-color: #e5e7eb !important;
-      color: #9ca3af !important;
     }
 
     .cancel-btn {
@@ -208,7 +345,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
     }
   `]
 })
-export class MemoryEditDialogComponent implements OnInit {
+export class MemoryEditDialogComponent implements OnInit, OnDestroy {
   readonly memory: Memory = inject(MAT_DIALOG_DATA);
   readonly dialogRef = inject(MatDialogRef<MemoryEditDialogComponent>);
   private readonly fb = inject(FormBuilder);
@@ -217,6 +354,10 @@ export class MemoryEditDialogComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly isSaving = signal<boolean>(false);
+  readonly savingStatus = signal<string>('Saving...');
+  readonly filePreviews = signal<EditPreviewItem[]>([]);
+  private selectedFiles: File[] = [];
+
   editForm!: FormGroup;
 
   ngOnInit(): void {
@@ -230,6 +371,36 @@ export class MemoryEditDialogComponent implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.filePreviews().forEach(p => URL.revokeObjectURL(p.url));
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const newFiles = Array.from(input.files);
+    this.selectedFiles.push(...newFiles);
+
+    const newPreviews = newFiles.map(file => ({
+      file,
+      url: URL.createObjectURL(file),
+      isVideo: file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4')
+    }));
+
+    this.filePreviews.update(prev => [...prev, ...newPreviews]);
+    input.value = '';
+  }
+
+  removeFile(index: number): void {
+    const current = this.filePreviews();
+    if (index >= 0 && index < current.length) {
+      URL.revokeObjectURL(current[index].url);
+      this.filePreviews.set(current.filter((_, idx) => idx !== index));
+      this.selectedFiles.splice(index, 1);
+    }
+  }
+
   save(): void {
     if (this.editForm.invalid || this.isSaving()) {
       this.editForm.markAllAsTouched();
@@ -237,6 +408,7 @@ export class MemoryEditDialogComponent implements OnInit {
     }
 
     this.isSaving.set(true);
+    this.savingStatus.set('Updating story...');
     const formVal = this.editForm.value;
 
     const dateStr = formVal.memoryDate instanceof Date
@@ -252,10 +424,31 @@ export class MemoryEditDialogComponent implements OnInit {
 
     this.memoryService.updateMemory(this.memory.id, payload).subscribe({
       next: (updated) => {
-        this.isSaving.set(false);
-        this.notificationState.refresh();
-        this.snackBar.open('Memory updated successfully', 'OK', { duration: 3000 });
-        this.dialogRef.close(updated);
+        if (this.selectedFiles.length > 0) {
+          this.savingStatus.set(`Uploading ${this.selectedFiles.length} photo(s)...`);
+          this.memoryService.appendMediaWithProgress(this.memory.id, this.selectedFiles).subscribe({
+            next: (httpEvent) => {
+              if (httpEvent.type === HttpEventType.Response) {
+                this.isSaving.set(false);
+                const fullUpdated: Memory = httpEvent.body?.data || httpEvent.body || updated;
+                this.notificationState.refresh();
+                this.snackBar.open('Memory and photos updated successfully!', 'OK', { duration: 3000 });
+                this.dialogRef.close(fullUpdated);
+              }
+            },
+            error: (err) => {
+              this.isSaving.set(false);
+              console.error('Failed to append media during edit:', err);
+              this.snackBar.open('Story updated, but some media uploads failed.', 'OK', { duration: 3500 });
+              this.dialogRef.close(updated);
+            }
+          });
+        } else {
+          this.isSaving.set(false);
+          this.notificationState.refresh();
+          this.snackBar.open('Memory updated successfully', 'OK', { duration: 3000 });
+          this.dialogRef.close(updated);
+        }
       },
       error: (err) => {
         this.isSaving.set(false);

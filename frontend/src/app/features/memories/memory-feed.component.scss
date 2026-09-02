@@ -210,20 +210,15 @@
   gap: var(--mv-space-20);
 }
 
-/* Sticky Period Header */
+/* Normal Period Header (Non-sticky) */
 .period-sticky-header {
-  position: sticky;
-  top: 68px; /* Below navbar */
-  z-index: 20;
-  background-color: rgba(252, 251, 249, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  position: static;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: var(--mv-radius-md);
-  border: 1px solid var(--mv-border-subtle);
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--mv-border);
+  margin-bottom: var(--mv-space-12);
 }
 
 .period-badge {

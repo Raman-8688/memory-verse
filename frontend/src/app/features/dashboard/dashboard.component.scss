@@ -155,6 +155,11 @@
 }
 
 /* 4. Phase 12: On This Day Block */
+.on-this-day-section {
+  display: block;
+  margin-bottom: var(--mv-space-8);
+}
+
 .on-this-day-card {
   background-color: var(--mv-bg-surface);
   border: 2px solid var(--mv-accent);

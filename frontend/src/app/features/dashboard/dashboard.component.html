@@ -72,12 +72,12 @@
       @if (data.memoryOfTheDay; as otd) {
         <section class="on-this-day-section">
           <div class="on-this-day-card">
-            <div class="otd-badge-ribbon">
-              <span class="otd-tag">
+            <div class="otd-header">
+              <span class="otd-badge">
                 <mat-icon>event_repeat</mat-icon>
                 <span>{{ data.memoryOfTheDayContext || 'On This Day' }}</span>
               </span>
-              <span class="otd-year-delta">{{ getYearsAgo(otd.memoryDate) }}</span>
+              <span class="otd-years-ago">{{ getYearsAgo(otd.memoryDate) }}</span>
             </div>
 
             <div class="otd-body">
@@ -87,7 +87,7 @@
                   [src]="getCoverUrl(otd)" 
                   [alt]="otd.title" 
                   mvFallback 
-                  class="otd-cover-img" 
+                  class="otd-img otd-cover-img" 
                   loading="lazy"
                 />
                 <div class="otd-media-overlay"></div>

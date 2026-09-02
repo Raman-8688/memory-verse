@@ -40,6 +40,7 @@ export class MemoryDetailComponent implements OnInit {
   readonly authService = inject(AuthService);
 
   readonly memory = signal<Memory | null>(null);
+  readonly relatedMemories = signal<Memory[]>([]);
   readonly activeMedia = signal<Media | null>(null);
   readonly isLoading = signal<boolean>(true);
   readonly isUploadingMedia = signal<boolean>(false);
@@ -62,6 +63,7 @@ export class MemoryDetailComponent implements OnInit {
         if (data.mediaList && data.mediaList.length > 0) {
           this.activeMedia.set(data.mediaList[0]);
         }
+        this.loadRelatedMemories(data);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -69,6 +71,35 @@ export class MemoryDetailComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  loadRelatedMemories(current: Memory): void {
+    if (current.journeyId) {
+      this.memoryService.getMemories({ journeyId: current.journeyId, size: 8 }).subscribe({
+        next: (res) => {
+          const list = (res.content || []).filter(m => m.id !== current.id);
+          this.relatedMemories.set(list);
+        },
+        error: () => this.relatedMemories.set([])
+      });
+    } else if (current.locationName) {
+      this.memoryService.getMemories({ search: current.locationName, size: 8 }).subscribe({
+        next: (res) => {
+          const list = (res.content || []).filter(m => m.id !== current.id);
+          this.relatedMemories.set(list);
+        },
+        error: () => this.relatedMemories.set([])
+      });
+    } else {
+      this.relatedMemories.set([]);
+    }
+  }
+
+  getCoverUrl(m: Memory): string {
+    if (m.mediaList && m.mediaList.length > 0) {
+      return m.mediaList[0].thumbnailUrl || m.mediaList[0].mediaUrl;
+    }
+    return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80';
   }
 
   setActiveMedia(media: Media): void {

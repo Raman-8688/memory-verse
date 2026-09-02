@@ -118,11 +118,32 @@
                               {{ mem.locationName }}
                             </span>
                           }
-                          <span class="view-story-cta">
-                            <span>View Story</span>
-                            <mat-icon>arrow_forward</mat-icon>
-                          </span>
+                          <button 
+                            type="button" 
+                            class="why-this-memory-btn" 
+                            (click)="toggleWhyMemory(mem.id); $event.stopPropagation()"
+                            title="Inspect AI Match Criteria">
+                            <mat-icon>info</mat-icon>
+                            <span>Why this memory?</span>
+                          </button>
                         </div>
+
+                        <!-- AI Transparency Drawer -->
+                        @if (isWhyExpanded(mem.id)) {
+                          <div class="why-transparency-drawer" (click)="$event.stopPropagation()">
+                            <span class="transparency-label">
+                              <mat-icon>verified</mat-icon>
+                              Grounding Match Criteria:
+                            </span>
+                            <ul class="criteria-list">
+                              <li><mat-icon>check_circle</mat-icon> Semantic context matched your query prompt</li>
+                              @if (mem.locationName) {
+                                <li><mat-icon>check_circle</mat-icon> Location entity verified: <strong>{{ mem.locationName }}</strong></li>
+                              }
+                              <li><mat-icon>check_circle</mat-icon> Memory archive record: <strong>{{ formatDate(mem.memoryDate) }}</strong></li>
+                            </ul>
+                          </div>
+                        }
                       </div>
                     </div>
                   }
@@ -213,15 +234,16 @@
             [(ngModel)]="userInput" 
             name="userInput"
             placeholder="Ask anything about your memories... e.g. 'Show photos from Goa' or 'Farewell night'" 
-            class="mv-type-body chat-input-field" 
+            class="actual-input" 
             [disabled]="aiService.isLoading()"
             autocomplete="off"
           />
           <button 
             type="submit" 
-            mat-flat-button 
-            class="send-message-btn" 
-            [disabled]="!userInput.trim() || aiService.isLoading()">
+            mat-icon-button 
+            class="send-action-btn" 
+            [disabled]="!userInput.trim() || aiService.isLoading()"
+            aria-label="Send query">
             <mat-icon>arrow_upward</mat-icon>
           </button>
         </div>

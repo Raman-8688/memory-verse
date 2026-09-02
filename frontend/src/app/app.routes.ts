@@ -51,7 +51,7 @@ export const routes: Routes = [
       },
       {
         path: 'timeline',
-        redirectTo: 'memories'
+        loadComponent: () => import('./features/memories/memory-feed.component').then(m => m.MemoryFeedComponent)
       },
       {
         path: 'places',
