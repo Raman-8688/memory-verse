@@ -50,6 +50,22 @@ export const routes: Routes = [
         loadComponent: () => import('./features/gallery/gallery-grid.component').then(m => m.GalleryGridComponent)
       },
       {
+        path: 'timeline',
+        redirectTo: 'memories'
+      },
+      {
+        path: 'places',
+        redirectTo: 'gallery'
+      },
+      {
+        path: 'people',
+        redirectTo: 'profile'
+      },
+      {
+        path: 'on-this-day',
+        redirectTo: 'dashboard'
+      },
+      {
         path: 'notifications',
         loadComponent: () => import('./features/notifications/notifications-list.component').then(m => m.NotificationsListComponent)
       },

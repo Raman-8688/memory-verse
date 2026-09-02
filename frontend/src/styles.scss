@@ -1,51 +1,120 @@
-/* MemoryVerse Editorial Design System Styles */
+/* ==============================================================================
+   MEMORYVERSE EDITORIAL DESIGN SYSTEM — FOUNDATION
+   Phase 2: Master Design Tokens, Typography, Warm Palette & Spacing Scale
+   ============================================================================== */
 
 :root {
-  /* 8px Spacing System */
-  --space-1: 8px;
-  --space-2: 16px;
-  --space-3: 24px;
-  --space-4: 32px;
-  --space-6: 48px;
-  --space-8: 64px;
+  /* --------------------------------------------------------------------------
+     1. SPACING SYSTEM (4, 8, 12, 16, 24, 32, 48, 64, 80)
+     -------------------------------------------------------------------------- */
+  --mv-space-4: 4px;
+  --mv-space-8: 8px;
+  --mv-space-12: 12px;
+  --mv-space-16: 16px;
+  --mv-space-24: 24px;
+  --mv-space-32: 32px;
+  --mv-space-48: 48px;
+  --mv-space-64: 64px;
+  --mv-space-80: 80px;
 
-  /* Editorial Warm Palette */
-  --mv-bg-main: #fcfbf9;
-  --mv-bg-surface: #ffffff;
-  --mv-bg-subtle: #f5f3ef;
-  --mv-border: #e9e5df;
-  --mv-border-focus: #c5b8a5;
+  /* Backward-compatible spacing aliases for existing components */
+  --space-1: var(--mv-space-8);
+  --space-2: var(--mv-space-16);
+  --space-3: var(--mv-space-24);
+  --space-4: var(--mv-space-32);
+  --space-6: var(--mv-space-48);
+  --space-8: var(--mv-space-64);
 
-  /* Typography Colors */
-  --mv-text-primary: #1c1917;
-  --mv-text-secondary: #57534e;
-  --mv-text-muted: #8c857b;
-  --mv-text-inverted: #ffffff;
+  /* --------------------------------------------------------------------------
+     2. COLOR SYSTEM — EDITORIAL WARM PALETTE
+     (Calm warm linen, stone parchment, cognac amber, terracotta & soft iris)
+     -------------------------------------------------------------------------- */
+  /* Background Surfaces */
+  --mv-bg-main: #fcfbf9;            /* Pure warm linen / paper ground */
+  --mv-bg-surface: #ffffff;         /* Elevated card surface */
+  --mv-bg-subtle: #f6f4ee;          /* Soft resting background */
+  --mv-bg-elevated: #efece4;        /* Active chip / hover state ground */
+  --mv-bg-alt: #f3efe8;             /* Alternate row / subtle border ground */
+  --mv-bg-overlay: rgba(28, 25, 23, 0.45); /* Calm dimmed modal backdrop */
 
-  /* Brand Accents (Warm Terracotta / Amber / Olive) */
-  --mv-primary: #b45309;       /* Warm amber/cognac */
-  --mv-primary-hover: #92400e;
-  --mv-accent: #c2410c;        /* Terracotta */
-  --mv-olive: #4d5b44;
-  --mv-success: #15803d;
-  --mv-danger: #b91c1c;
+  /* Hairline Borders */
+  --mv-border: #e8e3db;             /* Primary subtle dividing line */
+  --mv-border-subtle: #f0ebe4;      /* Delicate card boundary */
+  --mv-border-hover: #d5ccbf;       /* Hover state border */
+  --mv-border-focus: #b45309;       /* Accessible focus ring */
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-full: 9999px;
+  /* Editorial Typography Colors */
+  --mv-text-primary: #1c1917;       /* Deep warm carbon / black */
+  --mv-text-secondary: #57534e;     /* Charcoal narrative text */
+  --mv-text-muted: #8c857b;         /* Sand gray metadata */
+  --mv-text-subtle: #a8a29e;        /* Subtle timestamps */
+  --mv-text-inverted: #ffffff;      /* Contrast light on dark buttons */
 
-  /* Subtle Editorial Shadows (Never harsh AI neon glow) */
-  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-card: 0 4px 12px rgba(28, 25, 23, 0.05);
-  --shadow-hover: 0 12px 28px rgba(28, 25, 23, 0.08);
+  /* Brand Accents (Amber, Terracotta, Olive) */
+  --mv-primary: #b45309;            /* Warm amber / cognac primary */
+  --mv-primary-hover: #92400e;      /* Deep amber active/hover */
+  --mv-primary-light: #fef3c7;      /* Gentle amber background wash */
+  --mv-accent: #c2410c;             /* Terracotta highlight */
+  --mv-accent-light: #ffedd5;       /* Soft terracotta wash */
+  --mv-olive: #4d5b44;              /* Nostalgia sage / olive */
+  --mv-olive-light: #edf2ea;        /* Sage wash */
 
-  /* Fonts */
+  /* MemoryVerse AI Visual Language (Subtle Iris — Never harsh neon blue/purple) */
+  --mv-ai-accent: #7c3aed;          /* Restrained iris */
+  --mv-ai-subtle: #f5f3ff;          /* Soft violet atmospheric tint */
+  --mv-ai-border: #ddd6fe;          /* Delicate AI component border */
+
+  /* Semantic Feedback Colors */
+  --mv-success: #15803d;            /* Forest green */
+  --mv-success-light: #f0fdf4;
+  --mv-danger: #b91c1c;             /* Crimson warning */
+  --mv-danger-light: #fef2f2;
+
+  /* --------------------------------------------------------------------------
+     3. BORDER RADIUS TOKENS
+     -------------------------------------------------------------------------- */
+  --mv-radius-xs: 4px;
+  --mv-radius-sm: 8px;
+  --mv-radius-md: 12px;
+  --mv-radius-lg: 16px;
+  --mv-radius-xl: 24px;
+  --mv-radius-full: 9999px;
+
+  /* Backward-compatible radius aliases */
+  --radius-sm: var(--mv-radius-sm);
+  --radius-md: var(--mv-radius-md);
+  --radius-lg: var(--mv-radius-xl);
+  --radius-full: var(--mv-radius-full);
+
+  /* --------------------------------------------------------------------------
+     4. ELEVATION & SHADOWS (Subtle & natural, never heavy corporate drops)
+     -------------------------------------------------------------------------- */
+  --mv-shadow-xs: 0 1px 2px rgba(28, 25, 23, 0.03);
+  --mv-shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.05), 0 1px 2px rgba(28, 25, 23, 0.02);
+  --mv-shadow-md: 0 4px 12px rgba(28, 25, 23, 0.05), 0 2px 4px rgba(28, 25, 23, 0.02);
+  --mv-shadow-lg: 0 12px 28px rgba(28, 25, 23, 0.07), 0 4px 8px rgba(28, 25, 23, 0.02);
+  --mv-shadow-xl: 0 20px 40px rgba(28, 25, 23, 0.09);
+
+  /* Backward-compatible shadow aliases */
+  --shadow-subtle: var(--mv-shadow-sm);
+  --shadow-card: var(--mv-shadow-md);
+  --shadow-hover: var(--mv-shadow-lg);
+
+  /* --------------------------------------------------------------------------
+     5. TYPOGRAPHY & FONTS
+     -------------------------------------------------------------------------- */
   --font-editorial: 'Cormorant Garamond', Georgia, serif;
   --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Transitions */
+  --mv-transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --mv-transition-base: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --mv-transition-smooth: 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ----------------------------------------------------------------------------
+   GLOBAL RESET & BASE STYLES
+   ---------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -61,7 +130,81 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Editorial Heading Styles */
+/* ----------------------------------------------------------------------------
+   TYPOGRAPHY HIERARCHY CLASSES
+   Display -> H1 -> H2 -> H3 -> Body -> Secondary -> Caption -> Metadata
+   ---------------------------------------------------------------------------- */
+.mv-type-display {
+  font-family: var(--font-editorial);
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--mv-text-primary);
+}
+
+.mv-type-h1 {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--mv-text-primary);
+}
+
+.mv-type-h2 {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--mv-text-primary);
+}
+
+.mv-type-h3 {
+  font-family: var(--font-ui);
+  font-size: 1.15rem;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--mv-text-primary);
+}
+
+.mv-type-body {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 400;
+  color: var(--mv-text-primary);
+}
+
+.mv-type-secondary {
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--mv-text-secondary);
+}
+
+.mv-type-caption {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--mv-text-muted);
+}
+
+.mv-type-metadata {
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mv-text-muted);
+}
+
+/* Preserved editorial titles for existing components */
 .editorial-title {
   font-family: var(--font-editorial);
   font-weight: 600;
@@ -75,7 +218,9 @@ html, body {
   color: var(--mv-text-secondary);
 }
 
-/* Clean Scrollbar */
+/* ----------------------------------------------------------------------------
+   CLEAN EDITORIAL SCROLLBAR
+   ---------------------------------------------------------------------------- */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -86,15 +231,17 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-  border-radius: 9999px;
+  background: #d6d1c9;
+  border-radius: var(--mv-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
+  background: #b8b1a5;
 }
 
-/* Fullscreen Lightbox Panel */
+/* ----------------------------------------------------------------------------
+   SHARED MODAL & OVERLAY OVERRIDES
+   ---------------------------------------------------------------------------- */
 .fullscreen-dialog-panel {
   max-width: 100vw !important;
   max-height: 100vh !important;
@@ -110,17 +257,18 @@ html, body {
   }
 }
 
-/* Toast Notifications */
 .mv-snackbar-error {
   --mdc-snackbar-container-color: #991b1b !important;
   --mat-snack-bar-button-color: #fef2f2 !important;
   --mdc-snackbar-supporting-text-color: #ffffff !important;
   font-weight: 500;
-  border-radius: var(--radius-md) !important;
-  box-shadow: var(--shadow-lg) !important;
+  border-radius: var(--mv-radius-md) !important;
+  box-shadow: var(--mv-shadow-lg) !important;
 }
 
-/* Micro-Animations & Route Transitions */
+/* ----------------------------------------------------------------------------
+   MICRO-ANIMATIONS & INTERACTION UTILITIES
+   ---------------------------------------------------------------------------- */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -136,7 +284,6 @@ html, body {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Shimmer / Skeleton Animation */
 @keyframes skeletonPulse {
   0% {
     background-position: -200% 0;
@@ -150,21 +297,27 @@ html, body {
   background: linear-gradient(
     90deg,
     var(--mv-bg-subtle) 25%,
-    #e7e5e4 37%,
+    #e8e4dc 37%,
     var(--mv-bg-subtle) 63%
   );
   background-size: 400% 100%;
   animation: skeletonPulse 1.4s ease infinite;
-  border-radius: var(--radius-sm);
+  border-radius: var(--mv-radius-sm);
 }
 
-/* Card Hover Micro-Interactions */
 .interactive-card {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--mv-transition-base), box-shadow var(--mv-transition-base);
   will-change: transform, box-shadow;
 
   &:hover {
     transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--mv-shadow-lg);
   }
 }
+
+/* Accessible, calm focus ring */
+.mv-focus-ring:focus-visible {
+  outline: 2px solid var(--mv-primary);
+  outline-offset: 2px;
+}
+

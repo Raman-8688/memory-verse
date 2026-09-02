@@ -3,130 +3,41 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { NotificationStateService } from '@core/services/notification-state.service';
+import { AuthService } from '@core/auth/auth.service';
 
 interface NavItem {
   path: string;
   label: string;
   icon: string;
   exact?: boolean;
+  isAi?: boolean;
 }
 
 @Component({
   selector: 'mv-sidebar',
   standalone: true,
   imports: [CommonModule, RouterModule, MatIconModule],
-  template: `
-    <aside class="sidebar">
-      <nav class="nav-list">
-        @for (item of navItems; track item.path) {
-          <a [routerLink]="item.path" 
-             routerLinkActive="active" 
-             [routerLinkActiveOptions]="{ exact: !!item.exact }"
-             class="nav-link">
-            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-            <span class="nav-label">{{ item.label }}</span>
-            @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
-              <span class="sidebar-badge">
-                {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
-              </span>
-            }
-          </a>
-        }
-      </nav>
-
-      <div class="sidebar-footer">
-        <div class="quote-card">
-          <div class="quote-text">"Preserving the moments that shaped our journey together."</div>
-        </div>
-      </div>
-    </aside>
-  `,
-  styles: [`
-    .sidebar {
-      width: 260px;
-      min-height: calc(100vh - 72px);
-      background-color: var(--mv-bg-surface);
-      border-right: 1px solid var(--mv-border);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: var(--space-3) var(--space-2);
-    }
-
-    .nav-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 10px 16px;
-      border-radius: var(--radius-md);
-      color: var(--mv-text-secondary);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.95rem;
-      transition: all 0.2s ease;
-    }
-
-    .nav-link:hover {
-      background-color: var(--mv-bg-subtle);
-      color: var(--mv-text-primary);
-    }
-
-    .nav-link.active {
-      background-color: #fef3c7; /* Warm amber-50 */
-      color: var(--mv-primary);
-      font-weight: 600;
-    }
-
-    .nav-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
-    }
-
-    .sidebar-footer {
-      padding: var(--space-2);
-    }
-
-    .quote-card {
-      padding: var(--space-2);
-      background-color: var(--mv-bg-subtle);
-      border-radius: var(--radius-md);
-      border-left: 3px solid var(--mv-primary);
-    }
-
-    .sidebar-badge {
-      margin-left: auto;
-      background-color: #ef4444;
-      color: #ffffff;
-      font-size: 0.72rem;
-      font-weight: 700;
-      min-width: 20px;
-      height: 20px;
-      padding: 0 6px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4);
-    }
-  `]
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
   readonly notificationState = inject(NotificationStateService);
+  readonly authService = inject(AuthService);
 
-  readonly navItems: NavItem[] = [
-    { path: '/dashboard', label: 'Dashboard', icon: 'dashboard', exact: true },
-    { path: '/journeys', label: 'Journeys', icon: 'auto_stories' },
+  // Desktop Navigation per Phase 3 Shell Specification
+  readonly primaryNavItems: NavItem[] = [
+    { path: '/dashboard', label: 'Home', icon: 'home', exact: true },
+    { path: '/assistant', label: 'Ask AI', icon: 'auto_awesome', isAi: true },
     { path: '/memories', label: 'Memories', icon: 'photo_library' },
+    { path: '/timeline', label: 'Timeline', icon: 'schedule' },
+    { path: '/places', label: 'Places', icon: 'place' },
+    { path: '/people', label: 'People', icon: 'groups' },
+    { path: '/journeys', label: 'Journeys', icon: 'auto_stories' },
+    { path: '/on-this-day', label: 'On This Day', icon: 'event_repeat' }
+  ];
+
+  readonly secondaryNavItems: NavItem[] = [
     { path: '/gallery', label: 'Media Gallery', icon: 'collections' },
-    { path: '/assistant', label: 'AI Assistant', icon: 'auto_awesome' },
-    { path: '/notifications', label: 'Notifications', icon: 'notifications' },
-    { path: '/profile', label: 'My Profile', icon: 'person' }
+    { path: '/notifications', label: 'Notifications', icon: 'notifications' }
   ];
 }
