@@ -1,0 +1,57 @@
+<aside class="sidebar">
+  <!-- Main Core Navigation (Phase 3 Shell) -->
+  <div class="sidebar-top">
+    <div class="nav-section-label">MEMORIES & JOURNEY</div>
+    <nav class="nav-list">
+      @for (item of primaryNavItems; track item.path) {
+        <a [routerLink]="item.path" 
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{ exact: !!item.exact }"
+           class="nav-link"
+           [class.ai-item]="item.isAi">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label">{{ item.label }}</span>
+          @if (item.isAi) {
+            <span class="ai-pill">AI</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section-label">ARCHIVE & DISCOVERY</div>
+    <nav class="nav-list">
+      @for (item of secondaryNavItems; track item.path) {
+        <a [routerLink]="item.path" 
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{ exact: !!item.exact }"
+           class="nav-link">
+          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+          <span class="nav-label">{{ item.label }}</span>
+          @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
+            <span class="sidebar-badge">
+              {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+            </span>
+          }
+        </a>
+      }
+    </nav>
+  </div>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <nav class="nav-list settings-list">
+      <a [routerLink]="authService.isAdmin() ? '/admin/group' : '/profile'" 
+         routerLinkActive="active" 
+         class="nav-link">
+        <mat-icon class="nav-icon">settings</mat-icon>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="quote-card">
+      <div class="quote-text">"The years pass, but these moments remain frozen in light."</div>
+    </div>
+  </div>
+</aside>

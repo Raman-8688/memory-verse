@@ -1,0 +1,61 @@
+<header class="navbar">
+  <div class="navbar-brand">
+    <a routerLink="/dashboard" class="brand-link">
+      <span class="brand-name">MemoryVerse</span>
+      <span class="brand-tagline">Our Journey, Our Memories</span>
+    </a>
+  </div>
+
+  <div class="navbar-actions">
+    <button mat-stroked-button class="quick-capture-btn" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
+      <mat-icon>add_a_photo</mat-icon>
+      <span class="btn-text">Capture</span>
+    </button>
+
+    <button mat-icon-button class="assistant-btn" routerLink="/assistant" aria-label="Memory Assistant" title="Memory Assistant">
+      <mat-icon>auto_awesome</mat-icon>
+    </button>
+
+    <button mat-icon-button class="notification-btn" routerLink="/notifications" aria-label="Notifications">
+      <div class="bell-wrapper">
+        <mat-icon>{{ notificationState.unreadCount() > 0 ? 'notifications' : 'notifications_none' }}</mat-icon>
+        @if (notificationState.unreadCount() > 0) {
+          <span class="unread-badge">
+            {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+          </span>
+        }
+      </div>
+    </button>
+
+    @if (authService.currentUser(); as user) {
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn">
+        <img [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+             [alt]="user.fullName" 
+             class="user-avatar">
+        <span class="user-name">{{ user.fullName }}</span>
+        <mat-icon class="dropdown-icon">expand_more</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="before" class="editorial-menu">
+        <div class="menu-header">
+          <div class="menu-user-name">{{ user.fullName }}</div>
+          <div class="menu-user-role">{{ user.role }}</div>
+        </div>
+        <a mat-menu-item routerLink="/profile">
+          <mat-icon>person_outline</mat-icon>
+          <span>Profile</span>
+        </a>
+        @if (authService.isAdmin()) {
+          <a mat-menu-item routerLink="/admin/group">
+            <mat-icon>manage_accounts</mat-icon>
+            <span>Group Management</span>
+          </a>
+        }
+        <button mat-menu-item (click)="authService.logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign Out</span>
+        </button>
+      </mat-menu>
+    }
+  </div>
+</header>
