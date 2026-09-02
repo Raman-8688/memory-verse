@@ -1,0 +1,122 @@
+<div class="lightbox-fullscreen-stage" (click)="onStageClick($event)">
+
+  <!-- Top Action & Navigation Bar -->
+  <header class="lightbox-top-bar" (click)="$event.stopPropagation()">
+    <div class="counter-badge">
+      <span class="curr-idx">{{ currentIndex() + 1 }}</span>
+      <span class="sep">/</span>
+      <span class="total-len">{{ data.items.length }}</span>
+    </div>
+
+    <div class="top-controls">
+      <!-- Download High-Res File -->
+      <button 
+        mat-icon-button 
+        class="lightbox-btn" 
+        (click)="downloadCurrentMedia()" 
+        [disabled]="isDownloadingCurrent()" 
+        title="Download high-resolution file" 
+        aria-label="Download media">
+        @if (isDownloadingCurrent()) {
+          <mat-spinner diameter="18" class="white-spinner"></mat-spinner>
+        } @else {
+          <mat-icon>download</mat-icon>
+        }
+      </button>
+
+      <!-- Close Lightbox -->
+      <button 
+        mat-icon-button 
+        class="lightbox-btn close-btn" 
+        (click)="closeViewer()" 
+        title="Close (Esc)" 
+        aria-label="Close viewer">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Media Stage -->
+  <div class="media-display-stage">
+    
+    <!-- Previous Chevron Button -->
+    <button 
+      mat-icon-button 
+      class="stage-nav-arrow arrow-prev" 
+      (click)="prev(); $event.stopPropagation()" 
+      [disabled]="currentIndex() === 0" 
+      title="Previous (Left Arrow)"
+      aria-label="Previous media">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <!-- Active Media Frame -->
+    @if (currentItem(); as item) {
+      <div class="stage-media-wrapper" (click)="$event.stopPropagation()">
+        @if (item.mediaType === 'VIDEO') {
+          <video [src]="item.mediaUrl" controls autoplay class="fullscreen-media video-player"></video>
+        } @else {
+          <img [src]="item.mediaUrl" [alt]="item.memoryTitle || 'Photograph'" class="fullscreen-media img-player" />
+        }
+      </div>
+    }
+
+    <!-- Next Chevron Button -->
+    <button 
+      mat-icon-button 
+      class="stage-nav-arrow arrow-next" 
+      (click)="next(); $event.stopPropagation()" 
+      [disabled]="currentIndex() >= data.items.length - 1" 
+      title="Next (Right Arrow)"
+      aria-label="Next media">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+
+  </div>
+
+  <!-- Bottom Context & Story Drawer -->
+  @if (currentItem(); as item) {
+    <footer class="lightbox-bottom-drawer" (click)="$event.stopPropagation()">
+      <div class="drawer-left">
+        @if (item.uploader; as uploader) {
+          <img 
+            [src]="uploader.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+            [alt]="uploader.fullName" 
+            class="uploader-avatar-mini" 
+          />
+          <div class="uploader-meta-block">
+            <span class="uploader-name-text">{{ uploader.fullName }}</span>
+            <span class="photo-date-location">
+              {{ formatDate(item.memoryDate) }}
+              @if (item.locationName) {
+                <span class="loc-divider">•</span>
+                <mat-icon class="loc-pin-icon">place</mat-icon>
+                <span>{{ item.locationName }}</span>
+              }
+            </span>
+          </div>
+        }
+      </div>
+
+      <div class="drawer-center">
+        <h3 class="photo-memory-headline">{{ item.memoryTitle || 'Untitled Moment' }}</h3>
+        @if (item.journeyTitle) {
+          <span class="photo-journey-tag">
+            <mat-icon>auto_stories</mat-icon>
+            {{ item.journeyTitle }}
+          </span>
+        }
+      </div>
+
+      <div class="drawer-right">
+        @if (item.memoryId) {
+          <button mat-flat-button class="view-story-cta" (click)="navigateToMemory(item.memoryId)">
+            <span>View Full Story</span>
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        }
+      </div>
+    </footer>
+  }
+
+</div>

@@ -1,0 +1,119 @@
+<div class="gallery-page-container">
+
+  <!-- Header -->
+  <header class="gallery-header-bar">
+    <div class="header-titles">
+      <span class="eyebrow-tag">VISUAL VAULT</span>
+      <h1 class="mv-type-display page-title">Media Archive</h1>
+      <p class="page-subtitle">A collective, high-resolution visual tapestry of every photograph, candid snapshot, and video clip recorded across our journeys.</p>
+    </div>
+
+    <!-- Filter & Sort Controls -->
+    <div class="gallery-controls-bar">
+      <!-- Media Type Filter Chips -->
+      <div class="type-filter-chips">
+        <button 
+          type="button" 
+          class="filter-pill" 
+          [class.active]="selectedType() === null" 
+          (click)="setTypeFilter(null)">
+          <span>All Media</span>
+        </button>
+        <button 
+          type="button" 
+          class="filter-pill" 
+          [class.active]="selectedType() === 'IMAGE'" 
+          (click)="setTypeFilter('IMAGE')">
+          <mat-icon>photo</mat-icon>
+          <span>Photos</span>
+        </button>
+        <button 
+          type="button" 
+          class="filter-pill" 
+          [class.active]="selectedType() === 'VIDEO'" 
+          (click)="setTypeFilter('VIDEO')">
+          <mat-icon>videocam</mat-icon>
+          <span>Videos</span>
+        </button>
+      </div>
+
+      <!-- Sorting & Journey Controls -->
+      <div class="dropdown-controls">
+        <!-- Date Sorting -->
+        <select [(ngModel)]="sortDirection" (change)="onSortChange()" class="clean-sort-select">
+          <option value="DESC">Newest First</option>
+          <option value="ASC">Oldest First</option>
+        </select>
+
+        <!-- Journey Filter -->
+        <select [(ngModel)]="selectedJourneyId" (change)="loadGallery()" class="clean-sort-select">
+          <option value="">All Journeys</option>
+          @for (j of journeys(); track j.id) {
+            <option [value]="j.id">{{ j.title }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Total Count Bar -->
+  <div class="gallery-meta-ribbon">
+    <span>Showing <strong>{{ totalItems() }}</strong> preserved {{ totalItems() === 1 ? 'asset' : 'assets' }}</span>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="gallery-loading-grid">
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track i) {
+        <div class="skeleton-thumb skeleton-box"></div>
+      }
+    </div>
+  } @else if (items().length === 0) {
+    <!-- Empty State -->
+    <div class="empty-gallery-card">
+      <div class="empty-icon-circle">
+        <mat-icon>perm_media</mat-icon>
+      </div>
+      <h3 class="mv-type-h2">No Media Found</h3>
+      <p class="empty-desc">No photographs or videos match your selected filter criteria. Try changing your filters or adding new memories.</p>
+      <button mat-stroked-button (click)="resetFilters()">Reset Filters</button>
+    </div>
+  } @else {
+    <!-- Premium 1:1 Responsive Media Grid -->
+    <main class="uniform-media-grid">
+      @for (item of items(); track item.id; let idx = $index) {
+        <article class="media-tile-card" (click)="openLightbox(idx)">
+          
+          <!-- Media Thumbnail -->
+          @if (item.mediaType === 'VIDEO') {
+            <video [src]="item.mediaUrl" class="tile-img"></video>
+            <div class="video-play-indicator">
+              <mat-icon>play_circle</mat-icon>
+            </div>
+          } @else {
+            <img 
+              [src]="item.thumbnailUrl || item.mediaUrl" 
+              [alt]="item.memoryTitle || item.fileName" 
+              loading="lazy" 
+              class="tile-img" 
+            />
+          }
+
+          <!-- Subtle Hover Overlay -->
+          <div class="tile-hover-shade">
+            <span class="hover-date">{{ formatDate(item.memoryDate) }}</span>
+            <h4 class="hover-title">{{ item.memoryTitle || 'Untitled Moment' }}</h4>
+            @if (item.locationName) {
+              <span class="hover-location">
+                <mat-icon>place</mat-icon>
+                {{ item.locationName }}
+              </span>
+            }
+          </div>
+
+        </article>
+      }
+    </main>
+  }
+
+</div>
