@@ -7,6 +7,12 @@
   </div>
 
   <div class="navbar-actions">
+    <button mat-button class="navbar-search-btn" (click)="paletteService.open()" title="Universal Search (Cmd+K / Ctrl+K)">
+      <mat-icon>search</mat-icon>
+      <span class="search-label">Search archive...</span>
+      <kbd class="shortcut-cap">⌘K</kbd>
+    </button>
+
     <button mat-stroked-button class="quick-capture-btn" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
       <mat-icon>add_a_photo</mat-icon>
       <span class="btn-text">Capture</span>
