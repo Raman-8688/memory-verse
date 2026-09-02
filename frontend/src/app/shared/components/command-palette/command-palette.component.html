@@ -12,11 +12,12 @@
           (ngModelChange)="onQueryChange()" 
           placeholder="Search memories, journeys, places, or people..." 
           class="palette-input" 
+          aria-label="Search archive"
           autocomplete="off" 
           spellcheck="false" 
         />
         @if (searchQuery) {
-          <button type="button" class="clear-query-btn" (click)="clearQuery()">
+          <button type="button" class="clear-query-btn" (click)="clearQuery()" aria-label="Clear search input">
             <mat-icon>close</mat-icon>
           </button>
         }
