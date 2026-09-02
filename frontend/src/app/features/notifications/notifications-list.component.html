@@ -1,0 +1,104 @@
+<div class="notifications-page-container">
+
+  <!-- Header -->
+  <header class="notifications-header-bar">
+    <div class="header-titles">
+      <span class="eyebrow-tag">ACTIVITY & ALERTS</span>
+      <h1 class="mv-type-display page-title">Activity Feed</h1>
+      <p class="page-subtitle">Stay connected with your inner circle as new memories are captured, friends are tagged, and past milestones resurface.</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="header-actions">
+      <button mat-icon-button class="refresh-btn" (click)="notificationState.loadNotifications()" title="Refresh Feed">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      @if (notificationState.notifications().length > 0 && notificationState.unreadCount() > 0) {
+        <button mat-stroked-button class="mark-all-btn" (click)="notificationState.markAllAsRead()">
+          <mat-icon>done_all</mat-icon>
+          <span>Mark all as read</span>
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Filter Tabs (All vs Unread) -->
+  <div class="filter-pills-bar">
+    <button 
+      type="button" 
+      class="filter-pill" 
+      [class.active]="activeFilter() === 'ALL'" 
+      (click)="setFilter('ALL')">
+      <span>All Activity</span>
+      <span class="pill-count">{{ notificationState.notifications().length }}</span>
+    </button>
+    <button 
+      type="button" 
+      class="filter-pill" 
+      [class.active]="activeFilter() === 'UNREAD'" 
+      (click)="setFilter('UNREAD')">
+      <span>Unread</span>
+      @if (notificationState.unreadCount() > 0) {
+        <span class="unread-pill-count">{{ notificationState.unreadCount() }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  @if (notificationState.isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="36"></mat-spinner>
+      <span>Loading your activity stream...</span>
+    </div>
+  } @else if (filteredNotifications().length === 0) {
+    <!-- Empty State -->
+    <div class="empty-feed-card">
+      <div class="empty-icon-circle">
+        <mat-icon>notifications_none</mat-icon>
+      </div>
+      <h3 class="mv-type-h2">You're All Caught Up</h3>
+      <p class="empty-desc">
+        @if (activeFilter() === 'UNREAD') {
+          You have no unread notifications right now.
+        } @else {
+          No activity recorded yet. When memories are preserved or you are tagged, notifications will appear here.
+        }
+      </p>
+      <a mat-flat-button class="browse-btn" routerLink="/memories">Browse Memories</a>
+    </div>
+  } @else {
+    <!-- Notifications Feed Stream -->
+    <main class="notifications-feed-list">
+      @for (item of filteredNotifications(); track item.id) {
+        <article 
+          class="activity-card" 
+          [class.unread]="!item.isRead" 
+          (click)="onNotificationClick(item)">
+          
+          <!-- Activity Type Icon -->
+          <div class="activity-icon-wrap" [ngClass]="getIconClass(item.type)">
+            <mat-icon>{{ getNotificationIcon(item.type) }}</mat-icon>
+          </div>
+
+          <!-- Body -->
+          <div class="activity-content">
+            <div class="activity-header-line">
+              <span class="activity-type-label">{{ formatTypeLabel(item.type) }}</span>
+              <span class="activity-timestamp">{{ formatTime(item.createdAt) }}</span>
+            </div>
+            <p class="activity-message">{{ item.message }}</p>
+          </div>
+
+          <!-- Unread Dot Indicator -->
+          @if (!item.isRead) {
+            <div class="unread-indicator-dot" title="Unread notification"></div>
+          }
+
+          <mat-icon class="card-chevron">chevron_right</mat-icon>
+        </article>
+      }
+    </main>
+  }
+
+</div>

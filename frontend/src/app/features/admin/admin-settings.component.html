@@ -1,0 +1,134 @@
+<div class="group-admin-page-container">
+
+  <!-- Header -->
+  <header class="group-admin-header-bar">
+    <div class="header-titles">
+      <span class="eyebrow-tag">ADMINISTRATION & CIRCLE</span>
+      <h1 class="mv-type-display page-title">Group Directory & Access</h1>
+      <p class="page-subtitle">Manage your shared memory circle, invite fellow companions, and assign administration privileges.</p>
+    </div>
+
+    <!-- Stat Ribbon -->
+    <div class="stats-ribbon">
+      <div class="stat-pill">
+        <mat-icon class="stat-icon">group</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ users().length }}</span>
+          <span class="stat-label">Members</span>
+        </div>
+      </div>
+      <div class="stat-pill admin-pill">
+        <mat-icon class="stat-icon">shield</mat-icon>
+        <div class="stat-info">
+          <span class="stat-value">{{ adminCount() }}</span>
+          <span class="stat-label">Admins</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. Premium Invite System UI Card -->
+  <section class="invite-banner-card">
+    <div class="invite-content-left">
+      <div class="invite-sparkle-circle">
+        <mat-icon>person_add_alt_1</mat-icon>
+      </div>
+      <div class="invite-text-block">
+        <h3 class="invite-headline">Invite Friends to Your Memory Circle</h3>
+        <p class="invite-desc">Share this invite code or link with your batchmates and friends to let them join your private MemoryVerse archive.</p>
+        
+        <div class="invite-code-strip">
+          <span class="code-label">Circle Passcode:</span>
+          <span class="invite-code-pill">{{ inviteCode }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="invite-actions-right">
+      <button mat-flat-button class="copy-invite-btn" (click)="copyInviteLink()">
+        <mat-icon>content_copy</mat-icon>
+        <span>{{ copiedLink() ? 'Link Copied!' : 'Copy Invite Link' }}</span>
+      </button>
+      <button mat-stroked-button class="copy-code-btn" (click)="copyInviteCode()">
+        <mat-icon>key</mat-icon>
+        <span>{{ copiedCode() ? 'Code Copied!' : 'Copy Code' }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 2. Admin Roster View (Clean Member Cards) -->
+  <section class="roster-section">
+    <div class="roster-header-bar">
+      <h2 class="mv-type-h2 roster-title">Active Circle Members ({{ users().length }})</h2>
+      <span class="roster-hint">Members can preserve stories, tag companions, and upload photographs.</span>
+    </div>
+
+    @if (isLoading()) {
+      <div class="roster-loading">
+        <mat-spinner diameter="36"></mat-spinner>
+        <span>Retrieving member roster...</span>
+      </div>
+    } @else {
+      <div class="members-roster-list">
+        @for (user of users(); track user.id) {
+          <article class="member-roster-row">
+            
+            <!-- Avatar & Profile Details -->
+            <div class="member-profile-cell">
+              <img 
+                [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+                [alt]="user.fullName" 
+                mvFallback 
+                class="member-avatar-img" 
+              />
+              <div class="member-text-cell">
+                <div class="name-badge-row">
+                  <h3 class="member-name">{{ user.fullName }}</h3>
+                  <span class="role-chip" [class.admin]="user.role === 'ADMIN'">
+                    {{ user.role }}
+                  </span>
+                </div>
+                <span class="member-email">{{ user.email }}</span>
+              </div>
+            </div>
+
+            <!-- Member Since & Role Actions -->
+            <div class="member-meta-cell">
+              <span class="joined-date">Joined {{ formatDate(user.createdAt) }}</span>
+
+              <!-- Admin Action Menu (Three Dots) -->
+              <button 
+                mat-icon-button 
+                [matMenuTriggerFor]="memberMenu" 
+                class="member-action-trigger" 
+                title="Manage Member">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+
+              <mat-menu #memberMenu="matMenu" xPosition="before" class="member-options-menu">
+                <button mat-menu-item (click)="openEditDialog(user)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit Profile</span>
+                </button>
+
+                @if (user.role !== 'ADMIN') {
+                  <button mat-menu-item (click)="promoteToAdmin(user)">
+                    <mat-icon>shield</mat-icon>
+                    <span>Promote to Admin</span>
+                  </button>
+                } @else {
+                  <button mat-menu-item (click)="demoteToMember(user)">
+                    <mat-icon>person</mat-icon>
+                    <span>Set as Regular Member</span>
+                  </button>
+                }
+              </mat-menu>
+            </div>
+
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+</div>
