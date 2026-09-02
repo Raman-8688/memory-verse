@@ -42,10 +42,27 @@ export class AssistantComponent implements OnInit {
 
   userInput: string = '';
   readonly showModelDropdown = signal<boolean>(false);
+  readonly expandedWhySet = signal<Set<string>>(new Set());
 
   @HostListener('document:click')
   onDocumentClick(): void {
     this.showModelDropdown.set(false);
+  }
+
+  toggleWhyMemory(memoryId: string): void {
+    this.expandedWhySet.update(set => {
+      const next = new Set(set);
+      if (next.has(memoryId)) {
+        next.delete(memoryId);
+      } else {
+        next.add(memoryId);
+      }
+      return next;
+    });
+  }
+
+  isWhyExpanded(memoryId: string): boolean {
+    return this.expandedWhySet().has(memoryId);
   }
 
   toggleModelDropdown(): void {
