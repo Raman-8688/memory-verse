@@ -10,7 +10,7 @@
     <h1 class="mv-type-display hero-greeting">
       {{ timeOfDayGreeting }}, <span class="highlight-name">{{ authService.currentUser()?.fullName || 'Friend' }}</span>.
     </h1>
-    <p class="hero-subtitle">Your memories, beautifully organized.</p>
+    <p class="hero-subtitle">Your collective memories, beautifully organized.</p>
 
     <!-- 2. AI Search Entry Bar -->
     <div class="ai-search-wrapper" (click)="focusSearchInput()">
@@ -53,6 +53,31 @@
         <span>Browse All</span>
       </a>
     </div>
+
+    <!-- 3.5 Archive Stats Strip -->
+    @if (dashboardData()?.stats; as stats) {
+      <div class="archive-stats-strip">
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.totalMemories || 0 }}</span>
+          <span class="stat-label">Memories</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.totalPhotos || 0 }}</span>
+          <span class="stat-label">Photographs</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.totalJourneys || 0 }}</span>
+          <span class="stat-label">Journeys</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats.totalFriends || 0 }}</span>
+          <span class="stat-label">Friends in Circle</span>
+        </div>
+      </div>
+    }
   </header>
 
   <!-- Loading State -->
@@ -68,7 +93,7 @@
   } @else {
     @if (dashboardData(); as data) {
 
-      <!-- 4. Phase 12: On This Day Showcase -->
+      <!-- 4. On This Day Spotlight Showcase -->
       @if (data.memoryOfTheDay; as otd) {
         <section class="on-this-day-section">
           <div class="on-this-day-card">
@@ -120,7 +145,7 @@
                   }
                 </div>
 
-                <h2 class="otd-title">{{ otd.title }}</h2>
+                <h2 class="otd-title" [routerLink]="['/memories', otd.id]">{{ otd.title }}</h2>
                 <p class="otd-excerpt">"{{ otd.story }}"</p>
 
                 <div class="otd-footer">
@@ -128,10 +153,12 @@
                     <img 
                       [src]="otd.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                       [alt]="otd.createdBy.fullName" 
-                      mvFallback 
                       class="author-avatar"
                     />
-                    <span class="author-name">{{ otd.createdBy.fullName }}</span>
+                    <div class="author-details">
+                      <span class="author-name">{{ otd.createdBy.fullName }}</span>
+                      <span class="author-label">Preserved moment</span>
+                    </div>
                   </div>
 
                   <a mat-flat-button class="relive-day-btn" [routerLink]="['/memories', otd.id]">
@@ -188,7 +215,6 @@
                       <img 
                         [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                         [alt]="mem.createdBy.fullName" 
-                        mvFallback 
                         class="author-mini-img"
                       />
                       <span class="author-mini-name">{{ mem.createdBy.fullName }}</span>
@@ -202,13 +228,13 @@
         </section>
       }
 
-      <!-- 6. Your Journeys (Grid of Journey Cards) -->
+      <!-- 6. Our Shared Journeys (Grid of Journey Cards) -->
       @if (data.activeJourneys && data.activeJourneys.length > 0) {
         <section class="journeys-section">
           <div class="section-header-bar">
             <div>
               <span class="mv-type-metadata section-eyebrow">Life Chapters</span>
-              <h2 class="mv-type-h2 section-title">Your Journeys</h2>
+              <h2 class="mv-type-h2 section-title">Our Shared Journeys</h2>
             </div>
             <a mat-button class="see-all-link" routerLink="/journeys">
               <span>View all journeys</span>

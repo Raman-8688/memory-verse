@@ -504,9 +504,9 @@
 .suggested-queries-track {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 2px 0 6px;
 }
 
 .prompt-hint {

@@ -1,11 +1,11 @@
 <nav class="mobile-bottom-nav">
   <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="mobile-tab">
-    <mat-icon>home</mat-icon>
-    <span>Home</span>
+    <mat-icon>space_dashboard</mat-icon>
+    <span>Dashboard</span>
   </a>
-  <a routerLink="/assistant" routerLinkActive="active" class="mobile-tab">
-    <mat-icon>auto_awesome</mat-icon>
-    <span>Ask AI</span>
+  <a routerLink="/journeys" routerLinkActive="active" class="mobile-tab">
+    <mat-icon>auto_stories</mat-icon>
+    <span>Journeys</span>
   </a>
   <button type="button" class="mobile-tab center-action" (click)="openCapture()" aria-label="Quick Add Media">
     <div class="action-bubble">
@@ -17,9 +17,9 @@
     <mat-icon>photo_library</mat-icon>
     <span>Memories</span>
   </a>
-  <a routerLink="/journeys" routerLinkActive="active" class="mobile-tab">
-    <mat-icon>auto_stories</mat-icon>
-    <span>Journeys</span>
+  <a routerLink="/assistant" routerLinkActive="active" class="mobile-tab">
+    <mat-icon>auto_awesome</mat-icon>
+    <span>Ask AI</span>
   </a>
   <a routerLink="/profile" routerLinkActive="active" class="mobile-tab">
     <mat-icon>person</mat-icon>
