@@ -1,25 +1,29 @@
 package com.memoryverse.config;
 
-import com.memoryverse.modules.journey.Journey;
-import com.memoryverse.modules.journey.JourneyRepository;
-import com.memoryverse.modules.journey.JourneySection;
-import com.memoryverse.modules.journey.JourneySectionRepository;
-import com.memoryverse.modules.media.CloudinaryStorageService;
-import com.memoryverse.modules.media.Media;
-import com.memoryverse.modules.media.UploadedMediaResult;
-import com.memoryverse.modules.memory.Memory;
-import com.memoryverse.modules.memory.MemoryRepository;
-import com.memoryverse.modules.user.User;
-import com.memoryverse.modules.user.UserRepository;
+import com.memoryverse.dto.response.UploadedMediaResult;
+import com.memoryverse.entity.Journey;
+import com.memoryverse.entity.JourneySection;
+import com.memoryverse.entity.Media;
+import com.memoryverse.entity.Memory;
+import com.memoryverse.entity.User;
+import com.memoryverse.integration.storage.CloudinaryStorageService;
+import com.memoryverse.repository.JourneyRepository;
+import com.memoryverse.repository.JourneySectionRepository;
+import com.memoryverse.repository.MemoryRepository;
+import com.memoryverse.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,7 +49,7 @@ public class LocalMediaSeeder implements CommandLineRunner {
     private static final long MAX_VIDEO_BYTES = 50L * 1024 * 1024; // 50MB
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void run(String... args) {
         if (!seedLocalMedia) {
             log.info("Local media seeding disabled via app.seed-local-media=false");
@@ -215,7 +219,7 @@ public class LocalMediaSeeder implements CommandLineRunner {
 
             LocalDate memoryDate = baseDate.plusDays(memoryIndex * 12L);
             String title = String.format("%s (Part %d)", titlePrefix, memoryIndex);
-            String story = String.format("A collection of snapshots and moments captured during our college days. Every frame tells a story of laughs, chaos, and unforgettable friendship.");
+            String story = "A collection of snapshots and moments captured during our college days. Every frame tells a story of laughs, chaos, and unforgettable friendship.";
 
             Memory memory = Memory.builder()
                     .title(title)

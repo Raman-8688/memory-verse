@@ -1,14 +1,18 @@
 package com.memoryverse.config;
 
-import com.memoryverse.modules.journey.Journey;
-import com.memoryverse.modules.journey.JourneyRepository;
-import com.memoryverse.modules.journey.JourneySection;
-import com.memoryverse.modules.user.Role;
-import com.memoryverse.modules.user.User;
-import com.memoryverse.modules.user.UserRepository;
+import com.memoryverse.entity.Journey;
+import com.memoryverse.entity.JourneySection;
+import com.memoryverse.entity.Notification;
+import com.memoryverse.entity.NotificationType;
+import com.memoryverse.entity.Role;
+import com.memoryverse.entity.User;
+import com.memoryverse.repository.JourneyRepository;
+import com.memoryverse.repository.NotificationRepository;
+import com.memoryverse.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +28,8 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final JourneyRepository journeyRepository;
     private final PasswordEncoder passwordEncoder;
-    private final com.memoryverse.modules.notification.NotificationRepository notificationRepository;
-    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+    private final NotificationRepository notificationRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     @Transactional
@@ -177,28 +181,28 @@ public class DataInitializer implements CommandLineRunner {
         // Seed initial notifications if empty so Activity Center is lively
         if (notificationRepository.count() == 0) {
             userRepository.findByEmail("admin@memoryverse.com").ifPresent(adminUser -> {
-                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                notificationRepository.save(Notification.builder()
                         .recipient(adminUser)
                         .message("Welcome to MemoryVerse, Raman! Your group's shared archive is ready.")
-                        .type(com.memoryverse.modules.notification.NotificationType.SYSTEM)
+                        .type(NotificationType.SYSTEM)
                         .isRead(false)
                         .build());
-                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                notificationRepository.save(Notification.builder()
                         .recipient(adminUser)
                         .message("Ramesh preserved a new memory: 'Late Night Canteen Talks'")
-                        .type(com.memoryverse.modules.notification.NotificationType.MEMORY_CREATED)
+                        .type(NotificationType.MEMORY_CREATED)
                         .isRead(false)
                         .build());
-                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                notificationRepository.save(Notification.builder()
                         .recipient(adminUser)
                         .message("Govardhan tagged you in: 'B.Tech Freshers Welcome'")
-                        .type(com.memoryverse.modules.notification.NotificationType.TAGGED)
+                        .type(NotificationType.TAGGED)
                         .isRead(false)
                         .build());
-                notificationRepository.save(com.memoryverse.modules.notification.Notification.builder()
+                notificationRepository.save(Notification.builder()
                         .recipient(adminUser)
                         .message("Shyam added 4 new photos to 'Goa Road Trip & Sunset'")
-                        .type(com.memoryverse.modules.notification.NotificationType.MEDIA_ADDED)
+                        .type(NotificationType.MEDIA_ADDED)
                         .isRead(false)
                         .build());
             });
