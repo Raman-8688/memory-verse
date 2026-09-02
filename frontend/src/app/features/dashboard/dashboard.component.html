@@ -1,0 +1,272 @@
+<div class="dashboard-container">
+
+  <!-- 1. Hero Greeting & Subtitle -->
+  <header class="hero-section">
+    <div class="hero-header-line">
+      <span class="magazine-issue">MemoryVerse Journal • Archive</span>
+      <span class="current-date">{{ formattedToday }}</span>
+    </div>
+
+    <h1 class="mv-type-display hero-greeting">
+      {{ timeOfDayGreeting }}, <span class="highlight-name">{{ authService.currentUser()?.fullName || 'Friend' }}</span>.
+    </h1>
+    <p class="hero-subtitle">Your memories, beautifully organized.</p>
+
+    <!-- 2. AI Search Entry Bar -->
+    <div class="ai-search-wrapper" (click)="focusSearchInput()">
+      <div class="ai-search-inner">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          #searchInput
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (keyup.enter)="submitAiSearch()" 
+          placeholder="Ask anything about your memories... e.g. 'Show photos from Goa' or 'Farewell in 2024'" 
+          class="ai-search-input"
+        />
+        <button mat-flat-button class="ask-ai-submit-btn" (click)="submitAiSearch()">
+          <mat-icon>auto_awesome</mat-icon>
+          <span>Ask AI</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. Quick Action Buttons Row -->
+    <div class="quick-actions-row">
+      <a mat-flat-button class="action-btn primary-action" routerLink="/memories/new">
+        <mat-icon>add</mat-icon>
+        <span>Add Memory</span>
+      </a>
+
+      <button mat-stroked-button class="action-btn capture-action" (click)="captureService.openCaptureFlow()">
+        <mat-icon>photo_camera</mat-icon>
+        <span>Capture</span>
+      </button>
+
+      <a mat-stroked-button class="action-btn ai-action" routerLink="/assistant">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>Ask AI</span>
+      </a>
+
+      <a mat-stroked-button class="action-btn browse-action" routerLink="/memories">
+        <mat-icon>photo_library</mat-icon>
+        <span>Browse All</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="skeleton-wrapper">
+      <div class="skeleton-hero skeleton-box"></div>
+      <div class="skeleton-row">
+        <div class="skeleton-card skeleton-box"></div>
+        <div class="skeleton-card skeleton-box"></div>
+        <div class="skeleton-card skeleton-box"></div>
+      </div>
+    </div>
+  } @else {
+    @if (dashboardData(); as data) {
+
+      <!-- 4. Phase 12: On This Day Showcase -->
+      @if (data.memoryOfTheDay; as otd) {
+        <section class="on-this-day-section">
+          <div class="on-this-day-card">
+            <div class="otd-badge-ribbon">
+              <span class="otd-tag">
+                <mat-icon>event_repeat</mat-icon>
+                <span>{{ data.memoryOfTheDayContext || 'On This Day' }}</span>
+              </span>
+              <span class="otd-year-delta">{{ getYearsAgo(otd.memoryDate) }}</span>
+            </div>
+
+            <div class="otd-body">
+              <!-- Media Visual -->
+              <div class="otd-media-wrap" [routerLink]="['/memories', otd.id]">
+                <img 
+                  [src]="getCoverUrl(otd)" 
+                  [alt]="otd.title" 
+                  mvFallback 
+                  class="otd-cover-img" 
+                  loading="lazy"
+                />
+                <div class="otd-media-overlay"></div>
+                @if (otd.mediaList && otd.mediaList.length > 1) {
+                  <span class="otd-photo-count">
+                    <mat-icon>photo_library</mat-icon>
+                    {{ otd.mediaList.length }} photos
+                  </span>
+                }
+              </div>
+
+              <!-- Emotional Story & Metadata -->
+              <div class="otd-narrative">
+                <div class="otd-meta-line">
+                  <span class="meta-pill date-pill">
+                    <mat-icon>calendar_today</mat-icon>
+                    {{ formatDate(otd.memoryDate) }}
+                  </span>
+                  @if (otd.locationName) {
+                    <span class="meta-pill loc-pill">
+                      <mat-icon>place</mat-icon>
+                      {{ otd.locationName }}
+                    </span>
+                  }
+                  @if (otd.journeyTitle) {
+                    <span class="meta-pill journey-pill">
+                      <mat-icon>auto_stories</mat-icon>
+                      {{ otd.journeyTitle }}
+                    </span>
+                  }
+                </div>
+
+                <h2 class="otd-title">{{ otd.title }}</h2>
+                <p class="otd-excerpt">"{{ otd.story }}"</p>
+
+                <div class="otd-footer">
+                  <div class="otd-author">
+                    <img 
+                      [src]="otd.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
+                      [alt]="otd.createdBy.fullName" 
+                      mvFallback 
+                      class="author-avatar"
+                    />
+                    <span class="author-name">{{ otd.createdBy.fullName }}</span>
+                  </div>
+
+                  <a mat-flat-button class="relive-day-btn" [routerLink]="['/memories', otd.id]">
+                    <mat-icon>play_circle</mat-icon>
+                    <span>Relive This Day</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- 5. Recently Remembered (Horizontal Scrollable Stream) -->
+      @if (data.recentMemories && data.recentMemories.length > 0) {
+        <section class="recent-section">
+          <div class="section-header-bar">
+            <div>
+              <span class="mv-type-metadata section-eyebrow">Fresh Moments</span>
+              <h2 class="mv-type-h2 section-title">Recently Remembered</h2>
+            </div>
+            <div class="scroll-controls">
+              <button mat-icon-button class="scroll-btn" (click)="scrollRecent(-360)" aria-label="Scroll left">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <button mat-icon-button class="scroll-btn" (click)="scrollRecent(360)" aria-label="Scroll right">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="recent-scroll-track" #recentTrack>
+            @for (mem of data.recentMemories; track mem.id) {
+              <article class="memory-card-snap" [routerLink]="['/memories', mem.id]">
+                <div class="card-media-pane">
+                  <img 
+                    [src]="getCoverUrl(mem)" 
+                    [alt]="mem.title" 
+                    loading="lazy" 
+                    mvFallback 
+                    class="card-img"
+                  />
+                  <div class="card-overlay"></div>
+                  <span class="card-date-badge">{{ formatDate(mem.memoryDate) }}</span>
+                </div>
+
+                <div class="card-text-pane">
+                  <span class="card-journey-label">{{ mem.journeyTitle || 'Memory' }}</span>
+                  <h3 class="card-title">{{ mem.title }}</h3>
+                  <p class="card-story-snippet">{{ mem.story }}</p>
+
+                  <div class="card-footer-row">
+                    <div class="author-snippet">
+                      <img 
+                        [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                        [alt]="mem.createdBy.fullName" 
+                        mvFallback 
+                        class="author-mini-img"
+                      />
+                      <span class="author-mini-name">{{ mem.createdBy.fullName }}</span>
+                    </div>
+                    <span class="open-story-link">Read &rarr;</span>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- 6. Your Journeys (Grid of Journey Cards) -->
+      @if (data.activeJourneys && data.activeJourneys.length > 0) {
+        <section class="journeys-section">
+          <div class="section-header-bar">
+            <div>
+              <span class="mv-type-metadata section-eyebrow">Life Chapters</span>
+              <h2 class="mv-type-h2 section-title">Your Journeys</h2>
+            </div>
+            <a mat-button class="see-all-link" routerLink="/journeys">
+              <span>View all journeys</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </a>
+          </div>
+
+          <div class="journeys-grid">
+            @for (journey of data.activeJourneys; track journey.id) {
+              <article class="journey-cover-card" [routerLink]="['/journeys', journey.id]">
+                <div class="journey-media">
+                  <img 
+                    [src]="journey.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80'" 
+                    [alt]="journey.title" 
+                    loading="lazy" 
+                    mvFallback 
+                    class="journey-img"
+                  />
+                  <div class="journey-overlay"></div>
+                  <div class="journey-badges">
+                    <span class="journey-dates">{{ formatDateRange(journey.startDate, journey.endDate) }}</span>
+                    <span class="journey-chapters">
+                      {{ journey.sections.length }} {{ journey.sections.length === 1 ? 'Chapter' : 'Chapters' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="journey-details">
+                  <h3 class="journey-title">{{ journey.title }}</h3>
+                  <p class="journey-desc">{{ journey.description || 'A defining chapter in our shared history.' }}</p>
+                  
+                  <div class="journey-footer">
+                    <span class="journey-explore-cta">
+                      <span>Explore Chapter Timeline</span>
+                      <mat-icon>arrow_forward</mat-icon>
+                    </span>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+    } @else {
+      <!-- Meaningful Empty State -->
+      <div class="empty-dashboard-card">
+        <div class="empty-icon-wrap">
+          <mat-icon>auto_stories</mat-icon>
+        </div>
+        <h2 class="mv-type-h2">Your memory collection is empty</h2>
+        <p class="mv-type-secondary">Start capturing the moments you want to remember with your friends and batchmates.</p>
+        <a mat-flat-button class="action-btn primary-action" routerLink="/memories/new">
+          <mat-icon>add</mat-icon>
+          <span>Add Our First Memory</span>
+        </a>
+      </div>
+    }
+  }
+
+</div>
