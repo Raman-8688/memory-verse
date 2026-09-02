@@ -1,0 +1,242 @@
+<div class="capture-review-page">
+
+  <!-- Header -->
+  <header class="review-header">
+    <div class="header-inner">
+      <a routerLink="/dashboard" class="back-link">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back</span>
+      </a>
+      <div class="header-titles">
+        <span class="phase-tag">CAPTURE & ARCHIVE</span>
+        <h1 class="mv-type-display review-title">Record a New Memory</h1>
+        <p class="review-subtitle">Preserve this moment with your friends in your shared journey.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="review-main-content">
+
+    <!-- 1. Frictionless Media Previews (Horizontal Track) -->
+    <section class="media-previews-section">
+      <div class="section-label-bar">
+        <div class="label-group">
+          <mat-icon class="section-icon">collections</mat-icon>
+          <span class="section-title">Captured Assets ({{ previews().length }})</span>
+        </div>
+        <button mat-stroked-button type="button" class="add-more-pill" (click)="triggerCapture()" [disabled]="isUploading()">
+          <mat-icon>add_photo_alternate</mat-icon>
+          <span>Add More</span>
+        </button>
+      </div>
+
+      @if (previews().length === 0) {
+        <div class="empty-dropzone-box">
+          <mv-desktop-upload-dropzone (filesSelected)="onFilesAdded($event)"></mv-desktop-upload-dropzone>
+        </div>
+      } @else {
+        <div class="media-horizontal-track">
+          @for (item of previews(); track item.file.name; let i = $index) {
+            <div class="preview-item-snap">
+              <div class="preview-frame">
+                @if (item.isVideo) {
+                  <video [src]="item.previewUrl" class="preview-media" muted></video>
+                  <div class="media-badge video-badge">
+                    <mat-icon>videocam</mat-icon>
+                  </div>
+                } @else {
+                  <img [src]="item.previewUrl" [alt]="item.name" class="preview-media" />
+                }
+                <button 
+                  type="button" 
+                  class="remove-item-btn" 
+                  (click)="removeFile(i)" 
+                  [disabled]="isUploading()"
+                  title="Remove asset">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              <span class="preview-file-name">{{ item.name }}</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- 2. Phase 9: AI Suggestions & Metadata Auto-Fill -->
+    @if (previews().length > 0) {
+      <section class="ai-suggestions-section">
+        @if (!aiSuggestedData()) {
+          <div class="ai-trigger-banner">
+            <div class="trigger-left">
+              <mat-icon class="sparkle-icon">auto_awesome</mat-icon>
+              <div class="trigger-texts">
+                <strong>Smart AI Metadata Suggestions</strong>
+                <p>Auto-generate an evocative title, date context, and story starter from your images.</p>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              mat-flat-button 
+              class="auto-fill-btn" 
+              (click)="generateAiSuggestions()" 
+              [disabled]="isAnalyzingAi() || isUploading()">
+              @if (isAnalyzingAi()) {
+                <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                <span>Analyzing Media...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>auto_awesome</mat-icon>
+                  <span>Auto-Fill with AI</span>
+                </ng-container>
+              }
+            </button>
+          </div>
+        } @else {
+          <!-- AI Suggestions Box -->
+          <div class="ai-suggestion-box">
+            <div class="suggestion-header">
+              <div class="suggestion-tag">
+                <mat-icon>auto_awesome</mat-icon>
+                <span>AI Suggested Metadata</span>
+              </div>
+              <button type="button" class="dismiss-btn" (click)="dismissAiSuggestions()">Dismiss</button>
+            </div>
+
+            <div class="suggestion-content">
+              <div class="suggested-field">
+                <span class="sugg-label">Title:</span>
+                <span class="sugg-value">{{ aiSuggestedData()?.title }}</span>
+              </div>
+              <div class="suggested-field">
+                <span class="sugg-label">Location:</span>
+                <span class="sugg-value">{{ aiSuggestedData()?.locationName }}</span>
+              </div>
+              <div class="suggested-field">
+                <span class="sugg-label">Story Starter:</span>
+                <p class="sugg-story">"{{ aiSuggestedData()?.story }}"</p>
+              </div>
+            </div>
+
+            <div class="suggestion-footer">
+              <button mat-flat-button type="button" class="apply-sugg-btn" (click)="applyAiSuggestions()">
+                <mat-icon>check</mat-icon>
+                <span>Apply Suggestions</span>
+              </button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- 3. Editorial Form Design -->
+    <form [formGroup]="reviewForm" (ngSubmit)="publishMemory()" class="editorial-form">
+
+      <!-- Memory Title -->
+      <div class="form-group-clean">
+        <label for="title" class="clean-label">Memory Title *</label>
+        <input 
+          id="title"
+          type="text" 
+          formControlName="title" 
+          placeholder="e.g. Midnight Chai at the Campus Gate" 
+          class="clean-input title-input mv-type-h2" 
+        />
+        @if (reviewForm.get('title')?.touched && reviewForm.get('title')?.invalid) {
+          <span class="field-error">Title is required (max 200 characters).</span>
+        }
+      </div>
+
+      <!-- Context Selection: Journey & Chapter/Section -->
+      <div class="form-row-duo">
+        <div class="form-group-clean">
+          <label for="journeyId" class="clean-label">Journey Chapter *</label>
+          <select 
+            id="journeyId" 
+            formControlName="journeyId" 
+            (change)="onJourneyChange(reviewForm.value.journeyId)" 
+            class="clean-select">
+            @for (j of journeys(); track j.id) {
+              <option [value]="j.id">{{ j.title }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group-clean">
+          <label for="sectionId" class="clean-label">Sub-Section / Phase</label>
+          <select id="sectionId" formControlName="sectionId" class="clean-select">
+            <option value="">-- General Journey Moment --</option>
+            @for (sec of availableSections(); track sec.id) {
+              <option [value]="sec.id">{{ sec.title }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- Date & Location -->
+      <div class="form-row-duo">
+        <div class="form-group-clean">
+          <label for="memoryDate" class="clean-label">Date of Memory *</label>
+          <input 
+            id="memoryDate"
+            type="date" 
+            formControlName="memoryDate" 
+            class="clean-input" 
+          />
+        </div>
+
+        <div class="form-group-clean">
+          <label for="locationName" class="clean-label">Location (Optional)</label>
+          <input 
+            id="locationName"
+            type="text" 
+            formControlName="locationName" 
+            placeholder="e.g. Baga Beach, Goa or Hostel 4" 
+            class="clean-input" 
+          />
+        </div>
+      </div>
+
+      <!-- Editorial Story Body -->
+      <div class="form-group-clean">
+        <label for="story" class="clean-label">The Story & Reflections</label>
+        <textarea 
+          id="story"
+          formControlName="story" 
+          rows="5" 
+          placeholder="What made this moment unforgettable? Describe what happened, the laughter, the quotes..."
+          class="clean-textarea mv-type-body">
+        </textarea>
+      </div>
+
+      <!-- 4. Progress & Publish Button -->
+      <div class="publish-action-area">
+        @if (isUploading()) {
+          <div class="upload-progress-container">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" [style.width.%]="uploadProgress()"></div>
+            </div>
+            <div class="progress-labels">
+              <span class="uploading-text">Archiving your memory to the cloud...</span>
+              <span class="pct-text">{{ uploadProgress() }}%</span>
+            </div>
+          </div>
+        } @else {
+          <div class="submit-row">
+            <button 
+              type="submit" 
+              mat-flat-button 
+              class="publish-btn" 
+              [disabled]="reviewForm.invalid || previews().length === 0">
+              <mat-icon>cloud_upload</mat-icon>
+              <span>Publish to Journey Archive</span>
+            </button>
+            <a mat-button routerLink="/memories" class="cancel-link">Cancel</a>
+          </div>
+        }
+      </div>
+
+    </form>
+
+  </main>
+</div>
