@@ -4,6 +4,7 @@ import com.memoryverse.dto.request.MemoryCreateDto;
 import com.memoryverse.dto.request.MemoryUpdateDto;
 import com.memoryverse.dto.response.MemoryResponseDto;
 import com.memoryverse.dto.response.PagedResponse;
+import com.memoryverse.dto.response.PlaceSummaryDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,9 +17,11 @@ public interface MemoryService {
 
     PagedResponse<MemoryResponseDto> getMemoriesTaggedWithUser(UUID userId, Pageable pageable);
 
-    PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Boolean isFavorite, Pageable pageable);
+    PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Boolean isFavorite, String place, Pageable pageable);
 
     List<Integer> getAvailableYears();
+
+    List<PlaceSummaryDto> getPlacesSummary();
 
     MemoryResponseDto getMemoryById(UUID id);
 

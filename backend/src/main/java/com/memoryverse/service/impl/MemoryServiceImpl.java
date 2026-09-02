@@ -5,6 +5,7 @@ import com.memoryverse.dto.request.MemoryCreateDto;
 import com.memoryverse.dto.request.MemoryUpdateDto;
 import com.memoryverse.dto.response.MemoryResponseDto;
 import com.memoryverse.dto.response.PagedResponse;
+import com.memoryverse.dto.response.PlaceSummaryDto;
 import com.memoryverse.dto.response.UploadedMediaResult;
 import com.memoryverse.entity.Journey;
 import com.memoryverse.entity.JourneySection;
@@ -164,7 +165,7 @@ public class MemoryServiceImpl implements MemoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Boolean isFavorite, Pageable pageable) {
+    public PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Boolean isFavorite, String place, Pageable pageable) {
         Specification<Memory> spec = Specification.where(null);
 
         if (journeyId != null) {
@@ -197,6 +198,11 @@ public class MemoryServiceImpl implements MemoryService {
             spec = spec.and((root, query, cb) -> cb.isTrue(root.get("isFavorite")));
         }
 
+        if (place != null && !place.isBlank()) {
+            String p = "%" + place.toLowerCase().trim() + "%";
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("locationName")), p));
+        }
+
         if (search != null && !search.isBlank()) {
             String term = "%" + search.toLowerCase().trim() + "%";
             spec = spec.and((root, query, cb) -> cb.or(
@@ -221,6 +227,21 @@ public class MemoryServiceImpl implements MemoryService {
     @Transactional(readOnly = true)
     public List<Integer> getAvailableYears() {
         return memoryRepository.findDistinctMemoryYears();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PlaceSummaryDto> getPlacesSummary() {
+        return memoryRepository.findPlacesSummary().stream()
+                .map(p -> PlaceSummaryDto.builder()
+                        .locationName(p.getLocationName())
+                        .memoryCount(p.getMemoryCount() != null ? p.getMemoryCount() : 0)
+                        .latestMemoryDate(p.getLatestMemoryDate())
+                        .latitude(p.getLatitude())
+                        .longitude(p.getLongitude())
+                        .coverImageUrl(p.getCoverImageUrl())
+                        .build())
+                .toList();
     }
 
     @Override

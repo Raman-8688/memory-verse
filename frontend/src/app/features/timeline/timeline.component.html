@@ -58,6 +58,30 @@
         }
       </div>
 
+      <!-- Active Place or Person Scope Banner -->
+      @if (selectedPlace() || selectedPersonId()) {
+        <div class="active-scope-banner animate-fade-in">
+          @if (selectedPlace()) {
+            <div class="scope-pill">
+              <mat-icon>place</mat-icon>
+              <span>Place: <strong>{{ selectedPlace() }}</strong></span>
+              <button type="button" class="scope-clear-btn" (click)="clearPlace()" aria-label="Clear place filter">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+          @if (selectedPersonId()) {
+            <div class="scope-pill">
+              <mat-icon>person</mat-icon>
+              <span>Person filter active</span>
+              <button type="button" class="scope-clear-btn" (click)="clearPerson()" aria-label="Clear person filter">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
       <!-- Year Pills -->
       @if (availableYears().length > 0) {
         <div class="year-pills-track">

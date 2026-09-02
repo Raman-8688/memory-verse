@@ -77,6 +77,8 @@ export class TimelineComponent implements OnInit, OnDestroy {
   readonly selectedYear = signal<number | null>(null);
   readonly selectedMonth = signal<number | null>(null);
   readonly selectedJourneyId = signal<string | null>(null);
+  readonly selectedPlace = signal<string | null>(null);
+  readonly selectedPersonId = signal<string | null>(null);
   readonly searchInput = signal<string>('');
 
   readonly monthsList = [
@@ -100,6 +102,8 @@ export class TimelineComponent implements OnInit, OnDestroy {
     if (this.selectedYear() !== null) count++;
     if (this.selectedMonth() !== null) count++;
     if (this.selectedJourneyId() !== null) count++;
+    if (this.selectedPlace() !== null) count++;
+    if (this.selectedPersonId() !== null) count++;
     if (this.searchInput().trim() !== '') count++;
     return count;
   });
@@ -172,11 +176,15 @@ export class TimelineComponent implements OnInit, OnDestroy {
       const yearParam = params['year'] ? parseInt(params['year'], 10) : null;
       const monthParam = params['month'] ? parseInt(params['month'], 10) : null;
       const journeyParam = params['journey'] || null;
+      const placeParam = params['place'] || null;
+      const personParam = params['person'] || params['userId'] || null;
       const searchParam = params['search'] || '';
 
       this.selectedYear.set(yearParam);
       this.selectedMonth.set(monthParam);
       this.selectedJourneyId.set(journeyParam);
+      this.selectedPlace.set(placeParam);
+      this.selectedPersonId.set(personParam);
       this.searchInput.set(searchParam);
 
       this.fetchTimeline(0, false);
@@ -228,6 +236,12 @@ export class TimelineComponent implements OnInit, OnDestroy {
     }
     if (this.selectedJourneyId()) {
       params.journeyId = this.selectedJourneyId()!;
+    }
+    if (this.selectedPlace()) {
+      params.place = this.selectedPlace()!;
+    }
+    if (this.selectedPersonId()) {
+      params.userId = this.selectedPersonId()!;
     }
     const term = this.searchInput().trim();
     if (term) {
@@ -291,6 +305,14 @@ export class TimelineComponent implements OnInit, OnDestroy {
   clearSearch(): void {
     this.searchInput.set('');
     this.updateUrlParams({ search: null });
+  }
+
+  clearPlace(): void {
+    this.updateUrlParams({ place: null });
+  }
+
+  clearPerson(): void {
+    this.updateUrlParams({ person: null });
   }
 
   resetAllFilters(): void {

@@ -42,4 +42,35 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID>, JpaSpecif
 
     @Query("SELECT DISTINCT EXTRACT(YEAR FROM m.memoryDate) FROM Memory m ORDER BY EXTRACT(YEAR FROM m.memoryDate) DESC")
     List<Integer> findDistinctMemoryYears();
+
+    interface PlaceSummaryProjection {
+        String getLocationName();
+        Long getMemoryCount();
+        java.time.LocalDate getLatestMemoryDate();
+        Double getLatitude();
+        Double getLongitude();
+        String getCoverImageUrl();
+    }
+
+    @Query(value = "SELECT * FROM (" +
+            "    SELECT DISTINCT ON (m.location_name)" +
+            "        m.location_name AS locationName," +
+            "        agg.memoryCount," +
+            "        agg.latestMemoryDate," +
+            "        agg.latitude," +
+            "        agg.longitude," +
+            "        COALESCE(med.thumbnail_url, med.media_url) AS coverImageUrl" +
+            "    FROM (" +
+            "        SELECT location_name, COUNT(id) AS memoryCount, MAX(memory_date) AS latestMemoryDate, MAX(latitude) AS latitude, MAX(longitude) AS longitude" +
+            "        FROM memories" +
+            "        WHERE location_name IS NOT NULL AND TRIM(location_name) <> ''" +
+            "        GROUP BY location_name" +
+            "    ) agg" +
+            "    JOIN memories m ON m.location_name = agg.location_name" +
+            "    LEFT JOIN media med ON med.memory_id = m.id" +
+            "    ORDER BY m.location_name, m.memory_date DESC" +
+            ") sub " +
+            "ORDER BY sub.memoryCount DESC, sub.latestMemoryDate DESC",
+            nativeQuery = true)
+    List<PlaceSummaryProjection> findPlacesSummary();
 }

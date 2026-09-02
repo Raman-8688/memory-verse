@@ -1,8 +1,10 @@
 package com.memoryverse.service.impl;
 
 import com.memoryverse.dto.request.UserUpdateRequest;
+import com.memoryverse.dto.response.PersonSummaryDto;
 import com.memoryverse.dto.response.UploadedMediaResult;
 import com.memoryverse.dto.response.UserDto;
+import com.memoryverse.entity.Role;
 import com.memoryverse.entity.User;
 import com.memoryverse.exception.ResourceNotFoundException;
 import com.memoryverse.integration.storage.CloudinaryStorageService;
@@ -32,6 +34,21 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll().stream()
                 .map(UserDto::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PersonSummaryDto> getPeopleDirectory() {
+        return userRepository.findPeopleSummary().stream()
+                .map(p -> PersonSummaryDto.builder()
+                        .id(p.getId())
+                        .fullName(p.getFullName())
+                        .email(p.getEmail())
+                        .avatarUrl(p.getAvatarUrl())
+                        .role(p.getRole() != null ? Role.valueOf(p.getRole()) : null)
+                        .memoryCount(p.getMemoryCount() != null ? p.getMemoryCount() : 0)
+                        .build())
+                .toList();
     }
 
     @Override

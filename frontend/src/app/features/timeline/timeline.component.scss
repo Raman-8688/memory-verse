@@ -183,6 +183,49 @@
   mat-icon { font-size: 16px; width: 16px; height: 16px; }
 }
 
+.active-scope-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scope-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--mv-primary-light);
+  border: 1px solid var(--mv-primary);
+  border-radius: var(--mv-radius-full);
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  color: var(--mv-primary-dark);
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; color: var(--mv-primary); }
+
+  strong { font-weight: 700; color: var(--mv-primary-dark); }
+}
+
+.scope-clear-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--mv-primary);
+  border-radius: 50%;
+  transition: transform var(--mv-transition-fast);
+
+  &:hover {
+    transform: scale(1.2);
+    color: var(--mv-text-primary);
+  }
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
 .year-pills-track, .month-pills-track {
   display: flex;
   align-items: center;

@@ -3,9 +3,9 @@
   <!-- Header -->
   <header class="people-header-bar">
     <div class="header-titles">
-      <span class="eyebrow-tag">COMMUNITY & CIRCLE</span>
-      <h1 class="mv-type-display page-title">People & Friends</h1>
-      <p class="page-subtitle">The faces, friends, and companions who shared the journey and shaped these moments.</p>
+      <span class="eyebrow-tag">SOCIAL DIRECTORY</span>
+      <h1 class="page-title">People & Friends</h1>
+      <p class="page-subtitle">The companion circle of our shared journey — exploring the memories you lived and captured together.</p>
     </div>
 
     <!-- Search Input -->
@@ -23,72 +23,69 @@
   <!-- Loading State -->
   @if (isLoading()) {
     <div class="people-skeleton-grid">
-      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
         <div class="skeleton-person-card skeleton-box"></div>
       }
+    </div>
+  } @else if (hasError()) {
+    <!-- Error State -->
+    <div class="empty-people-card">
+      <div class="empty-icon-circle">
+        <mat-icon>error_outline</mat-icon>
+      </div>
+      <h3 class="empty-title">Unable to load people</h3>
+      <p class="empty-desc">An error occurred while retrieving members from the archive.</p>
+      <button mat-flat-button class="retry-btn" (click)="loadPeople()">Try Again</button>
     </div>
   } @else if (filteredPeople().length === 0) {
     <!-- Empty State -->
     <div class="empty-people-card">
       <div class="empty-icon-circle">
-        <mat-icon>group_off</mat-icon>
+        <mat-icon>person_search</mat-icon>
       </div>
-      <h3 class="mv-type-h2">No Friends Found</h3>
+      <h3 class="empty-title">No People Found</h3>
       <p class="empty-desc">
         @if (searchQuery) {
-          No members match "{{ searchQuery }}". Try clearing your search query.
+          No members match "{{ searchQuery }}". Try clearing your search.
         } @else {
-          Tag friends in your memories to see their faces and contributions here in the circle directory!
+          No people have been registered in the archive yet.
         }
       </p>
-      <a mat-flat-button class="add-memory-btn" routerLink="/memories/new">Record a Memory With Friends</a>
+      <a mat-flat-button class="explore-timeline-btn" routerLink="/timeline">Explore Timeline</a>
     </div>
   } @else {
     <!-- People Directory Grid -->
     <main class="people-grid">
-      @for (person of filteredPeople(); track person.id) {
-        <article class="person-card" (click)="explorePerson(person.fullName)">
+      @for (p of filteredPeople(); track p.id) {
+        <article class="person-card" (click)="explorePerson(p)">
           
-          <!-- Avatar Section -->
-          <div class="avatar-frame">
+          <!-- Large Circular Avatar -->
+          <div class="avatar-wrapper">
             <img 
-              [src]="person.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'" 
-              [alt]="person.fullName" 
+              [src]="getAvatarUrl(p)" 
+              [alt]="p.fullName" 
               mvFallback 
               loading="lazy" 
-              class="person-avatar-img" 
+              class="person-avatar" 
             />
-            <div class="online-indicator"></div>
+            @if (p.role === 'ADMIN') {
+              <span class="role-badge" title="Administrator">Admin</span>
+            }
           </div>
 
-          <!-- Info Section -->
-          <div class="person-info">
-            <h2 class="mv-type-h2 person-name">{{ person.fullName }}</h2>
-            @if (person.role) {
-              <span class="person-role-tag">{{ person.role }}</span>
-            }
-
-            <!-- Shared Memories Badge -->
-            <div class="memories-badge-row">
-              <span class="shared-memories-pill">
-                <mat-icon>auto_awesome</mat-icon>
-                <span>{{ person.memoryCount }} {{ person.memoryCount === 1 ? 'shared memory' : 'shared memories' }}</span>
-              </span>
+          <!-- Person Info -->
+          <div class="person-details">
+            <h2 class="person-name">{{ p.fullName }}</h2>
+            
+            <div class="memory-count-badge">
+              <mat-icon>photo_library</mat-icon>
+              <span>{{ p.memoryCount }} {{ p.memoryCount === 1 ? 'shared memory' : 'shared memories' }}</span>
             </div>
 
-            @if (person.latestMemoryTitle) {
-              <p class="person-latest-snippet">
-                <span class="snippet-label">Recent:</span>
-                "{{ person.latestMemoryTitle }}"
-              </p>
-            }
-
-            <div class="person-card-footer">
-              <span class="filter-hint-cta">
-                <span>View Memories</span>
-                <mat-icon>arrow_forward</mat-icon>
-              </span>
-            </div>
+            <span class="explore-link">
+              <span>View on Timeline</span>
+              <mat-icon>arrow_forward</mat-icon>
+            </span>
           </div>
 
         </article>

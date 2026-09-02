@@ -7,6 +7,7 @@ import com.memoryverse.dto.request.PageRequestDto;
 import com.memoryverse.dto.response.ApiResponse;
 import com.memoryverse.dto.response.MemoryResponseDto;
 import com.memoryverse.dto.response.PagedResponse;
+import com.memoryverse.dto.response.PlaceSummaryDto;
 import com.memoryverse.security.SecurityUtils;
 import com.memoryverse.service.MemoryService;
 import jakarta.validation.Valid;
@@ -63,11 +64,17 @@ public class MemoryController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) UUID userId,
             @RequestParam(required = false) Boolean isFavorite,
+            @RequestParam(required = false) String place,
             @Valid PageRequestDto pageRequest) {
         
         PagedResponse<MemoryResponseDto> memories = memoryService.getMemories(
-                journeyId, sectionId, search, year, month, userId, isFavorite, pageRequest.toPageable());
+                journeyId, sectionId, search, year, month, userId, isFavorite, place, pageRequest.toPageable());
         return ResponseEntity.ok(ApiResponse.success(memories));
+    }
+
+    @GetMapping("/places")
+    public ResponseEntity<ApiResponse<List<PlaceSummaryDto>>> getPlaces() {
+        return ResponseEntity.ok(ApiResponse.success(memoryService.getPlacesSummary()));
     }
 
     @PostMapping("/{id}/favorite")

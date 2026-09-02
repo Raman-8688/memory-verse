@@ -62,6 +62,7 @@ export interface MemoryFilterParams {
   journeyId?: string;
   sectionId?: string;
   search?: string;
+  place?: string;
   year?: number;
   month?: number;
   userId?: string;

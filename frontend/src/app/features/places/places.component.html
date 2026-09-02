@@ -3,9 +3,9 @@
   <!-- Header -->
   <header class="places-header-bar">
     <div class="header-titles">
-      <span class="eyebrow-tag">GEOGRAPHIC ARCHIVE</span>
-      <h1 class="mv-type-display page-title">Places & Locations</h1>
-      <p class="page-subtitle">Every corner of the world where our collective stories unfolded — from campus haunts to coastal escapes.</p>
+      <span class="eyebrow-tag">GEOGRAPHIC DIRECTORY</span>
+      <h1 class="page-title">Places & Destinations</h1>
+      <p class="page-subtitle">Every geographic destination where your shared memories unfolded — from campus courtyards to coastal escapes.</p>
     </div>
 
     <!-- Search Input -->
@@ -14,7 +14,7 @@
       <input 
         type="text" 
         [(ngModel)]="searchQuery" 
-        placeholder="Search destinations, cafes, cities..." 
+        placeholder="Search destinations, cities, campus..." 
         class="location-search-input" 
       />
     </div>
@@ -27,60 +27,76 @@
         <div class="skeleton-place-card skeleton-box"></div>
       }
     </div>
+  } @else if (hasError()) {
+    <!-- Error State -->
+    <div class="empty-places-card">
+      <div class="empty-icon-circle">
+        <mat-icon>error_outline</mat-icon>
+      </div>
+      <h3 class="empty-title">Unable to load destinations</h3>
+      <p class="empty-desc">An error occurred while retrieving geographic locations from the archive.</p>
+      <button mat-flat-button class="retry-btn" (click)="loadPlaces()">Try Again</button>
+    </div>
   } @else if (filteredLocations().length === 0) {
     <!-- Empty State -->
     <div class="empty-places-card">
       <div class="empty-icon-circle">
         <mat-icon>explore_off</mat-icon>
       </div>
-      <h3 class="mv-type-h2">No Places Found</h3>
+      <h3 class="empty-title">No Places Found</h3>
       <p class="empty-desc">
         @if (searchQuery) {
           No destinations match "{{ searchQuery }}". Try clearing your search.
         } @else {
-          Memories haven't been tagged with locations yet. Add locations to your memories to see them pinned here!
+          Memories have not been tagged with location names yet. Add locations when creating or editing stories to see them pinned here!
         }
       </p>
-      <a mat-flat-button class="add-memory-btn" routerLink="/memories/new">Record a Place</a>
+      <a mat-flat-button class="add-memory-btn" routerLink="/timeline">Explore Timeline</a>
     </div>
   } @else {
     <!-- Location Directory Grid -->
     <main class="places-grid">
-      @for (loc of filteredLocations(); track loc.name) {
-        <article class="location-card" (click)="exploreLocation(loc.name)">
+      @for (loc of filteredLocations(); track loc.locationName) {
+        <article class="location-card" (click)="exploreLocation(loc.locationName)">
           
           <!-- Hero Image with Map Pin Badge -->
           <div class="card-cover-wrap">
-            <img [src]="loc.heroImageUrl" [alt]="loc.name" mvFallback loading="lazy" class="loc-cover-img" />
+            <img 
+              [src]="getHeroCover(loc)" 
+              [alt]="loc.locationName" 
+              mvFallback 
+              loading="lazy" 
+              class="loc-cover-img" 
+            />
             <div class="loc-gradient"></div>
 
             <div class="pin-badge">
               <mat-icon>place</mat-icon>
-              <span>{{ loc.name }}</span>
+              <span>{{ loc.locationName }}</span>
             </div>
 
-            <span class="media-count-badge">
-              <mat-icon>photo_library</mat-icon>
-              {{ loc.totalMedia }} {{ loc.totalMedia === 1 ? 'asset' : 'assets' }}
+            <span class="memory-count-badge">
+              <mat-icon>auto_stories</mat-icon>
+              {{ loc.memoryCount }} {{ loc.memoryCount === 1 ? 'moment' : 'moments' }}
             </span>
           </div>
 
           <!-- Card Content -->
           <div class="card-details">
             <div class="details-top">
-              <h2 class="mv-type-h2 loc-name">{{ loc.name }}</h2>
-              <span class="memory-count-pill">{{ loc.memoryCount }} {{ loc.memoryCount === 1 ? 'memory' : 'memories' }}</span>
+              <h2 class="loc-name">{{ loc.locationName }}</h2>
             </div>
 
-            <p class="latest-memory-snippet">
-              <span class="latest-label">Latest:</span>
-              "{{ loc.latestMemoryTitle }}"
-            </p>
+            @if (loc.latestMemoryDate) {
+              <div class="latest-meta">
+                <span class="latest-label">Last visited</span>
+                <span class="latest-date">{{ formatDate(loc.latestMemoryDate) }}</span>
+              </div>
+            }
 
             <div class="card-footer">
-              <span class="latest-date">{{ formatDate(loc.latestDate) }}</span>
-              <span class="explore-link">
-                <span>Explore all {{ loc.memoryCount }}</span>
+              <span class="timeline-explore-link">
+                <span>View on Timeline</span>
                 <mat-icon>arrow_forward</mat-icon>
               </span>
             </div>
