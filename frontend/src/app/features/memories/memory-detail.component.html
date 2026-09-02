@@ -1,0 +1,215 @@
+@if (isLoading()) {
+  <div class="loading-state">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span class="loading-text">Opening memory archive...</span>
+  </div>
+} @else {
+  @if (memory(); as m) {
+    <article class="memory-detail-article">
+
+      <!-- Breadcrumbs Navigation Header -->
+      <nav class="article-top-nav">
+        <a routerLink="/memories" class="back-link">
+          <mat-icon>arrow_back</mat-icon>
+          <span>All Memories</span>
+        </a>
+
+        <div class="journey-breadcrumbs">
+          <a [routerLink]="['/journeys', m.journeyId]" class="crumb-link">
+            <mat-icon class="crumb-icon">auto_stories</mat-icon>
+            <span>{{ m.journeyTitle || 'Journey' }}</span>
+          </a>
+          @if (m.sectionTitle) {
+            <span class="crumb-divider">/</span>
+            <span class="crumb-current">{{ m.sectionTitle }}</span>
+          }
+        </div>
+
+        <div class="top-actions">
+          @if (canEdit()) {
+            <button mat-stroked-button class="action-btn edit-btn" (click)="openEditDialog(m)">
+              <mat-icon>edit</mat-icon>
+              <span>Edit Story</span>
+            </button>
+          }
+          <label class="add-photos-btn action-btn">
+            <mat-icon>add_photo_alternate</mat-icon>
+            <span>Add Photos</span>
+            <input 
+              type="file" 
+              multiple 
+              accept="image/*,video/*" 
+              (change)="onFilesSelected($event)" 
+              [disabled]="isUploadingMedia()" 
+              hidden 
+            />
+          </label>
+        </div>
+      </nav>
+
+      <!-- Upload Progress Indicator -->
+      @if (isUploadingMedia()) {
+        <div class="upload-banner">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Uploading photos... {{ uploadProgress() }}%</span>
+        </div>
+      }
+
+      <!-- Immersive Full-Bleed / Wide Rounded Hero -->
+      @if (activeMedia(); as hero) {
+        <header class="hero-showcase" (click)="openLightbox(0)" title="Click to view fullscreen">
+          <div class="hero-media-wrapper">
+            @if (hero.mediaType === 'VIDEO') {
+              <video [src]="hero.mediaUrl" controls class="hero-media-element" autoplay [muted]="true"></video>
+            } @else {
+              <img [src]="hero.mediaUrl" [alt]="m.title" mvFallback class="hero-media-element" />
+            }
+            <div class="hero-gradient-overlay"></div>
+
+            <div class="hero-caption-overlay">
+              <span class="hero-date-badge">
+                <mat-icon>calendar_today</mat-icon>
+                {{ formatDate(m.memoryDate) }}
+              </span>
+              @if (m.locationName) {
+                <span class="hero-location-badge">
+                  <mat-icon>place</mat-icon>
+                  {{ m.locationName }}
+                </span>
+              }
+            </div>
+          </div>
+        </header>
+      }
+
+      <!-- Editorial Header Content -->
+      <div class="article-title-block">
+        <h1 class="mv-type-display memory-headline">{{ m.title }}</h1>
+        
+        <div class="author-attribution-bar">
+          <div class="author-profile">
+            <img 
+              [src]="m.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+              [alt]="m.createdBy.fullName" 
+              mvFallback 
+              class="author-avatar"
+            />
+            <div class="author-details">
+              <span class="author-name">{{ m.createdBy.fullName }}</span>
+              <span class="author-meta">Preserved on {{ formatDate(m.createdAt || m.memoryDate) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Reading Flow + Metadata Card (Side-by-side or stacked on mobile) -->
+      <div class="article-body-layout">
+
+        <!-- Center Editorial Story Reader -->
+        <main class="story-reader-pane">
+          <div class="story-prose mv-type-body">
+            {{ m.story }}
+          </div>
+
+          <!-- Media Gallery Grid Strip -->
+          @if (m.mediaList && m.mediaList.length > 0) {
+            <section class="gallery-strip-section">
+              <div class="gallery-strip-header">
+                <div class="gallery-title-group">
+                  <mat-icon class="gallery-icon">collections</mat-icon>
+                  <h3 class="gallery-strip-title">Photographs & Media ({{ m.mediaList.length }})</h3>
+                </div>
+                <span class="gallery-hint">Click any photo to view fullscreen</span>
+              </div>
+
+              <div class="gallery-grid">
+                @for (media of m.mediaList; track media.id; let idx = $index) {
+                  <div 
+                    class="gallery-thumbnail-card" 
+                    [class.active-thumb]="activeMedia()?.id === media.id"
+                    (click)="setActiveMedia(media); openLightbox(idx)">
+                    @if (media.mediaType === 'VIDEO') {
+                      <video [src]="media.mediaUrl" class="thumb-media"></video>
+                      <div class="play-overlay">
+                        <mat-icon>play_circle</mat-icon>
+                      </div>
+                    } @else {
+                      <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="media.fileName || m.title" mvFallback class="thumb-media" loading="lazy" />
+                    }
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </main>
+
+        <!-- Sidebar / Bottom Metadata Card -->
+        <aside class="metadata-sidebar">
+          
+          <!-- Key Memory Info -->
+          <div class="meta-card">
+            <h4 class="meta-card-title">Archive Details</h4>
+            
+            <dl class="meta-list">
+              <div class="meta-row">
+                <dt><mat-icon>calendar_today</mat-icon> Date</dt>
+                <dd>{{ formatDate(m.memoryDate) }}</dd>
+              </div>
+
+              @if (m.locationName) {
+                <div class="meta-row">
+                  <dt><mat-icon>place</mat-icon> Location</dt>
+                  <dd>{{ m.locationName }}</dd>
+                </div>
+              }
+
+              <div class="meta-row">
+                <dt><mat-icon>auto_stories</mat-icon> Journey</dt>
+                <dd>
+                  <a [routerLink]="['/journeys', m.journeyId]" class="journey-link">
+                    {{ m.journeyTitle || 'View Chapter' }}
+                  </a>
+                </dd>
+              </div>
+
+              <div class="meta-row">
+                <dt><mat-icon>perm_media</mat-icon> Total Media</dt>
+                <dd>{{ m.mediaList.length }} items</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Tagged Friends -->
+          @if (m.taggedUsers && m.taggedUsers.length > 0) {
+            <div class="meta-card">
+              <h4 class="meta-card-title">People In This Memory ({{ m.taggedUsers.length }})</h4>
+              <div class="tagged-friends-list">
+                @for (friend of m.taggedUsers; track friend.id) {
+                  <div class="tagged-friend-chip">
+                    <img 
+                      [src]="friend.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [alt]="friend.fullName" 
+                      mvFallback 
+                      class="friend-avatar"
+                    />
+                    <span class="friend-name">{{ friend.fullName }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </aside>
+
+      </div>
+
+    </article>
+  } @else {
+    <div class="empty-state">
+      <mat-icon>error_outline</mat-icon>
+      <h2>Memory Not Found</h2>
+      <p>This memory could not be located or may have been archived.</p>
+      <a mat-flat-button color="primary" routerLink="/memories">Return to Memories</a>
+    </div>
+  }
+}
