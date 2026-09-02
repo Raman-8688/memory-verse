@@ -1,0 +1,103 @@
+<div class="journeys-page-container">
+
+  <!-- Header -->
+  <header class="journeys-header-bar">
+    <div class="header-titles">
+      <span class="eyebrow-tag">CHAPTERS & MILESTONES</span>
+      <h1 class="mv-type-display page-title">Our Shared Journeys</h1>
+      <p class="page-subtitle">Organized chapters of our lives together — from college corridors to road trips and everything in between.</p>
+    </div>
+
+    <button mat-flat-button class="new-journey-btn" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      <span>New Journey</span>
+    </button>
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-journey-card skeleton-box"></div>
+      }
+    </div>
+  } @else if (journeys().length === 0) {
+    <!-- Empty State -->
+    <div class="empty-journeys-card">
+      <div class="empty-icon-circle">
+        <mat-icon>auto_stories</mat-icon>
+      </div>
+      <h3 class="mv-type-h2">No Journeys Recorded Yet</h3>
+      <p class="empty-desc">Begin your group archive by creating the first defining chapter of your journey together.</p>
+      <button mat-flat-button class="new-journey-btn" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        <span>Create First Journey</span>
+      </button>
+    </div>
+  } @else {
+    <!-- Bookshelf / Netflix-Style Grid of Journey Cover Cards -->
+    <main class="journeys-shelf-grid">
+      @for (journey of journeys(); track journey.id) {
+        <article class="journey-cover-card" [routerLink]="['/journeys', journey.id]">
+          
+          <!-- Cover Media Frame -->
+          <div class="card-cover-media">
+            <img 
+              [src]="journey.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80'" 
+              [alt]="journey.title" 
+              loading="lazy" 
+              mvFallback 
+              class="cover-img" 
+            />
+            <div class="cover-gradient"></div>
+
+            <!-- Top Floating Badges -->
+            <div class="top-badge-row">
+              <span class="date-range-badge">
+                <mat-icon>calendar_today</mat-icon>
+                {{ formatDateRange(journey.startDate, journey.endDate) }}
+              </span>
+              <span class="chapters-count-badge">
+                <mat-icon>bookmark_border</mat-icon>
+                {{ journey.sections.length }} {{ journey.sections.length === 1 ? 'Chapter' : 'Chapters' }}
+              </span>
+            </div>
+
+            <!-- Bottom Floating Memory Count -->
+            <div class="bottom-badge-row">
+              <span class="memory-count-pill">
+                <mat-icon>photo_library</mat-icon>
+                <span>Memory Chapter</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Content -->
+          <div class="card-narrative-body">
+            <h2 class="mv-type-h2 journey-headline">{{ journey.title }}</h2>
+            <p class="journey-excerpt">{{ journey.description || 'A defining chapter in our shared history and collective journey.' }}</p>
+
+            <div class="card-footer-bar">
+              <div class="creator-chip">
+                <img 
+                  [src]="journey.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [alt]="journey.createdBy.fullName || 'Member'" 
+                  mvFallback 
+                  class="creator-img" 
+                />
+                <span class="creator-name">{{ journey.createdBy.fullName || 'Member' }}</span>
+              </div>
+
+              <span class="explore-chapter-cta">
+                <span>Explore Timeline</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </span>
+            </div>
+          </div>
+
+        </article>
+      }
+    </main>
+  }
+
+</div>
