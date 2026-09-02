@@ -30,6 +30,6 @@
   }
   .layout-main-content {
     padding: var(--mv-space-16);
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px)); /* Safe space for mobile bottom nav */
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 20px)); /* Generous safe space for mobile bottom nav */
   }
 }
