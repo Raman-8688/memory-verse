@@ -1,0 +1,244 @@
+<div class="timeline-feed-page">
+
+  <!-- Header & Title Bar -->
+  <header class="feed-header-bar">
+    <div class="header-titles">
+      <span class="eyebrow-tag">CHRONOLOGICAL ARCHIVE</span>
+      <h1 class="mv-type-display feed-title">Memory Timeline</h1>
+      <p class="feed-subtitle">A chronological journey through our photographs, road trips, hostel days, and celebrations.</p>
+    </div>
+
+    <div class="header-actions">
+      <!-- View Mode Toggle (Editorial Feed vs Compact Grid) -->
+      <div class="view-mode-toggle" role="group" aria-label="View Mode">
+        <button 
+          type="button" 
+          class="toggle-btn" 
+          [class.active]="viewMode() === 'feed'" 
+          (click)="setViewMode('feed')" 
+          title="Editorial Feed View">
+          <mat-icon>view_agenda</mat-icon>
+          <span class="toggle-text">Feed</span>
+        </button>
+        <button 
+          type="button" 
+          class="toggle-btn" 
+          [class.active]="viewMode() === 'grid'" 
+          (click)="setViewMode('grid')" 
+          title="Compact Grid View">
+          <mat-icon>grid_view</mat-icon>
+          <span class="toggle-text">Grid</span>
+        </button>
+      </div>
+
+      <a mat-flat-button class="add-memory-btn" routerLink="/memories/new">
+        <mat-icon>add</mat-icon>
+        <span>Add Memory</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Filter Rail (Horizontal Scrollable Chips) -->
+  <section class="filters-rail-section">
+    <div class="search-input-wrap">
+      <mat-icon class="search-ico">search</mat-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (keyup.enter)="applyFilters()" 
+        placeholder="Search title, story, place..." 
+        class="search-input-field" 
+      />
+      @if (searchQuery) {
+        <button type="button" class="clear-search-btn" (click)="searchQuery = ''; applyFilters()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <!-- Filter Chips Track -->
+    <div class="filter-chips-track">
+      <!-- All Journeys Chip -->
+      <button 
+        type="button" 
+        class="filter-chip" 
+        [class.active]="!selectedJourneyId" 
+        (click)="selectJourney('')">
+        <span>All Journeys</span>
+      </button>
+
+      @for (j of journeys(); track j.id) {
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.active]="selectedJourneyId === j.id" 
+          (click)="selectJourney(j.id)">
+          <span>{{ j.title }}</span>
+        </button>
+      }
+
+      <div class="chip-divider"></div>
+
+      <!-- Media Type Filters -->
+      <button 
+        type="button" 
+        class="filter-chip" 
+        [class.active]="!selectedMediaType" 
+        (click)="selectMediaType('')">
+        <span>All Media</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="filter-chip" 
+        [class.active]="selectedMediaType === 'IMAGE'" 
+        (click)="selectMediaType('IMAGE')">
+        <mat-icon class="chip-icon">photo</mat-icon>
+        <span>Photos</span>
+      </button>
+
+      <button 
+        type="button" 
+        class="filter-chip" 
+        [class.active]="selectedMediaType === 'VIDEO'" 
+        (click)="selectMediaType('VIDEO')">
+        <mat-icon class="chip-icon">videocam</mat-icon>
+        <span>Videos</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Loading Skeletons -->
+  @if (isLoading()) {
+    <div class="skeleton-stream">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-month-group">
+          <div class="skeleton-header skeleton-box"></div>
+          <div class="skeleton-cards-row">
+            <div class="skeleton-card skeleton-box"></div>
+            <div class="skeleton-card skeleton-box"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (memories().length === 0) {
+    <!-- Empty State -->
+    <div class="empty-timeline-card">
+      <div class="empty-icon-bubble">
+        <mat-icon>history_edu</mat-icon>
+      </div>
+      <h3 class="mv-type-h2">No memories found</h3>
+      <p class="empty-desc">No moments match your current search and filters. Try clearing your filters or record a new memory.</p>
+      <div class="empty-actions">
+        <button mat-stroked-button (click)="resetFilters()">Clear Filters</button>
+        <a mat-flat-button class="add-memory-btn" routerLink="/memories/new">Record New Memory</a>
+      </div>
+    </div>
+  } @else {
+    <!-- Chronological Month Groups Stream -->
+    <div class="timeline-stream-container">
+      @for (group of groupedMemories(); track group.periodKey) {
+        <section class="timeline-period-group">
+          
+          <!-- Sticky Period Header (e.g. August 2026) -->
+          <div class="period-sticky-header">
+            <div class="period-badge">
+              <mat-icon class="period-clock-icon">event</mat-icon>
+              <h2 class="period-heading">{{ group.periodLabel }}</h2>
+            </div>
+            <span class="period-count">{{ group.memories.length }} {{ group.memories.length === 1 ? 'memory' : 'memories' }}</span>
+          </div>
+
+          <!-- 1. Editorial Feed View (Large Cards) -->
+          @if (viewMode() === 'feed') {
+            <div class="editorial-cards-stack">
+              @for (memory of group.memories; track memory.id) {
+                <article class="editorial-memory-card" [routerLink]="['/memories', memory.id]">
+                  
+                  <!-- Cover Media Frame -->
+                  @if (getCoverUrl(memory); as coverUrl) {
+                    <div class="card-cover-frame">
+                      <img [src]="coverUrl" [alt]="memory.title" mvFallback loading="lazy" class="card-cover-img" />
+                      <div class="cover-gradient"></div>
+                      
+                      <div class="cover-badges">
+                        <span class="date-tag">{{ formatDate(memory.memoryDate) }}</span>
+                        @if (memory.locationName) {
+                          <span class="loc-tag">
+                            <mat-icon>place</mat-icon>
+                            {{ memory.locationName }}
+                          </span>
+                        }
+                      </div>
+
+                      @if (memory.mediaList.length > 1) {
+                        <span class="photo-count-pill">
+                          <mat-icon>collections</mat-icon>
+                          {{ memory.mediaList.length }}
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  <!-- Story Text Area -->
+                  <div class="card-body">
+                    <span class="journey-context-tag">{{ memory.journeyTitle || 'Memory' }}</span>
+                    <h3 class="memory-card-title">{{ memory.title }}</h3>
+                    <p class="memory-story-prose">{{ memory.story }}</p>
+
+                    <div class="card-author-footer">
+                      <div class="author-cell">
+                        <img 
+                          [src]="memory.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                          [alt]="memory.createdBy.fullName" 
+                          mvFallback 
+                          class="author-mini-avatar"
+                        />
+                        <span class="author-name-text">{{ memory.createdBy.fullName }}</span>
+                      </div>
+                      <span class="read-full-cta">
+                        <span>Read story</span>
+                        <mat-icon>arrow_forward</mat-icon>
+                      </span>
+                    </div>
+                  </div>
+
+                </article>
+              }
+            </div>
+          }
+
+          <!-- 2. Compact Grid View (Photo Gallery Style) -->
+          @if (viewMode() === 'grid') {
+            <div class="compact-gallery-grid">
+              @for (memory of group.memories; track memory.id) {
+                <div class="grid-tile-card" [routerLink]="['/memories', memory.id]">
+                  <img 
+                    [src]="getCoverUrl(memory)" 
+                    [alt]="memory.title" 
+                    mvFallback 
+                    loading="lazy" 
+                    class="grid-tile-img" 
+                  />
+                  <div class="tile-hover-overlay">
+                    <span class="tile-date">{{ formatDate(memory.memoryDate) }}</span>
+                    <h4 class="tile-title">{{ memory.title }}</h4>
+                    <span class="tile-journey">{{ memory.journeyTitle }}</span>
+                  </div>
+                  @if (memory.mediaList.length > 1) {
+                    <span class="grid-count-badge">
+                      <mat-icon>photo_library</mat-icon>
+                      {{ memory.mediaList.length }}
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+        </section>
+      }
+    </div>
+  }
+
+</div>
