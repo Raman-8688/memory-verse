@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -87,6 +87,12 @@ import { NotificationStateService } from '@core/services/notification-state.serv
                 </div>
 
                 <div class="meta-spacer"></div>
+
+                <!-- Play Storybook Presentation Mode -->
+                <button mat-flat-button class="storybook-hero-btn" (click)="openStorybook(j)" title="Play full-screen storybook">
+                  <mat-icon>auto_stories</mat-icon>
+                  <span>Play Storybook</span>
+                </button>
 
                 <!-- View Full Photo Button -->
                 <button mat-stroked-button class="view-cover-btn" (click)="viewCoverFullscreen(j)">
@@ -435,6 +441,26 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 
     .meta-spacer {
       flex: 1;
+    }
+
+    .storybook-hero-btn {
+      background: linear-gradient(135deg, var(--mv-primary), #d97706) !important;
+      color: #ffffff !important;
+      border-radius: var(--radius-full) !important;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+      padding: 0 16px !important;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+      transition: all 0.2s ease;
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(217, 119, 6, 0.45);
+      }
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
     }
 
     .view-cover-btn {
@@ -919,6 +945,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 })
 export class JourneyDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly journeyService = inject(JourneyService);
   private readonly mediaService = inject(MediaService);
   private readonly fb = inject(FormBuilder);
@@ -926,6 +953,10 @@ export class JourneyDetailComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly notificationState = inject(NotificationStateService);
   readonly authService = inject(AuthService);
+
+  openStorybook(j: Journey): void {
+    this.router.navigate(['/journeys', j.id, 'storybook']);
+  }
 
   readonly journey = signal<Journey | null>(null);
   readonly isLoading = signal<boolean>(true);

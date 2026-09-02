@@ -17,6 +17,7 @@ import { Memory, MemoryFilterParams } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { PagedResponse } from '@core/models/api-response.model';
 import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
+import { LightboxService } from '@core/services/lightbox.service';
 
 export interface TimelineMonthGroup {
   monthKey: string;
@@ -57,6 +58,7 @@ export class TimelineComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly lightboxService = inject(LightboxService);
 
   // State Signals
   readonly memories = signal<Memory[]>([]);
@@ -374,6 +376,13 @@ export class TimelineComponent implements OnInit, OnDestroy {
       width: '460px',
       panelClass: 'mv-dialog-panel'
     });
+  }
+
+  openLightbox(memory: Memory, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.lightboxService.openForMemory(memory);
   }
 
   getCoverUrl(memory?: Memory): string {

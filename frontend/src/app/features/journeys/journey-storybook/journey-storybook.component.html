@@ -1,0 +1,257 @@
+<div class="storybook-viewport">
+
+  <!-- Top Ambient Progress HUD -->
+  <header class="storybook-top-hud">
+    <div class="hud-left">
+      <button mat-icon-button class="hud-btn back-btn" (click)="exitStorybook()" title="Exit Storybook (Esc)">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      @if (journey(); as j) {
+        <span class="hud-journey-title">{{ j.title }}</span>
+      }
+    </div>
+
+    <!-- Center Progress Indicator -->
+    <div class="hud-center">
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+      </div>
+      <span class="page-indicator">
+        @if (currentPage() === 0) {
+          Prologue
+        } @else if (currentPage() > memories().length) {
+          Epilogue
+        } @else {
+          Memory {{ currentPage() }} of {{ memories().length }}
+        }
+      </span>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="hud-right">
+      <button 
+        mat-icon-button 
+        class="hud-btn fullscreen-btn" 
+        (click)="toggleBrowserFullscreen()" 
+        [title]="isFullscreen() ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'">
+        <mat-icon>{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+
+      <button mat-icon-button class="hud-btn close-btn" (click)="exitStorybook()" title="Exit (Esc)">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="storybook-loading">
+      <mat-spinner diameter="44"></mat-spinner>
+      <span class="loading-label">Gathering pages of your journey...</span>
+    </div>
+  } @else if (hasError()) {
+    <!-- Error State -->
+    <div class="storybook-state-card">
+      <mat-icon class="state-icon">error_outline</mat-icon>
+      <h2>Unable to open storybook</h2>
+      <p>Could not retrieve journey memories from the archive.</p>
+      <button mat-flat-button class="retry-btn" (click)="loadStorybook()">Try Again</button>
+    </div>
+  } @else {
+
+    <!-- Main Stage -->
+    <main class="storybook-stage">
+
+      <!-- PAGE 0: COVER / PROLOGUE -->
+      @if (currentPage() === 0 && journey(); as j) {
+        <section class="prologue-page animate-fade-in">
+          <div class="prologue-cover-pane">
+            <img [src]="getHeroImage(j)" [alt]="j.title" mvFallback class="prologue-cover-img" />
+            <div class="prologue-gradient"></div>
+          </div>
+
+          <div class="prologue-content-pane">
+            <div class="prologue-meta-top">
+              <span class="eyebrow-tag">MEMORYVERSE STORYBOOK</span>
+              <span class="date-range-pill">
+                <mat-icon>event</mat-icon>
+                <span>{{ formatDateRange(j.startDate, j.endDate) }}</span>
+              </span>
+            </div>
+
+            <h1 class="prologue-title">{{ j.title }}</h1>
+            <p class="prologue-desc">{{ j.description || 'A curated photographic journey through shared moments and unforgettable memories.' }}</p>
+
+            <div class="prologue-badges">
+              <div class="info-badge">
+                <mat-icon>bookmark_border</mat-icon>
+                <span>{{ j.sections.length }} Chapters</span>
+              </div>
+              <div class="info-badge">
+                <mat-icon>photo_library</mat-icon>
+                <span>{{ memories().length }} Memories</span>
+              </div>
+              @if (j.createdBy; as creator) {
+                <div class="info-badge creator-badge">
+                  <img [src]="creator.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="creator.fullName" mvFallback class="creator-mini-avatar" />
+                  <span>Curated by {{ creator.fullName }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="prologue-actions">
+              <button mat-flat-button class="begin-btn" (click)="nextPage()">
+                <span>Begin Storybook</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+              <span class="keyboard-tip">Tip: Use Arrow Keys or Space to flip pages</span>
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- PAGES 1..N: SPLIT-SCREEN STORY VIEW -->
+      @if (currentPage() >= 1 && currentPage() <= memories().length && currentMemory(); as mem) {
+        <section class="story-page animate-fade-in">
+
+          <!-- Left Column: High-Res Visual Stage -->
+          <div class="story-visual-column">
+            <div class="visual-frame" (click)="openLightboxForCurrent()" title="Click to view in Lightbox">
+              @if (currentMedia(); as media) {
+                @if (media.mediaType === 'VIDEO') {
+                  <video [src]="media.mediaUrl" controls autoplay class="story-media video-player"></video>
+                } @else {
+                  <img [src]="media.mediaUrl" [alt]="mem.title" mvFallback class="story-media" />
+                }
+              } @else {
+                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80" [alt]="mem.title" class="story-media" />
+              }
+
+              <div class="visual-hover-pill">
+                <mat-icon>fullscreen</mat-icon>
+                <span>View Fullscreen</span>
+              </div>
+            </div>
+
+            <!-- Multi-Photo Thumbnail Strip -->
+            @if (mem.mediaList && mem.mediaList.length > 1) {
+              <div class="media-thumb-strip">
+                @for (m of mem.mediaList; track m.id || $index; let idx = $index) {
+                  <button 
+                    type="button" 
+                    class="thumb-btn" 
+                    [class.active]="activeMediaIndex() === idx" 
+                    (click)="selectMedia(idx)">
+                    <img [src]="m.thumbnailUrl || m.mediaUrl" [alt]="'Photo ' + (idx + 1)" mvFallback class="thumb-img" />
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Right Column: Editorial Narrative -->
+          <div class="story-narrative-column">
+            <div class="narrative-meta-top">
+              @if (mem.sectionTitle) {
+                <span class="chapter-tag">
+                  <mat-icon>auto_stories</mat-icon>
+                  <span>{{ mem.sectionTitle }}</span>
+                </span>
+              }
+
+              <span class="memory-date-badge">{{ formatDate(mem.memoryDate) }}</span>
+            </div>
+
+            <h2 class="story-headline">{{ mem.title }}</h2>
+
+            @if (mem.locationName) {
+              <div class="story-location-badge">
+                <mat-icon>place</mat-icon>
+                <span>{{ mem.locationName }}</span>
+              </div>
+            }
+
+            <blockquote class="story-quote-block">
+              <p class="story-body">"{{ mem.story }}"</p>
+            </blockquote>
+
+            <!-- Companion Footnote -->
+            <div class="story-footnote">
+              @if (mem.createdBy; as author) {
+                <div class="author-block">
+                  <img [src]="author.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="author.fullName" mvFallback class="author-avatar" />
+                  <span class="author-text">Captured by <strong>{{ author.fullName }}</strong></span>
+                </div>
+              }
+
+              @if (mem.taggedUsers && mem.taggedUsers.length > 0) {
+                <div class="tagged-friends-block">
+                  <span class="with-label">With:</span>
+                  <div class="friends-avatars">
+                    @for (friend of mem.taggedUsers; track friend.id) {
+                      <img [src]="friend.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="friend.fullName" [title]="friend.fullName" mvFallback class="friend-mini-avatar" />
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+          </div>
+
+        </section>
+      }
+
+      <!-- PAGE N+1: EPILOGUE -->
+      @if (currentPage() > memories().length && journey(); as j) {
+        <section class="epilogue-page animate-fade-in">
+          <div class="epilogue-card">
+            <mat-icon class="epilogue-icon">check_circle_outline</mat-icon>
+            <span class="eyebrow-tag">CHAPTER CONCLUDED</span>
+            <h2 class="epilogue-title">{{ j.title }}</h2>
+            <p class="epilogue-desc">You have relived all {{ memories().length }} moments of this journey. Every shared smile, late-night story, and adventure is permanently etched in the archive.</p>
+
+            <div class="epilogue-actions">
+              <button mat-flat-button class="replay-btn" (click)="goToPage(0)">
+                <mat-icon>replay</mat-icon>
+                <span>Relive from Beginning</span>
+              </button>
+              <button mat-stroked-button class="back-journey-btn" (click)="exitStorybook()">
+                <span>Back to Journey Details</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      }
+
+    </main>
+
+    <!-- Floating Bottom Navigation Controls -->
+    <nav class="storybook-bottom-nav">
+      <button 
+        mat-icon-button 
+        class="nav-circle-btn prev-btn" 
+        (click)="prevPage()" 
+        [disabled]="currentPage() === 0" 
+        title="Previous page (←)">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <div class="page-step-indicator">
+        <span class="step-curr">{{ currentPage() + 1 }}</span>
+        <span class="step-divider">/</span>
+        <span class="step-total">{{ totalPages() }}</span>
+      </div>
+
+      <button 
+        mat-icon-button 
+        class="nav-circle-btn next-btn" 
+        (click)="nextPage()" 
+        [disabled]="currentPage() >= totalPages() - 1" 
+        title="Next page (→)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </nav>
+
+  }
+
+</div>

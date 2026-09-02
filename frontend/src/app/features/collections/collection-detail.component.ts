@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { CollectionService } from '@core/services/collection.service';
 import { MemoryService } from '@core/services/memory.service';
+import { LightboxService } from '@core/services/lightbox.service';
 import { Collection } from '@core/models/collection.model';
 import { Memory } from '@core/models/memory.model';
 import { PagedResponse } from '@core/models/api-response.model';
@@ -34,6 +35,7 @@ export class CollectionDetailComponent implements OnInit {
   private readonly collectionService = inject(CollectionService);
   private readonly memoryService = inject(MemoryService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly lightboxService = inject(LightboxService);
 
   collectionId!: string;
   readonly collection = signal<Collection | null>(null);
@@ -137,6 +139,13 @@ export class CollectionDetailComponent implements OnInit {
         this.snackBar.open('Unable to remove moment', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  openLightbox(memory: Memory, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.lightboxService.openForMemory(memory);
   }
 
   formatDate(dateStr?: string): string {

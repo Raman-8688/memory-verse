@@ -13,6 +13,7 @@ import { MemoryService } from '@core/services/memory.service';
 import { Memory, MemoryFilterParams } from '@core/models/memory.model';
 import { PagedResponse } from '@core/models/api-response.model';
 import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
+import { LightboxService } from '@core/services/lightbox.service';
 
 @Component({
   selector: 'mv-favorites',
@@ -36,6 +37,7 @@ export class FavoritesComponent implements OnInit {
   private readonly memoryService = inject(MemoryService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly lightboxService = inject(LightboxService);
 
   readonly memories = signal<Memory[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -148,6 +150,13 @@ export class FavoritesComponent implements OnInit {
       width: '460px',
       panelClass: 'mv-dialog-panel'
     });
+  }
+
+  openLightbox(memory: Memory, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.lightboxService.openForMemory(memory);
   }
 
   formatDate(dateStr?: string): string {

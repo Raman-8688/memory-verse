@@ -226,7 +226,7 @@
                     <!-- Card Body -->
                     <div class="card-surface">
                       <!-- Photographic Cover -->
-                      <div class="card-media-pane">
+                      <div class="card-media-pane" (click)="openLightbox(mem, $event)" title="Click to view fullscreen">
                         <img 
                           [src]="getCoverUrl(mem)" 
                           [alt]="mem.title" 
@@ -243,8 +243,17 @@
                           </span>
                         }
 
-                        <!-- Quick actions: Heart + Add to Collection -->
+                        <!-- Quick actions: Heart + Add to Collection + Fullscreen -->
                         <div class="card-quick-actions">
+                          <button 
+                            type="button" 
+                            class="icon-action-btn expand-btn"
+                            (click)="openLightbox(mem, $event)"
+                            matTooltip="View fullscreen (Lightbox)"
+                            aria-label="View fullscreen">
+                            <mat-icon>fullscreen</mat-icon>
+                          </button>
+
                           <button 
                             type="button" 
                             class="icon-action-btn heart-btn"

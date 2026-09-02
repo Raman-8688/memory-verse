@@ -30,6 +30,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/journeys/journey-detail.component').then(m => m.JourneyDetailComponent)
       },
       {
+        path: 'journeys/:id/storybook',
+        loadComponent: () => import('./features/journeys/journey-storybook/journey-storybook.component').then(m => m.JourneyStorybookComponent)
+      },
+      {
         path: 'memories',
         loadComponent: () => import('./features/memories/memory-feed.component').then(m => m.MemoryFeedComponent)
       },
