@@ -1,38 +1,41 @@
-<div class="assistant-page">
-  <!-- Editorial Header -->
-  <header class="assistant-header-wrapper">
-    <div class="centered-container header-inner">
-      <div class="header-info">
-        <span class="sub-label">AI MEMORY INTELLIGENCE</span>
-        <h1 class="editorial-title">Memory Assistant</h1>
-        <p class="header-desc">
-          Explore your memories naturally. Ask about road trips, hostel stories, farewell moments, or batchmates.
-        </p>
+<div class="assistant-page-container">
+
+  <!-- Header Masthead -->
+  <header class="companion-header">
+    <div class="header-inner">
+      <div class="header-titles">
+        <div class="companion-tag">
+          <mat-icon class="ai-sparkle">auto_awesome</mat-icon>
+          <span>Memory Companion</span>
+        </div>
+        <h1 class="companion-title">Ask My Memories</h1>
+        <p class="companion-subtitle">A grounded conversation with your collective history and shared moments.</p>
       </div>
 
       <div class="header-actions">
-        <!-- Model Selector Dropdown -->
-        <div class="model-picker-container" (click)="$event.stopPropagation()">
-          <button type="button" 
-                  class="model-picker-btn" 
-                  (click)="toggleModelDropdown()" 
-                  [class.active]="showModelDropdown()"
-                  title="Switch AI Model">
-            <span class="model-bot-icon">🤖</span>
-            <span class="model-label-text">{{ getSelectedModelName() }}</span>
-            <mat-icon class="chevron-icon">{{ showModelDropdown() ? 'expand_less' : 'expand_more' }}</mat-icon>
-          </button>
+        <!-- Model Selection Badge -->
+        <div class="model-badge" (click)="$event.stopPropagation(); toggleModelDropdown()">
+          <span class="model-dot"></span>
+          <span class="model-name">{{ getSelectedModelName() }}</span>
+          <mat-icon class="chevron-icon">expand_more</mat-icon>
 
           @if (showModelDropdown()) {
-            <div class="model-dropdown-menu">
-              @for (model of aiService.availableModels(); track model.id) {
-                <button type="button" 
-                        class="model-dropdown-item" 
-                        [class.selected]="aiService.selectedModel() === model.id"
-                        (click)="onSelectModel(model.id)">
-                  <span class="item-name">{{ model.name }}</span>
-                  @if (model.badge) {
-                    <span class="item-badge">{{ model.badge }}</span>
+            <div class="model-dropdown-card" (click)="$event.stopPropagation()">
+              <div class="dropdown-label">SELECT MEMORY INTELLIGENCE</div>
+              @for (m of aiService.availableModels(); track m.id) {
+                <button 
+                  type="button" 
+                  class="model-option-btn" 
+                  [class.active]="m.id === aiService.selectedModel()" 
+                  (click)="onSelectModel(m.id)">
+                  <div class="option-info">
+                    <span class="opt-name">{{ m.name }}</span>
+                    @if (m.badge) {
+                      <span class="opt-badge">{{ m.badge }}</span>
+                    }
+                  </div>
+                  @if (m.id === aiService.selectedModel()) {
+                    <mat-icon class="check-icon">check</mat-icon>
                   }
                 </button>
               }
@@ -40,189 +43,195 @@
           }
         </div>
 
-        <button mat-stroked-button class="reset-chat-btn" (click)="resetConversation()" title="Start a fresh conversation">
-          <mat-icon>restart_alt</mat-icon>
-          <span>New Chat</span>
+        <button mat-icon-button class="clear-convo-btn" (click)="resetConversation()" title="Reset Conversation">
+          <mat-icon>refresh</mat-icon>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Scrollable Message Feed -->
+  <!-- Centered Editorial Chat Feed -->
   <main class="chat-feed-wrapper" #chatFeed>
-    <div class="centered-container chat-feed-inner">
+    <div class="chat-feed-centered">
+
       @for (msg of aiService.messages(); track msg.id) {
-        @if (msg.role === 'user') {
-          <!-- User Message Bubble (aligned to the right with warm amber theme) -->
-          <div class="message-row user-row">
-            <div class="user-bubble">
-              <p class="message-text">{{ msg.content }}</p>
-              <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
-            </div>
-          </div>
-        } @else {
-          <!-- Assistant Message Row (aligned to the left with clean card style) -->
-          <div class="message-row assistant-row">
-            <div class="assistant-avatar">
+        <article class="chat-message-row" [class.user-row]="msg.role === 'user'" [class.assistant-row]="msg.role === 'assistant'">
+          
+          <!-- Avatar Icon -->
+          <div class="message-avatar">
+            @if (msg.role === 'user') {
+              <mat-icon>person</mat-icon>
+            } @else {
               <mat-icon>auto_awesome</mat-icon>
-            </div>
-
-            <div class="assistant-content-wrapper">
-              <article class="assistant-bubble">
-                <!-- Text Answer -->
-                <div class="assistant-text">{{ msg.content }}</div>
-
-                <!-- Structured Related Memories Cards -->
-                @if (msg.relatedMemories && msg.relatedMemories.length > 0) {
-                  <div class="rich-block memories-block">
-                    <div class="block-title">
-                      <mat-icon>auto_stories</mat-icon>
-                      <span>Related Memories ({{ msg.relatedMemories.length }})</span>
-                    </div>
-
-                    <div class="memories-card-list">
-                      @for (mem of msg.relatedMemories; track mem.id) {
-                        <div class="memory-card-horizontal" (click)="goToMemory(mem.id)">
-                          <div class="memory-card-thumb">
-                            @if (mem.coverImageUrl) {
-                              <img [src]="mem.coverImageUrl" [alt]="mem.title" class="thumb-img" loading="lazy" />
-                            } @else {
-                              <div class="thumb-placeholder">
-                                <mat-icon>photo_library</mat-icon>
-                              </div>
-                            }
-                          </div>
-
-                          <div class="memory-card-info">
-                            <div class="card-top-meta">
-                              <span class="memory-date">{{ formatDate(mem.memoryDate) }}</span>
-                              @if (mem.journeyTitle) {
-                                <span class="journey-badge">{{ mem.journeyTitle }}</span>
-                              }
-                            </div>
-                            <h4 class="memory-card-title">{{ mem.title }}</h4>
-                            @if (mem.story) {
-                              <p class="memory-excerpt">{{ mem.story }}</p>
-                            }
-                            <div class="memory-card-meta">
-                              <span class="media-count-tag" *ngIf="mem.mediaCount > 0">
-                                <mat-icon>collections</mat-icon>
-                                <span>{{ mem.mediaCount }} items</span>
-                              </span>
-                            </div>
-                          </div>
-
-                          <button mat-icon-button class="card-arrow-btn" (click)="$event.stopPropagation(); goToMemory(mem.id)">
-                            <mat-icon>arrow_forward</mat-icon>
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-
-                <!-- Structured Related Media Grid -->
-                @if (msg.relatedMedia && msg.relatedMedia.length > 0) {
-                  <div class="rich-block media-block">
-                    <div class="block-title">
-                      <mat-icon>collections</mat-icon>
-                      <span>Preserved Photographs & Videos ({{ msg.relatedMedia.length }})</span>
-                    </div>
-
-                    <div class="media-grid">
-                      @for (media of msg.relatedMedia; track media.id; let i = $index) {
-                        <div class="media-tile" (click)="openLightbox(msg.relatedMedia, i)">
-                          @if (media.mediaType === 'VIDEO') {
-                            <video [src]="media.mediaUrl" class="tile-content" muted></video>
-                            <div class="video-indicator">
-                              <mat-icon>play_circle_filled</mat-icon>
-                              <span>Video</span>
-                            </div>
-                          } @else {
-                            <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="media.fileName || 'Memory photo'" class="tile-content" loading="lazy" />
-                          }
-                          <div class="tile-hover-overlay">
-                            <mat-icon>fullscreen</mat-icon>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-              </article>
-
-              <span class="message-time assistant-time">{{ formatTime(msg.timestamp) }}</span>
-            </div>
+            }
           </div>
-        }
+
+          <!-- Bubble Content -->
+          <div class="message-bubble">
+            <div class="bubble-header">
+              <span class="sender-name">{{ msg.role === 'user' ? 'You' : 'Memory Companion' }}</span>
+              <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+            </div>
+
+            <div class="bubble-text mv-type-body">
+              {{ msg.content }}
+            </div>
+
+            <!-- Zero-Hallucination Friendly State if empty result -->
+            @if (msg.role === 'assistant' && msg.content.includes('No memories found')) {
+              <div class="grounded-fallback-card">
+                <mat-icon class="fallback-icon">history_edu</mat-icon>
+                <div class="fallback-text">
+                  <strong>Strictly Grounded in Your Archive</strong>
+                  <p>I only recount verified memories from your albums. Try asking with different keywords, locations, or year names.</p>
+                </div>
+              </div>
+            }
+
+            <!-- Rich Memory Citation Cards -->
+            @if (msg.relatedMemories && msg.relatedMemories.length > 0) {
+              <div class="citations-container">
+                <div class="citations-heading">
+                  <mat-icon>collections_bookmark</mat-icon>
+                  <span>Referenced Memories ({{ msg.relatedMemories.length }})</span>
+                </div>
+
+                <div class="citations-grid">
+                  @for (mem of msg.relatedMemories; track mem.id) {
+                    <div class="citation-card" (click)="goToMemory(mem.id)">
+                      <div class="citation-cover-wrap">
+                        <img 
+                          [src]="mem.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=400&q=80'" 
+                          [alt]="mem.title" 
+                          class="citation-cover-img"
+                        />
+                        <span class="citation-date">{{ formatDate(mem.memoryDate) }}</span>
+                      </div>
+
+                      <div class="citation-info">
+                        <h4 class="citation-title">{{ mem.title }}</h4>
+                        <p class="citation-excerpt">{{ mem.story }}</p>
+                        <div class="citation-footer">
+                          @if (mem.locationName) {
+                            <span class="citation-location">
+                              <mat-icon>place</mat-icon>
+                              {{ mem.locationName }}
+                            </span>
+                          }
+                          <span class="view-story-cta">
+                            <span>View Story</span>
+                            <mat-icon>arrow_forward</mat-icon>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Related Media Grid -->
+            @if (msg.relatedMedia && msg.relatedMedia.length > 0) {
+              <div class="media-citations-wrapper">
+                <div class="citations-heading">
+                  <mat-icon>photo_library</mat-icon>
+                  <span>Discovered Media ({{ msg.relatedMedia.length }})</span>
+                </div>
+
+                <div class="media-grid">
+                  @for (media of msg.relatedMedia; track media.id; let idx = $index) {
+                    <div class="media-thumbnail-card" (click)="openLightbox(msg.relatedMedia, idx)">
+                      <img 
+                        [src]="media.thumbnailUrl || media.mediaUrl" 
+                        [alt]="media.fileName || 'Memory photo'" 
+                        class="media-thumb-img" 
+                        loading="lazy"
+                      />
+                      @if (media.mediaType === 'VIDEO') {
+                        <div class="video-overlay">
+                          <mat-icon>play_arrow</mat-icon>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+          </div>
+        </article>
       }
 
-      <!-- Loading / Typing Shimmer State -->
+      <!-- Typing Indicator -->
       @if (aiService.isLoading()) {
-        <div class="message-row assistant-row loading-row">
-          <div class="assistant-avatar pulse">
+        <div class="chat-message-row assistant-row">
+          <div class="message-avatar">
             <mat-icon>auto_awesome</mat-icon>
           </div>
-          <div class="assistant-content-wrapper">
-            <div class="assistant-bubble loading-bubble">
-              <div class="typing-indicator">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </div>
-              <span class="loading-label">Searching journey records & synthesizing memories...</span>
+          <div class="message-bubble typing-bubble">
+            <div class="typing-dots">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
             </div>
+            <span class="typing-label">Consulting verified memory records...</span>
           </div>
         </div>
       }
+
     </div>
   </main>
 
-  <!-- Sticky Bottom Interaction Console -->
-  <footer class="interaction-console">
-    <div class="centered-container console-inner">
-      <!-- Contextual Suggested Questions Chips -->
+  <!-- Sticky Frosted Input Area -->
+  <footer class="frosted-input-bar">
+    <div class="input-container-centered">
+
+      <!-- Suggested Queries Chips Bar -->
       @if (aiService.currentSuggestions() && aiService.currentSuggestions().length > 0) {
-        <div class="suggestions-rail">
-          <span class="suggestions-hint">SUGGESTED:</span>
-          <div class="chips-scroll-area">
-            @for (question of aiService.currentSuggestions(); track question) {
-              <button type="button" class="suggestion-chip" (click)="sendPresetQuestion(question)" [disabled]="aiService.isLoading()">
-                <mat-icon class="chip-icon">sparkles</mat-icon>
-                <span>{{ question }}</span>
-              </button>
-            }
-          </div>
+        <div class="suggested-queries-track">
+          <span class="prompt-hint">Suggestions:</span>
+          @for (query of aiService.currentSuggestions(); track query) {
+            <button 
+              type="button" 
+              class="query-chip" 
+              (click)="sendPresetQuestion(query)"
+              [disabled]="aiService.isLoading()">
+              <mat-icon class="chip-sparkle">sparkles</mat-icon>
+              <span>{{ query }}</span>
+            </button>
+          }
         </div>
       }
 
-      <!-- Rounded Input Bar Form -->
-      <form class="input-bar" (ngSubmit)="submitMessage()">
-        <input
-          #messageInput
-          type="text"
-          [(ngModel)]="userInput"
-          name="userInput"
-          placeholder="Ask about memories, road trips, fests, or friends (e.g. 'Show our farewell in 2024')..."
-          [disabled]="aiService.isLoading()"
-          class="chat-input"
-          autocomplete="off"
-        />
-
-        <button
-          mat-mini-fab
-          type="submit"
-          [disabled]="!userInput.trim() || aiService.isLoading()"
-          class="send-action-btn"
-          aria-label="Send message"
-        >
-          @if (aiService.isLoading()) {
-            <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
-          } @else {
+      <!-- Main Input Box -->
+      <form (submit)="$event.preventDefault(); submitMessage()" class="input-form">
+        <div class="input-pill-wrapper">
+          <mat-icon class="input-search-icon">search</mat-icon>
+          <input 
+            #messageInput
+            type="text" 
+            [(ngModel)]="userInput" 
+            name="userInput"
+            placeholder="Ask anything about your memories... e.g. 'Show photos from Goa' or 'Farewell night'" 
+            class="mv-type-body chat-input-field" 
+            [disabled]="aiService.isLoading()"
+            autocomplete="off"
+          />
+          <button 
+            type="submit" 
+            mat-flat-button 
+            class="send-message-btn" 
+            [disabled]="!userInput.trim() || aiService.isLoading()">
             <mat-icon>arrow_upward</mat-icon>
-          }
-        </button>
+          </button>
+        </div>
       </form>
+
+      <div class="companion-grounding-note">
+        <span>Grounded strictly in your collective memory archive. No external hallucinations.</span>
+      </div>
+
     </div>
   </footer>
+
 </div>
