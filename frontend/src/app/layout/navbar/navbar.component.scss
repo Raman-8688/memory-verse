@@ -11,6 +11,32 @@
   z-index: 40;
 }
 
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--mv-space-8);
+}
+
+.sidebar-toggle-btn {
+  color: var(--mv-text-secondary);
+  border-radius: var(--mv-radius-sm) !important;
+  width: 38px !important;
+  height: 38px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--mv-transition-fast);
+
+  &:hover {
+    color: var(--mv-primary);
+    background-color: var(--mv-bg-subtle);
+  }
+
+  @media (max-width: 1024px) {
+    display: none;
+  }
+}
+
 .brand-link {
   text-decoration: none;
   display: flex;
