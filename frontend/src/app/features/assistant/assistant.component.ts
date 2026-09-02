@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild, HostListener, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AiAssistantService } from '../../core/services/ai-assistant.service';
-import { RelatedMedia, AiModelInfo } from '../../core/models/ai.model';
+import { RelatedMedia } from '../../core/models/ai.model';
 import { MediaViewerModalComponent, MediaViewerData } from '../../shared/components/media-viewer-modal.component';
 import { GalleryItem } from '../../core/models/gallery.model';
 
@@ -34,6 +34,7 @@ import { GalleryItem } from '../../core/models/gallery.model';
 export class AssistantComponent implements OnInit {
   readonly aiService = inject(AiAssistantService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
 
   @ViewChild('chatFeed') private chatFeedRef!: ElementRef<HTMLElement>;
@@ -42,7 +43,7 @@ export class AssistantComponent implements OnInit {
   userInput: string = '';
   readonly showModelDropdown = signal<boolean>(false);
 
-  @HostListener('document:click', ['$event'])
+  @HostListener('document:click')
   onDocumentClick(): void {
     this.showModelDropdown.set(false);
   }
@@ -61,7 +62,6 @@ export class AssistantComponent implements OnInit {
   }
 
   constructor() {
-    // Automatically scroll to bottom whenever messages or loading state updates
     effect(() => {
       this.aiService.messages();
       this.aiService.isLoading();
@@ -71,6 +71,12 @@ export class AssistantComponent implements OnInit {
 
   ngOnInit(): void {
     this.aiService.loadInitialSuggestions();
+
+    // Check if query was forwarded from the dashboard search bar
+    const query = this.route.snapshot.queryParamMap.get('q');
+    if (query?.trim()) {
+      this.aiService.sendMessage(query.trim());
+    }
   }
 
   submitMessage(): void {
