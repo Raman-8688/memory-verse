@@ -41,6 +41,14 @@ export class DashboardComponent implements OnInit {
 
   searchQuery: string = '';
 
+  readonly searchSuggestions = [
+    { label: 'College Memories', query: 'Show our college memories' },
+    { label: 'With Friends', query: 'Moments with my friends' },
+    { label: 'Goa & Travel', query: 'Show photos from Goa and trips' },
+    { label: 'Year 2024', query: 'What happened in 2024?' },
+    { label: 'Celebrations', query: 'Celebrations and reunions' }
+  ];
+
   get timeOfDayGreeting(): string {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -85,6 +93,11 @@ export class DashboardComponent implements OnInit {
     } else {
       this.router.navigate(['/assistant']);
     }
+  }
+
+  selectSuggestion(query: string): void {
+    this.searchQuery = query;
+    this.submitAiSearch();
   }
 
   scrollRecent(amount: number): void {

@@ -1,7 +1,7 @@
 <div class="layout-container">
-  <mv-navbar></mv-navbar>
+  <mv-navbar class="layout-navbar"></mv-navbar>
   <div class="layout-body">
-    <div class="desktop-sidebar-wrapper">
+    <div class="desktop-sidebar-wrapper" [class.collapsed]="sidebarService.isCollapsed()">
       <mv-sidebar></mv-sidebar>
     </div>
     <main class="layout-main-content route-fade-in">

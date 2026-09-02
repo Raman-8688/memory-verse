@@ -1,14 +1,39 @@
 .sidebar {
-  width: 250px;
+  width: 100%;
   height: 100%;
   min-height: 100%;
   background-color: var(--mv-bg-surface);
-  border-right: 1px solid var(--mv-border);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: var(--mv-space-16) var(--mv-space-12);
   box-sizing: border-box;
+  transition: padding var(--mv-transition-base);
+
+  &.mini-variant {
+    padding: var(--mv-space-16) var(--mv-space-8);
+
+    .nav-link {
+      justify-content: center;
+      padding: 10px 0;
+      gap: 0;
+
+      .nav-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    .nav-divider {
+      margin: var(--mv-space-8) var(--mv-space-4);
+    }
+
+    .sidebar-collapse-toggle-btn {
+      justify-content: center;
+      padding: 8px 0;
+    }
+  }
 }
 
 .sidebar-top {
@@ -23,6 +48,7 @@
   color: var(--mv-text-muted);
   padding: var(--mv-space-8) var(--mv-space-12) var(--mv-space-4);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .nav-list {
@@ -43,6 +69,7 @@
   font-size: 0.885rem;
   transition: all var(--mv-transition-fast);
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -72,6 +99,25 @@
   width: 20px;
   height: 20px;
   color: inherit;
+  flex-shrink: 0;
+}
+
+.icon-wrap-with-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-unread-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--mv-danger);
+  border: 1.5px solid var(--mv-bg-surface);
 }
 
 .ai-item.active {
@@ -104,9 +150,38 @@
 .sidebar-footer {
   display: flex;
   flex-direction: column;
-  gap: var(--mv-space-12);
+  gap: var(--mv-space-8);
   padding-top: var(--mv-space-12);
   border-top: 1px solid var(--mv-border-subtle);
+}
+
+.sidebar-collapse-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--mv-space-8);
+  width: 100%;
+  padding: 8px var(--mv-space-12);
+  border: none;
+  background: transparent;
+  border-radius: var(--mv-radius-sm);
+  color: var(--mv-text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--mv-transition-fast);
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--mv-bg-subtle);
+    color: var(--mv-text-primary);
+  }
+
+  .toggle-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
 }
 
 .quote-card {

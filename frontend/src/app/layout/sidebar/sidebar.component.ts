@@ -2,8 +2,10 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { NotificationStateService } from '@core/services/notification-state.service';
 import { AuthService } from '@core/auth/auth.service';
+import { SidebarService } from '@core/services/sidebar.service';
 
 interface NavItem {
   path: string;
@@ -16,13 +18,14 @@ interface NavItem {
 @Component({
   selector: 'mv-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule],
+  imports: [CommonModule, RouterModule, MatIconModule, MatTooltipModule],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
   readonly notificationState = inject(NotificationStateService);
   readonly authService = inject(AuthService);
+  readonly sidebarService = inject(SidebarService);
 
   readonly primaryNavItems: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard', exact: true },

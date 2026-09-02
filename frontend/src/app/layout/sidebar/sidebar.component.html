@@ -1,18 +1,24 @@
-<aside class="sidebar">
+<aside class="sidebar" [class.mini-variant]="sidebarService.isCollapsed()">
   <!-- Main Core Navigation (Phase 3 Shell) -->
   <div class="sidebar-top">
-    <div class="nav-section-label">MEMORIES & JOURNEY</div>
+    @if (!sidebarService.isCollapsed()) {
+      <div class="nav-section-label">MEMORIES & JOURNEY</div>
+    }
     <nav class="nav-list">
       @for (item of primaryNavItems; track item.path) {
         <a [routerLink]="item.path" 
            routerLinkActive="active" 
            [routerLinkActiveOptions]="{ exact: !!item.exact }"
            class="nav-link"
-           [class.ai-item]="item.isAi">
+           [class.ai-item]="item.isAi"
+           [matTooltip]="sidebarService.isCollapsed() ? item.label : ''"
+           matTooltipPosition="right">
           <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-          <span class="nav-label">{{ item.label }}</span>
-          @if (item.isAi) {
-            <span class="ai-pill">AI</span>
+          @if (!sidebarService.isCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+            @if (item.isAi) {
+              <span class="ai-pill">AI</span>
+            }
           }
         </a>
       }
@@ -20,19 +26,30 @@
 
     <div class="nav-divider"></div>
 
-    <div class="nav-section-label">ARCHIVE & DISCOVERY</div>
+    @if (!sidebarService.isCollapsed()) {
+      <div class="nav-section-label">ARCHIVE & DISCOVERY</div>
+    }
     <nav class="nav-list">
       @for (item of secondaryNavItems; track item.path) {
         <a [routerLink]="item.path" 
            routerLinkActive="active" 
            [routerLinkActiveOptions]="{ exact: !!item.exact }"
-           class="nav-link">
-          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-          <span class="nav-label">{{ item.label }}</span>
-          @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
-            <span class="sidebar-badge">
-              {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
-            </span>
+           class="nav-link"
+           [matTooltip]="sidebarService.isCollapsed() ? item.label : ''"
+           matTooltipPosition="right">
+          <div class="icon-wrap-with-badge">
+            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+            @if (sidebarService.isCollapsed() && item.path === '/notifications' && notificationState.unreadCount() > 0) {
+              <span class="mini-unread-dot"></span>
+            }
+          </div>
+          @if (!sidebarService.isCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+            @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
+              <span class="sidebar-badge">
+                {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+              </span>
+            }
           }
         </a>
       }
@@ -44,14 +61,36 @@
     <nav class="nav-list settings-list">
       <a [routerLink]="authService.isAdmin() ? '/admin/group' : '/profile'" 
          routerLinkActive="active" 
-         class="nav-link">
+         class="nav-link"
+         [matTooltip]="sidebarService.isCollapsed() ? 'Settings' : ''"
+         matTooltipPosition="right">
         <mat-icon class="nav-icon">settings</mat-icon>
-        <span class="nav-label">Settings</span>
+        @if (!sidebarService.isCollapsed()) {
+          <span class="nav-label">Settings</span>
+        }
       </a>
     </nav>
 
-    <div class="quote-card">
-      <div class="quote-text">"The years pass, but these moments remain frozen in light."</div>
-    </div>
+    <!-- Mini Collapse / Expand Toggle Button -->
+    <button 
+      type="button" 
+      class="sidebar-collapse-toggle-btn"
+      (click)="sidebarService.toggle()"
+      [matTooltip]="sidebarService.isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      matTooltipPosition="right"
+      aria-label="Toggle Sidebar Navigation">
+      <mat-icon class="toggle-icon">
+        {{ sidebarService.isCollapsed() ? 'chevron_right' : 'chevron_left' }}
+      </mat-icon>
+      @if (!sidebarService.isCollapsed()) {
+        <span class="toggle-label">Collapse Menu</span>
+      }
+    </button>
+
+    @if (!sidebarService.isCollapsed()) {
+      <div class="quote-card">
+        <div class="quote-text">"The years pass, but these moments remain frozen in light."</div>
+      </div>
+    }
   </div>
 </aside>

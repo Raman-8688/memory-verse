@@ -1,5 +1,15 @@
 <header class="navbar">
   <div class="navbar-brand">
+    <button 
+      mat-icon-button 
+      class="sidebar-toggle-btn" 
+      (click)="sidebarService.toggle()" 
+      [matTooltip]="sidebarService.isCollapsed() ? 'Expand Navigation' : 'Collapse Navigation'"
+      matTooltipPosition="below"
+      aria-label="Toggle Sidebar Navigation">
+      <mat-icon>{{ sidebarService.isCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+    </button>
+
     <a routerLink="/dashboard" class="brand-link">
       <span class="brand-name">MemoryVerse</span>
       <span class="brand-tagline">Our Journey, Our Memories</span>
