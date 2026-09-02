@@ -8,6 +8,7 @@ import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { AuthService } from '@core/auth/auth.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
 import { MediaCaptureService } from '@core/services/media-capture.service';
+import { CommandPaletteService } from '@core/services/command-palette.service';
 
 @Component({
   selector: 'mv-navbar',
@@ -20,4 +21,5 @@ export class NavbarComponent {
   readonly authService = inject(AuthService);
   readonly notificationState = inject(NotificationStateService);
   readonly captureService = inject(MediaCaptureService);
+  readonly paletteService = inject(CommandPaletteService);
 }

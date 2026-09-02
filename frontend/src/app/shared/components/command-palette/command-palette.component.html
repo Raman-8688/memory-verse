@@ -1,0 +1,207 @@
+@if (paletteService.isOpen()) {
+  <div class="palette-backdrop" (click)="onBackdropClick($event)">
+    <div class="palette-dialog" (click)="$event.stopPropagation()">
+      
+      <!-- Input Header -->
+      <div class="palette-search-header">
+        <mat-icon class="search-indicator-icon">search</mat-icon>
+        <input 
+          #searchInput
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onQueryChange()" 
+          placeholder="Search memories, journeys, places, or people..." 
+          class="palette-input" 
+          autocomplete="off" 
+          spellcheck="false" 
+        />
+        @if (searchQuery) {
+          <button type="button" class="clear-query-btn" (click)="clearQuery()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+        <span class="esc-badge" (click)="close()">ESC</span>
+      </div>
+
+      <!-- Results Body -->
+      <div class="palette-results-container">
+        @if (isLoading()) {
+          <div class="palette-loading">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span>Searching archive...</span>
+          </div>
+        } @else if (flattenedResults().length === 0) {
+          <div class="palette-empty">
+            @if (searchQuery.trim()) {
+              <mat-icon class="empty-icon">search_off</mat-icon>
+              <p>No results found for "<strong>{{ searchQuery }}</strong>"</p>
+              <span class="empty-hint">Try searching for a friend's name, a city, or journey title.</span>
+            } @else {
+              <!-- Quick Suggestions / Default State -->
+              <div class="palette-quick-suggestions">
+                <span class="quick-title">Quick Jump</span>
+                <div class="quick-actions-row">
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/memories')">
+                    <mat-icon>history_edu</mat-icon>
+                    <span>Timeline</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/journeys')">
+                    <mat-icon>auto_stories</mat-icon>
+                    <span>Journeys</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/places')">
+                    <mat-icon>place</mat-icon>
+                    <span>Places</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/people')">
+                    <mat-icon>people</mat-icon>
+                    <span>People</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/assistant')">
+                    <mat-icon>auto_awesome</mat-icon>
+                    <span>Ask AI</span>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- Categorized Multi-Index Results -->
+          <div class="categorized-results-flow">
+
+            <!-- 1. Memories Category -->
+            @if (categorizedResults().memories.length > 0) {
+              <div class="result-category-group">
+                <div class="category-header">
+                  <mat-icon class="cat-icon">auto_stories</mat-icon>
+                  <span>Memories ({{ categorizedResults().memories.length }})</span>
+                </div>
+                <div class="category-items">
+                  @for (item of categorizedResults().memories; track item.id) {
+                    <div 
+                      class="palette-result-item" 
+                      [class.highlighted]="item.flatIndex === selectedIndex()" 
+                      (mouseenter)="setSelectedIndex(item.flatIndex)"
+                      (click)="navigateTo(item)">
+                      <div class="item-icon-box memory-type">
+                        <mat-icon>photo</mat-icon>
+                      </div>
+                      <div class="item-text-stack">
+                        <span class="item-title">{{ item.title }}</span>
+                        <span class="item-subtitle">{{ item.subtitle }}</span>
+                      </div>
+                      <span class="item-badge">{{ item.extraBadge }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- 2. Journeys Category -->
+            @if (categorizedResults().journeys.length > 0) {
+              <div class="result-category-group">
+                <div class="category-header">
+                  <mat-icon class="cat-icon">collections_bookmark</mat-icon>
+                  <span>Journeys ({{ categorizedResults().journeys.length }})</span>
+                </div>
+                <div class="category-items">
+                  @for (item of categorizedResults().journeys; track item.id) {
+                    <div 
+                      class="palette-result-item" 
+                      [class.highlighted]="item.flatIndex === selectedIndex()" 
+                      (mouseenter)="setSelectedIndex(item.flatIndex)"
+                      (click)="navigateTo(item)">
+                      <div class="item-icon-box journey-type">
+                        <mat-icon>auto_stories</mat-icon>
+                      </div>
+                      <div class="item-text-stack">
+                        <span class="item-title">{{ item.title }}</span>
+                        <span class="item-subtitle">{{ item.subtitle }}</span>
+                      </div>
+                      <span class="item-badge">Chapter</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- 3. Places Category -->
+            @if (categorizedResults().places.length > 0) {
+              <div class="result-category-group">
+                <div class="category-header">
+                  <mat-icon class="cat-icon">place</mat-icon>
+                  <span>Places ({{ categorizedResults().places.length }})</span>
+                </div>
+                <div class="category-items">
+                  @for (item of categorizedResults().places; track item.id) {
+                    <div 
+                      class="palette-result-item" 
+                      [class.highlighted]="item.flatIndex === selectedIndex()" 
+                      (mouseenter)="setSelectedIndex(item.flatIndex)"
+                      (click)="navigateTo(item)">
+                      <div class="item-icon-box place-type">
+                        <mat-icon>location_on</mat-icon>
+                      </div>
+                      <div class="item-text-stack">
+                        <span class="item-title">{{ item.title }}</span>
+                        <span class="item-subtitle">{{ item.subtitle }}</span>
+                      </div>
+                      <span class="item-badge">Destination</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- 4. People Category -->
+            @if (categorizedResults().people.length > 0) {
+              <div class="result-category-group">
+                <div class="category-header">
+                  <mat-icon class="cat-icon">people</mat-icon>
+                  <span>People & Friends ({{ categorizedResults().people.length }})</span>
+                </div>
+                <div class="category-items">
+                  @for (item of categorizedResults().people; track item.id) {
+                    <div 
+                      class="palette-result-item" 
+                      [class.highlighted]="item.flatIndex === selectedIndex()" 
+                      (mouseenter)="setSelectedIndex(item.flatIndex)"
+                      (click)="navigateTo(item)">
+                      <div class="item-icon-box person-type">
+                        <mat-icon>person</mat-icon>
+                      </div>
+                      <div class="item-text-stack">
+                        <span class="item-title">{{ item.title }}</span>
+                        <span class="item-subtitle">{{ item.subtitle }}</span>
+                      </div>
+                      <span class="item-badge">Friend</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+
+      <!-- Footer Navigation Shortcuts -->
+      <footer class="palette-footer-shortcuts">
+        <div class="shortcut-item">
+          <kbd class="key-pill">↑</kbd>
+          <kbd class="key-pill">↓</kbd>
+          <span>Navigate</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd class="key-pill">↵</kbd>
+          <span>Select</span>
+        </div>
+        <div class="shortcut-item">
+          <kbd class="key-pill">esc</kbd>
+          <span>Close</span>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+}
