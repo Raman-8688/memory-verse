@@ -1,0 +1,99 @@
+<div class="people-page-container">
+
+  <!-- Header -->
+  <header class="people-header-bar">
+    <div class="header-titles">
+      <span class="eyebrow-tag">COMMUNITY & CIRCLE</span>
+      <h1 class="mv-type-display page-title">People & Friends</h1>
+      <p class="page-subtitle">The faces, friends, and companions who shared the journey and shaped these moments.</p>
+    </div>
+
+    <!-- Search Input -->
+    <div class="people-search-wrap">
+      <mat-icon class="search-ico">search</mat-icon>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        placeholder="Search friends by name..." 
+        class="people-search-input" 
+      />
+    </div>
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="people-skeleton-grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="skeleton-person-card skeleton-box"></div>
+      }
+    </div>
+  } @else if (filteredPeople().length === 0) {
+    <!-- Empty State -->
+    <div class="empty-people-card">
+      <div class="empty-icon-circle">
+        <mat-icon>group_off</mat-icon>
+      </div>
+      <h3 class="mv-type-h2">No Friends Found</h3>
+      <p class="empty-desc">
+        @if (searchQuery) {
+          No members match "{{ searchQuery }}". Try clearing your search query.
+        } @else {
+          Tag friends in your memories to see their faces and contributions here in the circle directory!
+        }
+      </p>
+      <a mat-flat-button class="add-memory-btn" routerLink="/memories/new">Record a Memory With Friends</a>
+    </div>
+  } @else {
+    <!-- People Directory Grid -->
+    <main class="people-grid">
+      @for (person of filteredPeople(); track person.id) {
+        <article class="person-card" (click)="explorePerson(person.fullName)">
+          
+          <!-- Avatar Section -->
+          <div class="avatar-frame">
+            <img 
+              [src]="person.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'" 
+              [alt]="person.fullName" 
+              mvFallback 
+              loading="lazy" 
+              class="person-avatar-img" 
+            />
+            <div class="online-indicator"></div>
+          </div>
+
+          <!-- Info Section -->
+          <div class="person-info">
+            <h2 class="mv-type-h2 person-name">{{ person.fullName }}</h2>
+            @if (person.role) {
+              <span class="person-role-tag">{{ person.role }}</span>
+            }
+
+            <!-- Shared Memories Badge -->
+            <div class="memories-badge-row">
+              <span class="shared-memories-pill">
+                <mat-icon>auto_awesome</mat-icon>
+                <span>{{ person.memoryCount }} {{ person.memoryCount === 1 ? 'shared memory' : 'shared memories' }}</span>
+              </span>
+            </div>
+
+            @if (person.latestMemoryTitle) {
+              <p class="person-latest-snippet">
+                <span class="snippet-label">Recent:</span>
+                "{{ person.latestMemoryTitle }}"
+              </p>
+            }
+
+            <div class="person-card-footer">
+              <span class="filter-hint-cta">
+                <span>View Memories</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </span>
+            </div>
+          </div>
+
+        </article>
+      }
+    </main>
+  }
+
+</div>
