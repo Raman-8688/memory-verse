@@ -144,6 +144,24 @@ public class CloudinaryStorageService implements StorageService {
             boolean isVideo = mediaType == MediaType.VIDEO;
             boolean isAudio = mediaType == MediaType.AUDIO;
 
+            Integer width = null;
+            Integer height = null;
+            Integer duration = null;
+
+            if (isVideo) {
+                width = 1280;
+                height = 720;
+                duration = 15;
+            } else if (isAudio) {
+                width = null;
+                height = null;
+                duration = 60;
+            } else {
+                width = 800;
+                height = 600;
+                duration = null;
+            }
+
             return UploadedMediaResult.builder()
                     .mediaUrl(localUrl)
                     .thumbnailUrl(isAudio ? null : localUrl)
@@ -151,9 +169,9 @@ public class CloudinaryStorageService implements StorageService {
                     .publicId("local_" + storedFileName)
                     .fileName(originalFilename)
                     .fileSizeBytes(file.getSize())
-                    .width(isAudio ? null : (isVideo ? 1280 : 800))
-                    .height(isAudio ? null : (isVideo ? 720 : 600))
-                    .durationSeconds(isVideo ? 15 : (isAudio ? 60 : null))
+                    .width(width)
+                    .height(height)
+                    .durationSeconds(duration)
                     .build();
         } catch (IOException e) {
             log.error("Failed to store file locally", e);

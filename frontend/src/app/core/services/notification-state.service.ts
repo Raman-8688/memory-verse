@@ -16,6 +16,9 @@ export class NotificationStateService {
   readonly isLoading = signal<boolean>(false);
 
   private pollIntervalId: any = null;
+  private isFetchingUnread = false;
+  private lastFetchTime = 0;
+  private consecutiveErrors = 0;
 
   constructor() {
     // Automatically load unread count when user is authenticated
@@ -24,11 +27,14 @@ export class NotificationStateService {
       this.startPolling();
     }
 
-    // Also refresh on window focus / tab visibility change
+    // Also refresh on window focus / tab visibility change (with 30s debounce)
     if (typeof window !== 'undefined') {
       window.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && this.auth.isAuthenticated()) {
-          this.loadUnreadCount();
+          const now = Date.now();
+          if (now - this.lastFetchTime > 30000) {
+            this.loadUnreadCount();
+          }
         }
       });
     }
@@ -36,12 +42,16 @@ export class NotificationStateService {
 
   startPolling(): void {
     if (this.pollIntervalId) return;
-    // Poll unread count every 15 seconds
+    // Poll unread count conservatively every 60 seconds (only if tab is actively visible)
     this.pollIntervalId = setInterval(() => {
-      if (this.auth.isAuthenticated()) {
+      if (this.auth.isAuthenticated() && typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        // If consecutive errors occurred (e.g. backend restarting), back off
+        if (this.consecutiveErrors > 3 && Math.random() < 0.5) {
+          return;
+        }
         this.loadUnreadCount();
       }
-    }, 15000);
+    }, 60000);
   }
 
   stopPolling(): void {
@@ -52,14 +62,23 @@ export class NotificationStateService {
   }
 
   loadUnreadCount(): void {
-    if (!this.auth.isAuthenticated()) return;
+    if (!this.auth.isAuthenticated() || this.isFetchingUnread) return;
 
+    this.isFetchingUnread = true;
     this.api.get<{ unreadCount: number }>('/notifications/unread-count').subscribe({
       next: (res) => {
+        this.isFetchingUnread = false;
+        this.lastFetchTime = Date.now();
+        this.consecutiveErrors = 0;
         this.unreadCount.set(res?.unreadCount ?? 0);
       },
       error: (err) => {
-        console.warn('Could not load unread notification count:', err);
+        this.isFetchingUnread = false;
+        this.consecutiveErrors++;
+        // Only log once on initial failure so console isn't spammed while backend restarts
+        if (this.consecutiveErrors <= 1) {
+          console.warn('Could not load unread notification count (server may be offline/restarting):', err.status);
+        }
       }
     });
   }
