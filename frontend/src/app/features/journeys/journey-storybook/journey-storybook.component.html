@@ -175,6 +175,21 @@
               <p class="story-body">"{{ mem.story }}"</p>
             </blockquote>
 
+            <!-- Attached Audio Stories / Voice Memos -->
+            @if (getAudioMedia(mem); as audioList) {
+              @if (audioList.length > 0) {
+                <div class="storybook-audio-pane">
+                  @for (audio of audioList; track audio.id) {
+                    <mv-audio-player 
+                      [audioUrl]="audio.mediaUrl" 
+                      [title]="audio.fileName || 'Voice Note'"
+                      [authorName]="mem.createdBy.fullName">
+                    </mv-audio-player>
+                  }
+                </div>
+              }
+            }
+
             <!-- Companion Footnote -->
             <div class="story-footnote">
               @if (mem.createdBy; as author) {

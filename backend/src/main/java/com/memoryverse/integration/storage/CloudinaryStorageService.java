@@ -42,6 +42,8 @@ public class CloudinaryStorageService implements StorageService {
         String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "media";
         String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
         boolean isVideo = contentType.startsWith("video") || originalFilename.toLowerCase().endsWith(".mp4");
+        boolean isAudio = contentType.startsWith("audio") || originalFilename.toLowerCase().matches(".*\\.(mp3|wav|m4a|aac|ogg|weba)$");
+        MediaType mediaType = isVideo ? MediaType.VIDEO : (isAudio ? MediaType.AUDIO : MediaType.IMAGE);
 
         if (isVideo) {
             // Constraint check: Max 50MB and MP4 format only
@@ -59,28 +61,30 @@ public class CloudinaryStorageService implements StorageService {
         // Check if Cloudinary credentials are valid or placeholder
         if (cloudName != null && !cloudName.equals("placeholder-cloud-name") && !cloudName.isBlank()) {
             try {
-                result = uploadToCloudinary(file, isVideo, originalFilename);
+                result = uploadToCloudinary(file, mediaType, originalFilename);
             } catch (Exception ex) {
                 log.warn("Cloudinary upload failed, falling back to local storage: {}", ex.getMessage());
-                result = uploadToLocal(file, isVideo, originalFilename);
+                result = uploadToLocal(file, mediaType, originalFilename);
             }
         } else {
-            result = uploadToLocal(file, isVideo, originalFilename);
+            result = uploadToLocal(file, mediaType, originalFilename);
         }
 
         long durationMs = System.currentTimeMillis() - startTime;
-        log.info("Media upload completed: filename='{}', sizeBytes={}, isVideo={}, durationMs={}",
-                originalFilename, file.getSize(), isVideo, durationMs);
+        log.info("Media upload completed: filename='{}', sizeBytes={}, mediaType={}, durationMs={}",
+                originalFilename, file.getSize(), mediaType, durationMs);
 
         return result;
     }
 
     @SuppressWarnings("rawtypes")
-    private UploadedMediaResult uploadToCloudinary(MultipartFile file, boolean isVideo, String originalFilename) throws IOException {
-        String folder = isVideo ? "memoryverse/videos" : "memoryverse/images";
+    private UploadedMediaResult uploadToCloudinary(MultipartFile file, MediaType mediaType, String originalFilename) throws IOException {
+        boolean isVideo = mediaType == MediaType.VIDEO;
+        boolean isAudio = mediaType == MediaType.AUDIO;
+        String folder = isVideo ? "memoryverse/videos" : (isAudio ? "memoryverse/audio" : "memoryverse/images");
         Map params = ObjectUtils.asMap(
                 "folder", folder,
-                "resource_type", isVideo ? "video" : "image"
+                "resource_type", (isVideo || isAudio) ? "video" : "image"
         );
 
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
@@ -93,14 +97,14 @@ public class CloudinaryStorageService implements StorageService {
 
         String thumbnailUrl;
         if (isVideo) {
-            // Cloudinary video thumbnail: poster frame as .jpg with auto quality
             thumbnailUrl = cloudinary.url()
                     .resourceType("video")
                     .format("jpg")
                     .transformation(new Transformation<>().width(600).height(400).crop("fill"))
                     .generate(publicId);
+        } else if (isAudio) {
+            thumbnailUrl = null;
         } else {
-            // Cloudinary image thumbnail: 600x600 auto crop, auto format and quality
             thumbnailUrl = cloudinary.url()
                     .transformation(new Transformation<>().width(600).height(600).crop("fill").fetchFormat("auto").quality("auto"))
                     .generate(publicId);
@@ -109,17 +113,17 @@ public class CloudinaryStorageService implements StorageService {
         return UploadedMediaResult.builder()
                 .mediaUrl(secureUrl)
                 .thumbnailUrl(thumbnailUrl)
-                .mediaType(isVideo ? MediaType.VIDEO : MediaType.IMAGE)
+                .mediaType(mediaType)
                 .publicId(publicId)
                 .fileName(originalFilename)
                 .fileSizeBytes(file.getSize())
-                .width(width)
-                .height(height)
+                .width(isAudio ? null : width)
+                .height(isAudio ? null : height)
                 .durationSeconds(duration)
                 .build();
     }
 
-    private UploadedMediaResult uploadToLocal(MultipartFile file, boolean isVideo, String originalFilename) {
+    private UploadedMediaResult uploadToLocal(MultipartFile file, MediaType mediaType, String originalFilename) {
         try {
             Path uploadPath = Paths.get(LOCAL_UPLOAD_DIR);
             if (!Files.exists(uploadPath)) {
@@ -137,17 +141,19 @@ public class CloudinaryStorageService implements StorageService {
             Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
 
             String localUrl = "/api/media/files/" + storedFileName;
+            boolean isVideo = mediaType == MediaType.VIDEO;
+            boolean isAudio = mediaType == MediaType.AUDIO;
 
             return UploadedMediaResult.builder()
                     .mediaUrl(localUrl)
-                    .thumbnailUrl(localUrl)
-                    .mediaType(isVideo ? MediaType.VIDEO : MediaType.IMAGE)
+                    .thumbnailUrl(isAudio ? null : localUrl)
+                    .mediaType(mediaType)
                     .publicId("local_" + storedFileName)
                     .fileName(originalFilename)
                     .fileSizeBytes(file.getSize())
-                    .width(isVideo ? 1280 : 800)
-                    .height(isVideo ? 720 : 600)
-                    .durationSeconds(isVideo ? 15 : null)
+                    .width(isAudio ? null : (isVideo ? 1280 : 800))
+                    .height(isAudio ? null : (isVideo ? 720 : 600))
+                    .durationSeconds(isVideo ? 15 : (isAudio ? 60 : null))
                     .build();
         } catch (IOException e) {
             log.error("Failed to store file locally", e);

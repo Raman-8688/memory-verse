@@ -59,7 +59,7 @@
             <input 
               type="file" 
               multiple 
-              accept="image/*,video/*" 
+              accept="image/*,video/*,audio/*" 
               (change)="onFilesSelected($event)" 
               [disabled]="isUploadingMedia()" 
               hidden 
@@ -132,6 +132,42 @@
             {{ m.story }}
           </div>
 
+          <!-- Audio Notes (Voice Memos) -->
+          @if (getAudioMedia(m).length > 0) {
+            <section class="voice-memos-section">
+              <div class="voice-memos-header">
+                <mat-icon class="voice-header-icon">mic</mat-icon>
+                <span class="voice-header-title">Voice Memos & Audio Stories ({{ getAudioMedia(m).length }})</span>
+              </div>
+              @for (audio of getAudioMedia(m); track audio.id) {
+                <mv-audio-player 
+                  [audioUrl]="audio.mediaUrl" 
+                  [title]="audio.fileName || 'Voice Memo'"
+                  [authorName]="m.createdBy.fullName">
+                </mv-audio-player>
+              }
+            </section>
+          }
+
+          <!-- Inline Reactions Bar -->
+          <div class="reactions-bar">
+            <span class="reactions-label">React to moment:</span>
+            <div class="emoji-pills">
+              @for (emoji of availableEmojis; track emoji) {
+                <button 
+                  type="button" 
+                  class="reaction-pill-btn" 
+                  [class.active]="hasReacted(emoji)"
+                  (click)="toggleReaction(emoji)">
+                  <span class="pill-emoji">{{ emoji }}</span>
+                  @if (getReactionCount(emoji) > 0) {
+                    <span class="pill-count">{{ getReactionCount(emoji) }}</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
           <!-- Media Gallery Grid Strip -->
           @if (m.mediaList && m.mediaList.length > 0) {
             <section class="gallery-strip-section">
@@ -154,6 +190,11 @@
                       <div class="play-overlay">
                         <mat-icon>play_circle</mat-icon>
                       </div>
+                    } @else if (media.mediaType === 'AUDIO') {
+                      <div class="thumb-media thumb-audio-box">
+                        <mat-icon>mic</mat-icon>
+                        <span>Audio</span>
+                      </div>
                     } @else {
                       <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="media.fileName || m.title" mvFallback class="thumb-media" loading="lazy" />
                     }
@@ -162,6 +203,91 @@
               </div>
             </section>
           }
+
+          <!-- Reminisce & Margin Notes (Journal Style Comments) -->
+          <section class="margin-notes-section">
+            <div class="notes-header">
+              <div class="notes-title-wrap">
+                <mat-icon class="notes-icon">edit_note</mat-icon>
+                <h3 class="notes-title">Reminisce & Margin Notes ({{ comments().length }})</h3>
+              </div>
+              <span class="notes-hint">Shared reflections from companions</span>
+            </div>
+
+            <!-- Add Note Card -->
+            <div class="add-note-card">
+              <img 
+                [src]="authService.currentUser()?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                [alt]="authService.currentUser()?.fullName || 'You'" 
+                mvFallback 
+                class="current-user-avatar" 
+              />
+              <div class="note-input-wrap">
+                <textarea 
+                  [(ngModel)]="newCommentText" 
+                  rows="2" 
+                  placeholder="Leave a margin note, whisper a memory..." 
+                  (keydown.control.enter)="submitComment()"
+                  (keydown.meta.enter)="submitComment()"
+                  class="note-textarea"></textarea>
+                <div class="note-input-actions">
+                  <span class="hint-key">Press Ctrl+Enter to post</span>
+                  <button 
+                    mat-flat-button 
+                    class="post-note-btn" 
+                    [disabled]="!newCommentText.trim() || isSubmittingComment()" 
+                    (click)="submitComment()">
+                    @if (isSubmittingComment()) {
+                      <mat-spinner diameter="16" class="white-spinner"></mat-spinner>
+                    } @else {
+                      <span class="btn-inner-content">
+                        <mat-icon>send</mat-icon>
+                        <span>Post Note</span>
+                      </span>
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes List -->
+            @if (isLoadingComments()) {
+              <div class="comments-loading">
+                <mat-spinner diameter="24"></mat-spinner>
+                <span>Retrieving margin notes...</span>
+              </div>
+            } @else if (comments().length === 0) {
+              <div class="empty-notes-prompt">
+                <mat-icon>history_edu</mat-icon>
+                <p>No margin notes yet. Be the first companion to share a thought on this moment.</p>
+              </div>
+            } @else {
+              <div class="notes-list">
+                @for (comment of comments(); track comment.id) {
+                  <article class="note-bubble">
+                    <img 
+                      [src]="comment.user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [alt]="comment.user.fullName" 
+                      mvFallback 
+                      class="commenter-avatar" 
+                    />
+                    <div class="note-bubble-content">
+                      <div class="note-bubble-header">
+                        <span class="commenter-name">{{ comment.user.fullName }}</span>
+                        <span class="note-time">{{ formatTimeAgo(comment.createdAt) }}</span>
+                        @if (canDeleteComment(comment)) {
+                          <button mat-icon-button class="delete-note-btn" (click)="deleteComment(comment.id)" title="Delete note">
+                            <mat-icon>delete_outline</mat-icon>
+                          </button>
+                        }
+                      </div>
+                      <p class="note-text">{{ comment.content }}</p>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
         </main>
 
         <!-- Sidebar / Bottom Metadata Card -->

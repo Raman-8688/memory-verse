@@ -1,6 +1,6 @@
 import { User } from './user.model';
 
-export type MediaType = 'IMAGE' | 'VIDEO';
+export type MediaType = 'IMAGE' | 'VIDEO' | 'AUDIO';
 
 export interface Media {
   id: string;

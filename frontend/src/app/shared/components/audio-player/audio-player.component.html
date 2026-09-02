@@ -1,0 +1,79 @@
+<div class="audio-player-card" [class.playing]="isPlaying()">
+
+  <!-- Hidden native HTML audio element -->
+  <audio 
+    #audioElement 
+    [src]="audioUrl" 
+    (timeupdate)="onTimeUpdate()" 
+    (loadedmetadata)="onLoadedMetadata()" 
+    (ended)="onEnded()"
+    preload="metadata">
+  </audio>
+
+  <!-- Play / Pause Circular Action -->
+  <button 
+    type="button" 
+    mat-icon-button 
+    class="play-toggle-btn" 
+    (click)="togglePlay()" 
+    [attr.aria-label]="isPlaying() ? 'Pause audio note' : 'Play audio note'">
+    <mat-icon>{{ isPlaying() ? 'pause' : 'play_arrow' }}</mat-icon>
+  </button>
+
+  <!-- Player Main Body -->
+  <div class="player-body">
+
+    <!-- Top Row: Title, Waveform Bars & Author -->
+    <div class="player-top-row">
+      <div class="player-title-block">
+        <mat-icon class="audio-mic-icon">graphic_eq</mat-icon>
+        <span class="audio-title">{{ title }}</span>
+        @if (authorName) {
+          <span class="audio-author">by {{ authorName }}</span>
+        }
+      </div>
+
+      <!-- Animated Sound Waveform Bars -->
+      <div class="sound-wave-bars" [class.active]="isPlaying()">
+        <span class="bar bar-1"></span>
+        <span class="bar bar-2"></span>
+        <span class="bar bar-3"></span>
+        <span class="bar bar-4"></span>
+        <span class="bar bar-5"></span>
+      </div>
+
+      <!-- Time Display -->
+      <div class="time-readout">
+        <span class="curr-time">{{ formattedCurrentTime() }}</span>
+        <span class="time-sep">/</span>
+        <span class="total-time">{{ formattedDuration() }}</span>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Scrubbable Progress Track -->
+    <div class="player-bottom-row">
+      <div 
+        #progressBar 
+        class="progress-track" 
+        (click)="seek($event)" 
+        matTooltip="Click to jump" 
+        matTooltipPosition="above">
+        <div class="progress-fill" [style.width.%]="progressPercentage()">
+          <span class="scrub-handle"></span>
+        </div>
+      </div>
+
+      <!-- Mute / Unmute Button -->
+      <button 
+        type="button" 
+        mat-icon-button 
+        class="mute-btn" 
+        (click)="toggleMute()" 
+        [title]="isMuted() ? 'Unmute' : 'Mute'">
+        <mat-icon>{{ isMuted() ? 'volume_off' : 'volume_up' }}</mat-icon>
+      </button>
+    </div>
+
+  </div>
+
+</div>

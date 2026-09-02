@@ -51,6 +51,37 @@ public class DataInitializer implements CommandLineRunner {
             log.warn("Could not ensure is_favorite column on memories table: {}", ex.getMessage());
         }
 
+        try {
+            jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS memory_comments (
+                    id UUID PRIMARY KEY,
+                    memory_id UUID NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    content TEXT NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                    updated_at TIMESTAMP WITH TIME ZONE
+                );
+                CREATE INDEX IF NOT EXISTS idx_memory_comments_memory_id ON memory_comments(memory_id);
+                CREATE INDEX IF NOT EXISTS idx_memory_comments_created_at ON memory_comments(created_at);
+            """);
+
+            jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS memory_reactions (
+                    id UUID PRIMARY KEY,
+                    memory_id UUID NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    emoji VARCHAR(32) NOT NULL,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                    CONSTRAINT uk_memory_user_emoji UNIQUE (memory_id, user_id, emoji)
+                );
+                CREATE INDEX IF NOT EXISTS idx_memory_reactions_memory_id ON memory_reactions(memory_id);
+                CREATE INDEX IF NOT EXISTS idx_memory_reactions_emoji ON memory_reactions(emoji);
+            """);
+            log.info("Ensured memory_comments and memory_reactions tables and indexes exist");
+        } catch (Exception ex) {
+            log.warn("Could not ensure comments and reactions tables: {}", ex.getMessage());
+        }
+
         String defaultPass = passwordEncoder.encode("password123");
 
         // 1. Migrate old dummy "ravi@memoryverse.com" to "ramesh@memoryverse.com" if needed

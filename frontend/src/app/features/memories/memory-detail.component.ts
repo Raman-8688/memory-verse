@@ -7,13 +7,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
 import { Memory, Media } from '@core/models/memory.model';
 import { GalleryItem } from '@core/models/gallery.model';
+import { MemoryComment, ReactionSummary } from '@core/models/interaction.model';
 import { MemoryService } from '@core/services/memory.service';
+import { InteractionService } from '@core/services/interaction.service';
 import { AuthService } from '@core/auth/auth.service';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
+import { AudioPlayerComponent } from '@shared/components/audio-player/audio-player.component';
 import { NotificationStateService } from '@core/services/notification-state.service';
 import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
 
@@ -22,12 +26,14 @@ import { AddToCollectionDialogComponent } from '@shared/components/add-to-collec
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    AudioPlayerComponent
   ],
   templateUrl: './memory-detail.component.html',
   styleUrl: './memory-detail.component.scss'
@@ -35,6 +41,7 @@ import { AddToCollectionDialogComponent } from '@shared/components/add-to-collec
 export class MemoryDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly memoryService = inject(MemoryService);
+  private readonly interactionService = inject(InteractionService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -46,6 +53,14 @@ export class MemoryDetailComponent implements OnInit {
   readonly isLoading = signal<boolean>(true);
   readonly isUploadingMedia = signal<boolean>(false);
   readonly uploadProgress = signal<number>(0);
+
+  // Interaction Signals
+  readonly comments = signal<MemoryComment[]>([]);
+  readonly reactions = signal<ReactionSummary[]>([]);
+  readonly isLoadingComments = signal<boolean>(false);
+  readonly isSubmittingComment = signal<boolean>(false);
+  newCommentText: string = '';
+  readonly availableEmojis: string[] = ['❤️', '😂', '🥺', '🥂', '✨'];
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -65,6 +80,8 @@ export class MemoryDetailComponent implements OnInit {
           this.activeMedia.set(data.mediaList[0]);
         }
         this.loadRelatedMemories(data);
+        this.loadComments(id);
+        this.loadReactions(id);
         this.isLoading.set(false);
       },
       error: (err) => {
@@ -272,5 +289,127 @@ export class MemoryDetailComponent implements OnInit {
       width: '460px',
       panelClass: 'mv-dialog-panel'
     });
+  }
+
+  // --- COMMENTS & NOSTALGIA THREADS ---
+
+  loadComments(memoryId: string): void {
+    this.isLoadingComments.set(true);
+    this.interactionService.getComments(memoryId, 0, 50).subscribe({
+      next: (res) => {
+        this.comments.set(res.content || []);
+        this.isLoadingComments.set(false);
+      },
+      error: () => {
+        this.isLoadingComments.set(false);
+      }
+    });
+  }
+
+  submitComment(): void {
+    const mem = this.memory();
+    const text = this.newCommentText.trim();
+    if (!mem || !text || this.isSubmittingComment()) return;
+
+    this.isSubmittingComment.set(true);
+    this.interactionService.addComment(mem.id, text).subscribe({
+      next: (created) => {
+        this.comments.update(list => [...list, created]);
+        this.newCommentText = '';
+        this.isSubmittingComment.set(false);
+        this.snackBar.open('Margin note shared', 'Close', { duration: 2500 });
+      },
+      error: () => {
+        this.isSubmittingComment.set(false);
+        this.snackBar.open('Unable to post note', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  deleteComment(commentId: string): void {
+    const mem = this.memory();
+    if (!mem) return;
+
+    this.interactionService.deleteComment(mem.id, commentId).subscribe({
+      next: () => {
+        this.comments.update(list => list.filter(c => c.id !== commentId));
+        this.snackBar.open('Note removed', 'Close', { duration: 2500 });
+      },
+      error: () => {
+        this.snackBar.open('Unable to delete note', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  canDeleteComment(comment: MemoryComment): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    if (comment.user.id === user.id) return true;
+    const mem = this.memory();
+    return !!(mem && mem.createdBy.id === user.id);
+  }
+
+  // --- REACTIONS ---
+
+  loadReactions(memoryId: string): void {
+    this.interactionService.getReactions(memoryId).subscribe({
+      next: (res) => {
+        this.reactions.set(res || []);
+      },
+      error: () => {}
+    });
+  }
+
+  toggleReaction(emoji: string): void {
+    const mem = this.memory();
+    if (!mem) return;
+
+    // Optimistic UI update
+    const current = this.reactions();
+    const existing = current.find(r => r.emoji === emoji);
+    const prevReacted = existing ? existing.reactedByCurrentUser : false;
+
+    this.interactionService.toggleReaction(mem.id, emoji).subscribe({
+      next: (updated) => {
+        this.reactions.set(updated);
+      },
+      error: () => {
+        this.snackBar.open('Unable to update reaction', 'Close', { duration: 2500 });
+      }
+    });
+  }
+
+  hasReacted(emoji: string): boolean {
+    const r = this.reactions().find(item => item.emoji === emoji);
+    return r ? r.reactedByCurrentUser : false;
+  }
+
+  getReactionCount(emoji: string): number {
+    const r = this.reactions().find(item => item.emoji === emoji);
+    return r ? r.count : 0;
+  }
+
+  // --- AUDIO MEDIA HELPER ---
+
+  getAudioMedia(mem: Memory | null): Media[] {
+    if (!mem || !mem.mediaList) return [];
+    return mem.mediaList.filter(m => m.mediaType === 'AUDIO');
+  }
+
+  formatTimeAgo(dateStr: string): string {
+    if (!dateStr) return '';
+    const now = new Date();
+    const past = new Date(dateStr);
+    const diffMs = now.getTime() - past.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 2) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return past.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 }

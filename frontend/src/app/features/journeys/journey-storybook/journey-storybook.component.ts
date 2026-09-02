@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { AudioPlayerComponent } from '@shared/components/audio-player/audio-player.component';
 import { JourneyService } from '@core/services/journey.service';
 import { MemoryService } from '@core/services/memory.service';
 import { LightboxService } from '@core/services/lightbox.service';
@@ -22,7 +23,8 @@ import { Memory, Media } from '@core/models/memory.model';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    AudioPlayerComponent
   ],
   templateUrl: './journey-storybook.component.html',
   styleUrl: './journey-storybook.component.scss'
@@ -222,6 +224,11 @@ export class JourneyStorybookComponent implements OnInit, OnDestroy {
     if (!end) return s;
     const e = new Date(end).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     return `${s} — ${e}`;
+  }
+
+  getAudioMedia(mem: Memory | null): Media[] {
+    if (!mem || !mem.mediaList) return [];
+    return mem.mediaList.filter(m => m.mediaType === 'AUDIO');
   }
 
   getHeroImage(j: Journey): string {

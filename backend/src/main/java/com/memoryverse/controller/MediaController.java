@@ -45,7 +45,25 @@ public class MediaController {
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
-                String contentType = fileName.endsWith(".mp4") ? "video/mp4" : "image/jpeg";
+                String lower = fileName.toLowerCase();
+                String contentType;
+                if (lower.endsWith(".mp4")) {
+                    contentType = "video/mp4";
+                } else if (lower.endsWith(".mp3")) {
+                    contentType = "audio/mpeg";
+                } else if (lower.endsWith(".wav")) {
+                    contentType = "audio/wav";
+                } else if (lower.endsWith(".m4a") || lower.endsWith(".aac")) {
+                    contentType = "audio/aac";
+                } else if (lower.endsWith(".ogg") || lower.endsWith(".oga")) {
+                    contentType = "audio/ogg";
+                } else if (lower.endsWith(".png")) {
+                    contentType = "image/png";
+                } else if (lower.endsWith(".webp")) {
+                    contentType = "image/webp";
+                } else {
+                    contentType = "image/jpeg";
+                }
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))
                         .header(HttpHeaders.CACHE_CONTROL, "max-age=86400")
