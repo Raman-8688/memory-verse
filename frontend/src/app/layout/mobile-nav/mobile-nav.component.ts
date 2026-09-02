@@ -45,14 +45,15 @@ import { MediaCaptureService } from '@core/services/media-capture.service';
       bottom: 0;
       left: 0;
       right: 0;
-      height: 64px;
+      height: 60px;
+      padding-bottom: env(safe-area-inset-bottom, 0);
       background-color: var(--mv-bg-surface);
       border-top: 1px solid var(--mv-border);
       display: flex;
       justify-content: space-around;
       align-items: center;
       z-index: 50;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 -2px 10px rgba(28, 25, 23, 0.04);
     }
 
     .mobile-tab {
@@ -62,12 +63,12 @@ import { MediaCaptureService } from '@core/services/media-capture.service';
       justify-content: center;
       text-decoration: none;
       color: var(--mv-text-muted);
-      font-size: 0.7rem;
+      font-size: 0.6875rem;
       font-weight: 500;
       gap: 2px;
       flex: 1;
       height: 100%;
-      transition: color 0.2s ease;
+      transition: color var(--mv-transition-fast);
     }
 
     .mobile-tab mat-icon {
@@ -82,16 +83,22 @@ import { MediaCaptureService } from '@core/services/media-capture.service';
     }
 
     .center-action .action-bubble {
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       background-color: var(--mv-primary);
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-top: -12px;
-      box-shadow: 0 4px 10px rgba(180, 83, 9, 0.35);
+      margin-top: -14px;
+      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.35);
+      transition: transform var(--mv-transition-fast), background-color var(--mv-transition-fast);
+    }
+
+    .center-action:active .action-bubble {
+      transform: scale(0.92);
+      background-color: var(--mv-primary-hover);
     }
 
     .center-action .action-bubble mat-icon {

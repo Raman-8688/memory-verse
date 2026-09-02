@@ -42,11 +42,12 @@ import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
 
     .layout-main-content {
       flex: 1;
-      padding: var(--space-4);
+      padding: var(--mv-space-32) var(--mv-space-32) var(--mv-space-64);
       max-width: 1300px;
       margin: 0 auto;
       width: 100%;
       box-sizing: border-box;
+      min-width: 0;
     }
 
     @media (max-width: 1024px) {
@@ -54,8 +55,8 @@ import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
         display: none;
       }
       .layout-main-content {
-        padding: var(--space-2);
-        padding-bottom: 80px; /* Space for mobile nav bar */
+        padding: var(--mv-space-16);
+        padding-bottom: calc(72px + env(safe-area-inset-bottom, 16px)); /* Safe space for mobile bottom nav */
       }
     }
   `]
