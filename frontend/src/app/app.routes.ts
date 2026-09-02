@@ -55,11 +55,11 @@ export const routes: Routes = [
       },
       {
         path: 'places',
-        redirectTo: 'gallery'
+        loadComponent: () => import('./features/places/places.component').then(m => m.PlacesComponent)
       },
       {
         path: 'people',
-        redirectTo: 'profile'
+        loadComponent: () => import('./features/people/people.component').then(m => m.PeopleComponent)
       },
       {
         path: 'on-this-day',
