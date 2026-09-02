@@ -36,12 +36,19 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         log.info("Checking and seeding group members in DataInitializer...");
 
-        // Drop legacy notifications_type_check constraint created when enum had fewer types
         try {
             jdbcTemplate.execute("ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check;");
             log.info("Successfully dropped legacy notifications_type_check constraint");
         } catch (Exception ex) {
             log.warn("Could not drop notifications_type_check constraint: {}", ex.getMessage());
+        }
+
+        try {
+            jdbcTemplate.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE NOT NULL;");
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_memories_is_favorite ON memories(is_favorite);");
+            log.info("Ensured is_favorite column and index exist on memories table");
+        } catch (Exception ex) {
+            log.warn("Could not ensure is_favorite column on memories table: {}", ex.getMessage());
         }
 
         String defaultPass = passwordEncoder.encode("password123");
