@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -163,7 +164,7 @@ public class MemoryServiceImpl implements MemoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Pageable pageable) {
+    public PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Pageable pageable) {
         Specification<Memory> spec = Specification.where(null);
 
         if (journeyId != null) {
@@ -172,6 +173,24 @@ public class MemoryServiceImpl implements MemoryService {
 
         if (sectionId != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("section").get("id"), sectionId));
+        }
+
+        if (year != null) {
+            if (month != null) {
+                LocalDate start = LocalDate.of(year, month, 1);
+                LocalDate end = start.plusMonths(1).minusDays(1);
+                spec = spec.and((root, query, cb) -> cb.between(root.get("memoryDate"), start, end));
+            } else {
+                LocalDate start = LocalDate.of(year, 1, 1);
+                LocalDate end = LocalDate.of(year, 12, 31);
+                spec = spec.and((root, query, cb) -> cb.between(root.get("memoryDate"), start, end));
+            }
+        } else if (month != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(cb.function("MONTH", Integer.class, root.get("memoryDate")), month));
+        }
+
+        if (userId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.join("taggedUsers").get("id"), userId));
         }
 
         if (search != null && !search.isBlank()) {
@@ -192,6 +211,12 @@ public class MemoryServiceImpl implements MemoryService {
                 .totalPages(page.getTotalPages())
                 .last(page.isLast())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Integer> getAvailableYears() {
+        return memoryRepository.findDistinctMemoryYears();
     }
 
     @Override

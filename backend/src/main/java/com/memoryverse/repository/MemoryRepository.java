@@ -39,4 +39,7 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID>, JpaSpecif
 
     @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList", "taggedUsers"})
     Page<Memory> findAllByOrderByMemoryDateDesc(Pageable pageable);
+
+    @Query("SELECT DISTINCT EXTRACT(YEAR FROM m.memoryDate) FROM Memory m ORDER BY EXTRACT(YEAR FROM m.memoryDate) DESC")
+    List<Integer> findDistinctMemoryYears();
 }

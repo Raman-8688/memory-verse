@@ -51,7 +51,7 @@ export const routes: Routes = [
       },
       {
         path: 'timeline',
-        loadComponent: () => import('./features/memories/memory-feed.component').then(m => m.MemoryFeedComponent)
+        loadComponent: () => import('./features/timeline/timeline.component').then(m => m.TimelineComponent)
       },
       {
         path: 'places',

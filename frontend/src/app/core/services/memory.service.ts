@@ -18,6 +18,10 @@ export class MemoryService {
     return this.api.get<PagedResponse<Memory>>('/memories', params);
   }
 
+  getMemoryYears(): Observable<number[]> {
+    return this.api.get<number[]>('/memories/years');
+  }
+
   getMemoryById(id: string): Observable<Memory> {
     return this.api.get<Memory>(`/memories/${id}`);
   }

@@ -16,7 +16,9 @@ public interface MemoryService {
 
     PagedResponse<MemoryResponseDto> getMemoriesTaggedWithUser(UUID userId, Pageable pageable);
 
-    PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Pageable pageable);
+    PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Pageable pageable);
+
+    List<Integer> getAvailableYears();
 
     MemoryResponseDto getMemoryById(UUID id);
 

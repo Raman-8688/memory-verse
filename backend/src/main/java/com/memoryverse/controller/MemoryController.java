@@ -59,11 +59,19 @@ public class MemoryController {
             @RequestParam(required = false) UUID journeyId,
             @RequestParam(required = false) UUID sectionId,
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) UUID userId,
             @Valid PageRequestDto pageRequest) {
         
         PagedResponse<MemoryResponseDto> memories = memoryService.getMemories(
-                journeyId, sectionId, search, pageRequest.toPageable());
+                journeyId, sectionId, search, year, month, userId, pageRequest.toPageable());
         return ResponseEntity.ok(ApiResponse.success(memories));
+    }
+
+    @GetMapping("/years")
+    public ResponseEntity<ApiResponse<List<Integer>>> getMemoryYears() {
+        return ResponseEntity.ok(ApiResponse.success(memoryService.getAvailableYears()));
     }
 
     @GetMapping("/tagged")

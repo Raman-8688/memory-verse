@@ -1,0 +1,301 @@
+<div class="timeline-container">
+
+  <!-- 1. Editorial Header -->
+  <header class="timeline-header">
+    <div class="header-top-row">
+      <span class="timeline-kicker">CHRONOLOGICAL ARCHIVE</span>
+      @if (totalElements() > 0) {
+        <span class="total-moments-pill">{{ totalElements() }} moments preserved</span>
+      }
+    </div>
+
+    <h1 class="timeline-title">Timeline</h1>
+    <p class="timeline-subtitle">Every memory has a place in time. Relive your collective history chronologically.</p>
+
+    <!-- 2. Interactive Filter Bar -->
+    <div class="timeline-filter-bar">
+      <!-- Search Box -->
+      <div class="timeline-search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          [ngModel]="searchInput()" 
+          (ngModelChange)="searchInput.set($event)" 
+          (keyup.enter)="onSearchSubmit()"
+          placeholder="Filter moments by title, story, or place..." 
+          class="timeline-search-input"
+          aria-label="Filter timeline memories"
+        />
+        @if (searchInput()) {
+          <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+
+      <!-- Controls Row: Journey Selector & Reset -->
+      <div class="filter-controls-row">
+        <!-- Journey Selector -->
+        <div class="journey-select-wrapper">
+          <mat-icon class="select-icon">auto_stories</mat-icon>
+          <select 
+            class="journey-select" 
+            [ngModel]="selectedJourneyId()" 
+            (ngModelChange)="onJourneySelect($event)"
+            aria-label="Filter by journey">
+            <option [ngValue]="null">All Journeys</option>
+            @for (j of journeys(); track j.id) {
+              <option [ngValue]="j.id">{{ j.title }}</option>
+            }
+          </select>
+        </div>
+
+        @if (activeFilterCount() > 0) {
+          <button type="button" class="reset-filters-btn" (click)="resetAllFilters()">
+            <mat-icon>restart_alt</mat-icon>
+            <span>Reset Filters ({{ activeFilterCount() }})</span>
+          </button>
+        }
+      </div>
+
+      <!-- Year Pills -->
+      @if (availableYears().length > 0) {
+        <div class="year-pills-track">
+          <span class="pills-label">Year:</span>
+          <button 
+            type="button" 
+            class="year-chip" 
+            [class.active]="selectedYear() === null" 
+            (click)="onYearSelect(null)">
+            All Years
+          </button>
+          @for (y of availableYears(); track y) {
+            <button 
+              type="button" 
+              class="year-chip" 
+              [class.active]="selectedYear() === y" 
+              (click)="onYearSelect(y)">
+              {{ y }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Month Pills (Visible when a specific Year is selected) -->
+      @if (selectedYear() !== null) {
+        <div class="month-pills-track animate-fade-in">
+          <span class="pills-label">Month:</span>
+          <button 
+            type="button" 
+            class="month-chip" 
+            [class.active]="selectedMonth() === null" 
+            (click)="onMonthSelect(null)">
+            All Months
+          </button>
+          @for (m of monthsList; track m.value) {
+            <button 
+              type="button" 
+              class="month-chip" 
+              [class.active]="selectedMonth() === m.value" 
+              (click)="onMonthSelect(m.value)">
+              {{ m.name }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- 3. Loading Skeletons -->
+  @if (isLoading()) {
+    <div class="timeline-skeleton-track">
+      <div class="skeleton-year-node skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+    </div>
+  } @else if (hasError()) {
+    <!-- Error State -->
+    <div class="timeline-status-card error-card">
+      <div class="status-icon-wrap error-icon">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h2 class="status-title">Unable to load timeline</h2>
+      <p class="status-desc">Something went wrong while retrieving your chronological archive.</p>
+      <button mat-flat-button class="status-action-btn" (click)="fetchTimeline(0, false)">
+        <mat-icon>refresh</mat-icon>
+        <span>Try Again</span>
+      </button>
+    </div>
+  } @else if (memories().length === 0) {
+    <!-- Empty State -->
+    @if (activeFilterCount() > 0) {
+      <div class="timeline-status-card">
+        <div class="status-icon-wrap">
+          <mat-icon>filter_alt_off</mat-icon>
+        </div>
+        <h2 class="status-title">No moments found</h2>
+        <p class="status-desc">No memories matched your current timeline filter criteria.</p>
+        <button mat-stroked-button class="status-action-btn" (click)="resetAllFilters()">
+          <mat-icon>restart_alt</mat-icon>
+          <span>Reset All Filters</span>
+        </button>
+      </div>
+    } @else {
+      <div class="timeline-status-card">
+        <div class="status-icon-wrap">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <h2 class="status-title">Your timeline is waiting for its first memory</h2>
+        <p class="status-desc">Start building your collective story by adding moments to this archive.</p>
+        <div class="empty-actions-row">
+          <a mat-flat-button class="status-action-btn primary" routerLink="/memories/new">
+            <mat-icon>add</mat-icon>
+            <span>Add First Memory</span>
+          </a>
+          <button mat-stroked-button class="status-action-btn" (click)="captureService.openCaptureFlow()">
+            <mat-icon>photo_camera</mat-icon>
+            <span>Capture</span>
+          </button>
+        </div>
+      </div>
+    }
+  } @else {
+
+    <!-- 4. Chronological Spine & Grouped Moments -->
+    <div class="timeline-chronological-spine">
+
+      @for (yearGroup of groupedTimeline(); track yearGroup.year) {
+        <section class="year-block">
+          <!-- Large Editorial Year Marker on Spine -->
+          <div class="year-marker-node">
+            <span class="year-marker-badge">{{ yearGroup.year }}</span>
+            <div class="year-line-accent"></div>
+          </div>
+
+          <!-- Months within this Year -->
+          @for (monthGroup of yearGroup.months; track monthGroup.monthKey) {
+            <div class="month-block">
+              <!-- Month Header on Spine -->
+              <div class="month-marker-node">
+                <div class="month-dot"></div>
+                <h2 class="month-heading">
+                  {{ monthGroup.monthName }}
+                  <span class="month-count-tag">
+                    {{ monthGroup.memories.length }} {{ monthGroup.memories.length === 1 ? 'moment' : 'moments' }}
+                  </span>
+                </h2>
+              </div>
+
+              <!-- Memories within this Month -->
+              <div class="month-memories-list">
+                @for (mem of monthGroup.memories; track mem.id) {
+                  <article class="timeline-card" [routerLink]="['/memories', mem.id]">
+                    <!-- Spine Connection Node -->
+                    <div class="card-spine-node">
+                      <div class="node-ring">
+                        <div class="node-ring-inner"></div>
+                      </div>
+                      <span class="node-date-tag">{{ formatDayBadge(mem.memoryDate) }}</span>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-surface">
+                      <!-- Photographic Cover -->
+                      <div class="card-media-pane">
+                        <img 
+                          [src]="getCoverUrl(mem)" 
+                          [alt]="mem.title" 
+                          loading="lazy" 
+                          mvFallback 
+                          class="card-img"
+                        />
+                        <div class="card-media-overlay"></div>
+                        <span class="card-date-badge">{{ formatDate(mem.memoryDate) }}</span>
+                        @if (mem.mediaList && mem.mediaList.length > 1) {
+                          <span class="card-photo-count">
+                            <mat-icon>photo_library</mat-icon>
+                            {{ mem.mediaList.length }}
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Narrative & Context -->
+                      <div class="card-narrative-pane">
+                        @if (mem.journeyTitle) {
+                          <span class="card-journey-tag">
+                            <mat-icon>auto_stories</mat-icon>
+                            <span>{{ mem.journeyTitle }}</span>
+                          </span>
+                        }
+
+                        <h3 class="card-title">{{ mem.title }}</h3>
+                        <p class="card-excerpt">"{{ mem.story }}"</p>
+
+                        <!-- Micro Metadata & Author -->
+                        <div class="card-footer-row">
+                          <div class="card-meta-chips">
+                            @if (mem.locationName) {
+                              <span class="meta-chip">
+                                <mat-icon>place</mat-icon>
+                                <span>{{ mem.locationName }}</span>
+                              </span>
+                            }
+                            @if (mem.taggedUsers && mem.taggedUsers.length > 0) {
+                              <span class="meta-chip">
+                                <mat-icon>groups</mat-icon>
+                                <span>{{ mem.taggedUsers.length }}</span>
+                              </span>
+                            }
+                          </div>
+
+                          <div class="card-author">
+                            <img 
+                              [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                              [alt]="mem.createdBy.fullName || 'Author'" 
+                              class="author-avatar"
+                            />
+                            <span class="author-name">{{ mem.createdBy.fullName || 'Friend' }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            </div>
+          }
+        </section>
+      }
+
+    </div>
+
+    <!-- 5. Pagination & End of Results Footer -->
+    <div class="timeline-footer-pagination">
+      @if (!isLastPage()) {
+        <button 
+          type="button"
+          class="load-more-btn" 
+          (click)="loadMore()" 
+          [disabled]="isLoadingMore()">
+          @if (isLoadingMore()) {
+            <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+            <span>Retrieving earlier moments...</span>
+          } @else {
+            <mat-icon>expand_more</mat-icon>
+            <span>Load Earlier Moments</span>
+          }
+        </button>
+      } @else {
+        <div class="end-of-timeline-badge">
+          <div class="end-icon-ring">
+            <mat-icon>history_edu</mat-icon>
+          </div>
+          <span class="end-text">You have reached the beginning of your shared timeline.</span>
+        </div>
+      }
+    </div>
+
+  }
+
+</div>
