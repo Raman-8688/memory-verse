@@ -27,6 +27,7 @@ public class MemoryResponseDto {
     private Double latitude;
     private Double longitude;
     private Boolean isFeatured;
+    private Boolean isFavorite;
     private UUID journeyId;
     private String journeyTitle;
     private UUID sectionId;
@@ -49,6 +50,7 @@ public class MemoryResponseDto {
                 .latitude(memory.getLatitude())
                 .longitude(memory.getLongitude())
                 .isFeatured(memory.getIsFeatured())
+                .isFavorite(Boolean.TRUE.equals(memory.getIsFavorite()))
                 .journeyId(memory.getJourney() != null ? memory.getJourney().getId() : null)
                 .journeyTitle(memory.getJourney() != null ? memory.getJourney().getTitle() : null)
                 .sectionId(memory.getSection() != null ? memory.getSection().getId() : null)

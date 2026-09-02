@@ -29,9 +29,11 @@ export class SidebarComponent {
 
   readonly primaryNavItems: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard', exact: true },
+    { path: '/timeline', label: 'Timeline', icon: 'schedule', exact: true },
+    { path: '/favorites', label: 'Favorites', icon: 'favorite_border', exact: true },
+    { path: '/collections', label: 'Collections', icon: 'collections_bookmark', exact: false },
     { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: true },
     { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
-    { path: '/timeline', label: 'Timeline', icon: 'schedule', exact: true },
     { path: '/places', label: 'Places', icon: 'place', exact: true },
     { path: '/people', label: 'People', icon: 'groups', exact: true },
     { path: '/on-this-day', label: 'On This Day', icon: 'event_repeat', exact: true },

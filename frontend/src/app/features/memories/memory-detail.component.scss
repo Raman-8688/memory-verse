@@ -75,6 +75,31 @@
   gap: 6px;
 }
 
+.favorite-btn, .collection-btn {
+  background-color: var(--mv-bg-surface);
+  border: 1px solid var(--mv-border);
+  color: var(--mv-text-secondary);
+  padding: 0 14px;
+  cursor: pointer;
+  transition: all var(--mv-transition-fast);
+
+  &:hover {
+    background-color: var(--mv-bg-subtle);
+    border-color: var(--mv-primary);
+    color: var(--mv-primary);
+  }
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &.favorite-btn.active {
+    background-color: var(--mv-primary-light);
+    border-color: var(--mv-primary);
+    color: var(--mv-primary);
+
+    mat-icon { color: #f59e0b; }
+  }
+}
+
 .edit-btn {
   border-color: var(--mv-border) !important;
   color: var(--mv-text-primary) !important;

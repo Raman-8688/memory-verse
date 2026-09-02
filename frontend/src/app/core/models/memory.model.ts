@@ -26,6 +26,7 @@ export interface Memory {
   latitude?: number;
   longitude?: number;
   isFeatured: boolean;
+  isFavorite?: boolean;
   journeyId: string;
   journeyTitle?: string;
   sectionId?: string;
@@ -64,6 +65,7 @@ export interface MemoryFilterParams {
   year?: number;
   month?: number;
   userId?: string;
+  isFavorite?: boolean;
   page?: number;
   size?: number;
   sortBy?: string;

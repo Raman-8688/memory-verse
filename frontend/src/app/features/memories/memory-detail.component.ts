@@ -15,6 +15,7 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
 import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 import { NotificationStateService } from '@core/services/notification-state.service';
+import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
 
 @Component({
   selector: 'mv-memory-detail',
@@ -241,6 +242,35 @@ export class MemoryDetailComponent implements OnInit {
         const msg = err.error?.message || 'Failed to upload photos. Please try again.';
         this.snackBar.open(msg, 'Close', { duration: 4000 });
       }
+    });
+  }
+
+  toggleFavorite(): void {
+    const mem = this.memory();
+    if (!mem) return;
+    const prev = mem.isFavorite;
+    mem.isFavorite = !prev;
+    this.memory.set({ ...mem });
+
+    this.memoryService.toggleFavorite(mem.id).subscribe({
+      next: (updated) => {
+        this.memory.set({ ...mem, isFavorite: updated.isFavorite });
+        this.snackBar.open(updated.isFavorite ? 'Saved to favorites' : 'Removed from favorites', 'Close', { duration: 2500 });
+      },
+      error: () => {
+        this.memory.set({ ...mem, isFavorite: prev });
+        this.snackBar.open('Unable to update favorite', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  openAddToCollection(): void {
+    const mem = this.memory();
+    if (!mem) return;
+    this.dialog.open(AddToCollectionDialogComponent, {
+      data: { memory: mem },
+      width: '460px',
+      panelClass: 'mv-dialog-panel'
     });
   }
 }

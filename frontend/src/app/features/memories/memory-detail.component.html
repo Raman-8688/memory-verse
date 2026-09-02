@@ -26,6 +26,27 @@
         </div>
 
         <div class="top-actions">
+          <!-- Favorite Toggle Button -->
+          <button 
+            type="button" 
+            class="action-btn favorite-btn"
+            [class.active]="m.isFavorite"
+            (click)="toggleFavorite()"
+            title="Toggle favorite">
+            <mat-icon>{{ m.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+            <span>{{ m.isFavorite ? 'Favorited' : 'Favorite' }}</span>
+          </button>
+
+          <!-- Add to Collection Button -->
+          <button 
+            type="button" 
+            class="action-btn collection-btn"
+            (click)="openAddToCollection()"
+            title="Add to collection">
+            <mat-icon>bookmark_add</mat-icon>
+            <span>Collect</span>
+          </button>
+
           @if (canEdit()) {
             <button mat-stroked-button class="action-btn edit-btn" (click)="openEditDialog(m)">
               <mat-icon>edit</mat-icon>

@@ -1,0 +1,168 @@
+<div class="favorites-container">
+
+  <!-- Header -->
+  <header class="favorites-header">
+    <div class="header-top-row">
+      <span class="favorites-kicker">CURATED SELECTION</span>
+      @if (totalElements() > 0) {
+        <span class="favorites-badge">{{ totalElements() }} starred moments</span>
+      }
+    </div>
+
+    <h1 class="favorites-title">Favorites</h1>
+    <p class="favorites-subtitle">Your absolute best moments, beautifully preserved in one personal sanctuary.</p>
+
+    <!-- Search Bar -->
+    <div class="search-bar-row">
+      <div class="search-box">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          [ngModel]="searchInput()" 
+          (ngModelChange)="searchInput.set($event)" 
+          (keyup.enter)="onSearchSubmit()"
+          placeholder="Search favorite moments..." 
+          class="search-input"
+          aria-label="Search favorites"
+        />
+        @if (searchInput()) {
+          <button type="button" class="clear-btn" (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Content States -->
+  @if (isLoading()) {
+    <div class="favorites-grid skeleton-grid">
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+    </div>
+  } @else if (hasError()) {
+    <div class="status-card error-card">
+      <div class="status-icon-wrap error-icon">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h2 class="status-title">Unable to load favorites</h2>
+      <p class="status-desc">Something went wrong while retrieving your starred moments.</p>
+      <button type="button" class="action-pill-btn primary" (click)="fetchFavorites(0, false)">
+        <mat-icon>refresh</mat-icon>
+        <span>Try Again</span>
+      </button>
+    </div>
+  } @else if (memories().length === 0) {
+    <div class="status-card empty-card">
+      <div class="status-icon-wrap">
+        <mat-icon>favorite_border</mat-icon>
+      </div>
+      <h2 class="status-title">No favorite moments yet</h2>
+      <p class="status-desc">
+        Tap the heart icon on any memory in your Timeline or Dashboard to save your most cherished moments here.
+      </p>
+      <a routerLink="/timeline" class="action-pill-btn primary">
+        <mat-icon>schedule</mat-icon>
+        <span>Explore Timeline</span>
+      </a>
+    </div>
+  } @else {
+
+    <!-- Cards Grid -->
+    <div class="favorites-grid">
+      @for (mem of memories(); track mem.id) {
+        <article class="favorite-card" [routerLink]="['/memories', mem.id]">
+          <!-- Media Pane -->
+          <div class="card-media-pane">
+            <img 
+              [src]="getCoverUrl(mem)" 
+              [alt]="mem.title" 
+              loading="lazy" 
+              mvFallback 
+              class="card-img"
+            />
+            <div class="card-media-overlay"></div>
+            <span class="card-date-badge">{{ formatDate(mem.memoryDate) }}</span>
+
+            <!-- Actions Bar: Heart + Add to Collection -->
+            <div class="card-quick-actions">
+              <button 
+                type="button" 
+                class="icon-action-btn heart-btn active"
+                (click)="toggleFavorite(mem, $event)"
+                matTooltip="Remove from favorites"
+                aria-label="Remove favorite">
+                <mat-icon>favorite</mat-icon>
+              </button>
+
+              <button 
+                type="button" 
+                class="icon-action-btn bookmark-btn"
+                (click)="openAddToCollection(mem, $event)"
+                matTooltip="Add to collection"
+                aria-label="Add to collection">
+                <mat-icon>bookmark_add</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Narrative Pane -->
+          <div class="card-body">
+            @if (mem.journeyTitle) {
+              <span class="card-journey-tag">
+                <mat-icon>auto_stories</mat-icon>
+                <span>{{ mem.journeyTitle }}</span>
+              </span>
+            }
+
+            <h3 class="card-title">{{ mem.title }}</h3>
+            <p class="card-excerpt">"{{ mem.story }}"</p>
+
+            <div class="card-footer">
+              @if (mem.locationName) {
+                <span class="location-tag">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ mem.locationName }}</span>
+                </span>
+              }
+
+              <div class="author-info">
+                <img 
+                  [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [alt]="mem.createdBy.fullName || 'Author'" 
+                  class="author-avatar"
+                />
+                <span class="author-name">{{ mem.createdBy.fullName || 'Friend' }}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (!isLastPage()) {
+      <div class="pagination-footer">
+        <button 
+          type="button" 
+          class="load-more-btn" 
+          (click)="loadMore()" 
+          [disabled]="isLoadingMore()">
+          @if (isLoadingMore()) {
+            <mat-spinner diameter="18"></mat-spinner>
+            <span>Retrieving earlier moments...</span>
+          } @else {
+            <mat-icon>expand_more</mat-icon>
+            <span>Load More Favorites</span>
+          }
+        </button>
+      </div>
+    }
+
+  }
+
+</div>

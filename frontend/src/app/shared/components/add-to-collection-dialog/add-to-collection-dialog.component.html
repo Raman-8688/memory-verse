@@ -1,0 +1,127 @@
+<div class="dialog-wrapper">
+  <!-- Dialog Header -->
+  <header class="dialog-header">
+    <div class="header-titles">
+      <span class="dialog-kicker">CURATE MOMENT</span>
+      <h2 class="dialog-title">Add to Collection</h2>
+    </div>
+    <button type="button" class="dialog-close-btn" (click)="close()" aria-label="Close dialog">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <!-- Memory Excerpt Preview -->
+  <div class="memory-preview-strip">
+    <mat-icon class="preview-icon">auto_stories</mat-icon>
+    <div class="preview-text">
+      <span class="preview-title">{{ data.memory.title }}</span>
+      <span class="preview-date">{{ data.memory.memoryDate }}</span>
+    </div>
+  </div>
+
+  <mat-dialog-content class="dialog-body-scroll">
+    <!-- Existing Collections List -->
+    @if (isLoading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading collections...</span>
+      </div>
+    } @else {
+      @if (collections().length > 0) {
+        <div class="collections-list">
+          @for (c of collections(); track c.id) {
+            <div class="collection-row">
+              <div class="collection-info">
+                <div class="collection-avatar">
+                  @if (c.coverImageUrl) {
+                    <img [src]="c.coverImageUrl" [alt]="c.title" mvFallback class="collection-thumb" />
+                  } @else {
+                    <mat-icon class="folder-icon">folder_special</mat-icon>
+                  }
+                </div>
+                <div class="collection-meta">
+                  <h4 class="collection-name">{{ c.title }}</h4>
+                  <span class="collection-count">{{ c.memoryCount }} moments</span>
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                class="add-btn" 
+                (click)="addToCollection(c)"
+                [disabled]="addingToId() === c.id">
+                @if (addingToId() === c.id) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                } @else {
+                  <mat-icon>add</mat-icon>
+                  <span>Add</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+      } @else if (!showNewForm()) {
+        <div class="empty-collections-state">
+          <mat-icon class="empty-icon">collections_bookmark</mat-icon>
+          <p class="empty-text">You haven't created any collections yet.</p>
+        </div>
+      }
+
+      <!-- New Collection Toggle or Form -->
+      <div class="new-collection-section">
+        @if (!showNewForm()) {
+          <button type="button" class="toggle-new-btn" (click)="showNewForm.set(true)">
+            <mat-icon>add_circle_outline</mat-icon>
+            <span>Create New Collection</span>
+          </button>
+        } @else {
+          <div class="new-collection-form">
+            <h4 class="form-heading">New Collection</h4>
+
+            <div class="form-field">
+              <label class="field-label" for="newColTitle">Collection Title *</label>
+              <input 
+                id="newColTitle"
+                type="text" 
+                [(ngModel)]="newTitle" 
+                placeholder="e.g. Best Cafe Moments, Roadtrips, Recipes" 
+                class="field-input"
+                maxlength="150"
+              />
+            </div>
+
+            <div class="form-field">
+              <label class="field-label" for="newColDesc">Description (Optional)</label>
+              <textarea 
+                id="newColDesc"
+                [(ngModel)]="newDescription" 
+                placeholder="What brings these moments together?" 
+                class="field-textarea"
+                rows="2"
+              ></textarea>
+            </div>
+
+            <div class="form-actions-row">
+              <button type="button" class="btn-cancel" (click)="showNewForm.set(false)">
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                class="btn-submit" 
+                (click)="createAndAdd()" 
+                [disabled]="!newTitle.trim() || isCreating()">
+                @if (isCreating()) {
+                  <mat-spinner diameter="16"></mat-spinner>
+                  <span>Creating...</span>
+                } @else {
+                  <mat-icon>bookmark_add</mat-icon>
+                  <span>Create & Add</span>
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </mat-dialog-content>
+</div>

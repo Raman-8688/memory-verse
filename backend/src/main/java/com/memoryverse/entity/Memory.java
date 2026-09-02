@@ -21,7 +21,8 @@ import java.util.UUID;
         @Index(name = "idx_memories_journey_id", columnList = "journey_id"),
         @Index(name = "idx_memories_section_id", columnList = "section_id"),
         @Index(name = "idx_memories_created_by", columnList = "created_by"),
-        @Index(name = "idx_memories_created_at", columnList = "created_at")
+        @Index(name = "idx_memories_created_at", columnList = "created_at"),
+        @Index(name = "idx_memories_is_favorite", columnList = "is_favorite")
 })
 @Getter
 @Setter
@@ -56,6 +57,10 @@ public class Memory {
     @Column(name = "is_featured", nullable = false)
     @Builder.Default
     private Boolean isFeatured = false;
+
+    @Column(name = "is_favorite", nullable = false)
+    @Builder.Default
+    private Boolean isFavorite = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journey_id", nullable = false)

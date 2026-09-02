@@ -7,6 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { MemoryService } from '@core/services/memory.service';
 import { JourneyService } from '@core/services/journey.service';
@@ -14,6 +16,7 @@ import { MediaCaptureService } from '@core/services/media-capture.service';
 import { Memory, MemoryFilterParams } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { PagedResponse } from '@core/models/api-response.model';
+import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
 
 export interface TimelineMonthGroup {
   monthKey: string;
@@ -39,6 +42,8 @@ export interface TimelineYearGroup {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatDialogModule,
+    MatSnackBarModule,
     ImageFallbackDirective
   ],
   templateUrl: './timeline.component.html',
@@ -50,6 +55,8 @@ export class TimelineComponent implements OnInit, OnDestroy {
   readonly captureService = inject(MediaCaptureService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   // State Signals
   readonly memories = signal<Memory[]>([]);
@@ -313,6 +320,37 @@ export class TimelineComponent implements OnInit, OnDestroy {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric'
+    });
+  }
+
+  toggleFavorite(memory: Memory, event: Event): void {
+    event.stopPropagation();
+    const previous = memory.isFavorite;
+    memory.isFavorite = !previous;
+    this.memories.update(list => [...list]);
+
+    this.memoryService.toggleFavorite(memory.id).subscribe({
+      next: (updated) => {
+        memory.isFavorite = updated.isFavorite;
+        const msg = updated.isFavorite ? 'Saved to favorites' : 'Removed from favorites';
+        this.snackBar.open(msg, 'Undo', { duration: 3000 }).onAction().subscribe(() => {
+          this.toggleFavorite(memory, event);
+        });
+      },
+      error: () => {
+        memory.isFavorite = previous;
+        this.memories.update(list => [...list]);
+        this.snackBar.open('Unable to update favorite', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  openAddToCollection(memory: Memory, event: Event): void {
+    event.stopPropagation();
+    this.dialog.open(AddToCollectionDialogComponent, {
+      data: { memory },
+      width: '460px',
+      panelClass: 'mv-dialog-panel'
     });
   }
 

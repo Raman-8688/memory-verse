@@ -26,6 +26,10 @@ export class MemoryService {
     return this.api.get<Memory>(`/memories/${id}`);
   }
 
+  toggleFavorite(id: string): Observable<Memory> {
+    return this.api.post<Memory>(`/memories/${id}/favorite`, {});
+  }
+
   createMemory(dto: MemoryCreateDto, files?: File[]): Observable<Memory> {
     if (!files || files.length === 0) {
       return this.api.post<Memory>('/memories/json', dto);

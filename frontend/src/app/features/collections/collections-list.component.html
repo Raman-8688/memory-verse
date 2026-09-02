@@ -1,0 +1,175 @@
+<div class="collections-container">
+
+  <!-- Header -->
+  <header class="collections-header">
+    <div class="header-left">
+      <span class="collections-kicker">THEMATIC ALBUMS</span>
+      <h1 class="collections-title">Collections</h1>
+      <p class="collections-subtitle">Group your memories into living anthologies, roadtrips, recipes, and cherished themes.</p>
+    </div>
+
+    <div class="header-right">
+      <button type="button" class="btn-new-collection" (click)="openCreateModal()">
+        <mat-icon>add</mat-icon>
+        <span>New Collection</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- States -->
+  @if (isLoading()) {
+    <div class="collections-bookshelf-grid skeleton-grid">
+      <div class="skeleton-book skeleton-box"></div>
+      <div class="skeleton-book skeleton-box"></div>
+      <div class="skeleton-book skeleton-box"></div>
+      <div class="skeleton-book skeleton-box"></div>
+    </div>
+  } @else if (hasError()) {
+    <div class="status-card error-card">
+      <div class="status-icon-wrap error-icon">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h2 class="status-title">Unable to load collections</h2>
+      <p class="status-desc">Something went wrong while retrieving your albums.</p>
+      <button type="button" class="action-pill-btn primary" (click)="loadCollections()">
+        <mat-icon>refresh</mat-icon>
+        <span>Try Again</span>
+      </button>
+    </div>
+  } @else if (collections().length === 0) {
+    <div class="status-card empty-card">
+      <div class="status-icon-wrap">
+        <mat-icon>collections_bookmark</mat-icon>
+      </div>
+      <h2 class="status-title">No collections created yet</h2>
+      <p class="status-desc">
+        Start grouping your memories into albums like "Best Cafe Moments", "Pets", or "Roadtrips".
+      </p>
+      <button type="button" class="action-pill-btn primary" (click)="openCreateModal()">
+        <mat-icon>add</mat-icon>
+        <span>Create First Collection</span>
+      </button>
+    </div>
+  } @else {
+
+    <!-- Digital Bookshelf / Album Grid -->
+    <div class="collections-bookshelf-grid">
+      @for (col of collections(); track col.id) {
+        <article class="collection-book-card" [routerLink]="['/collections', col.id]">
+          <!-- Hero Cover Image -->
+          <div class="book-cover-pane">
+            <img 
+              [src]="getHeroImage(col)" 
+              [alt]="col.title" 
+              loading="lazy" 
+              mvFallback 
+              class="book-img"
+            />
+            <div class="book-cover-overlay"></div>
+            <span class="memory-count-pill">
+              <mat-icon>photo_library</mat-icon>
+              <span>{{ col.memoryCount }} {{ col.memoryCount === 1 ? 'moment' : 'moments' }}</span>
+            </span>
+
+            <!-- Delete action -->
+            <button 
+              type="button" 
+              class="delete-btn" 
+              (click)="deleteCollection(col, $event)"
+              matTooltip="Delete collection"
+              aria-label="Delete collection">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+
+          <!-- Narrative Spine & Details -->
+          <div class="book-info-pane">
+            <h3 class="book-title">{{ col.title }}</h3>
+            @if (col.description) {
+              <p class="book-desc">{{ col.description }}</p>
+            }
+            <div class="book-footer">
+              <span class="explore-link">
+                <span>View Collection</span>
+                <mat-icon>arrow_forward</mat-icon>
+              </span>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+  }
+
+  <!-- Create Collection Modal -->
+  @if (isCreateModalOpen()) {
+    <div class="modal-backdrop" (click)="closeCreateModal()">
+      <div class="modal-panel" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div class="modal-titles">
+            <span class="modal-kicker">NEW ANTHOLOGY</span>
+            <h2 class="modal-title">Create Collection</h2>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeCreateModal()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="form-field">
+            <label class="field-label" for="colTitle">Title *</label>
+            <input 
+              id="colTitle"
+              type="text" 
+              [(ngModel)]="newTitle" 
+              placeholder="e.g. Best Cafe Moments, Roadtrips, Architecture" 
+              class="field-input"
+              maxlength="150"
+            />
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="colDesc">Description (Optional)</label>
+            <textarea 
+              id="colDesc"
+              [(ngModel)]="newDescription" 
+              placeholder="Describe the theme or story behind this collection..." 
+              class="field-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="form-field">
+            <label class="field-label" for="colCover">Cover Image URL (Optional)</label>
+            <input 
+              id="colCover"
+              type="text" 
+              [(ngModel)]="newCoverUrl" 
+              placeholder="https://images.unsplash.com/..." 
+              class="field-input"
+            />
+            <span class="field-hint">Leave empty to auto-pick from the latest memory added.</span>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeCreateModal()">Cancel</button>
+          <button 
+            type="button" 
+            class="btn-submit" 
+            (click)="submitCreateCollection()" 
+            [disabled]="!newTitle.trim() || isSubmitting()">
+            @if (isSubmitting()) {
+              <mat-spinner diameter="16"></mat-spinner>
+              <span>Creating...</span>
+            } @else {
+              <mat-icon>bookmark_add</mat-icon>
+              <span>Create Collection</span>
+            }
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+</div>

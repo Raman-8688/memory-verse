@@ -218,6 +218,28 @@
                             {{ mem.mediaList.length }}
                           </span>
                         }
+
+                        <!-- Quick actions: Heart + Add to Collection -->
+                        <div class="card-quick-actions">
+                          <button 
+                            type="button" 
+                            class="icon-action-btn heart-btn"
+                            [class.active]="mem.isFavorite"
+                            (click)="toggleFavorite(mem, $event)"
+                            matTooltip="Favorite moment"
+                            aria-label="Favorite moment">
+                            <mat-icon>{{ mem.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+                          </button>
+
+                          <button 
+                            type="button" 
+                            class="icon-action-btn bookmark-btn"
+                            (click)="openAddToCollection(mem, $event)"
+                            matTooltip="Add to collection"
+                            aria-label="Add to collection">
+                            <mat-icon>bookmark_add</mat-icon>
+                          </button>
+                        </div>
                       </div>
 
                       <!-- Narrative & Context -->

@@ -164,7 +164,7 @@ public class MemoryServiceImpl implements MemoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Pageable pageable) {
+    public PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Boolean isFavorite, Pageable pageable) {
         Specification<Memory> spec = Specification.where(null);
 
         if (journeyId != null) {
@@ -193,6 +193,10 @@ public class MemoryServiceImpl implements MemoryService {
             spec = spec.and((root, query, cb) -> cb.equal(root.join("taggedUsers").get("id"), userId));
         }
 
+        if (Boolean.TRUE.equals(isFavorite)) {
+            spec = spec.and((root, query, cb) -> cb.isTrue(root.get("isFavorite")));
+        }
+
         if (search != null && !search.isBlank()) {
             String term = "%" + search.toLowerCase().trim() + "%";
             spec = spec.and((root, query, cb) -> cb.or(
@@ -217,6 +221,19 @@ public class MemoryServiceImpl implements MemoryService {
     @Transactional(readOnly = true)
     public List<Integer> getAvailableYears() {
         return memoryRepository.findDistinctMemoryYears();
+    }
+
+    @Override
+    @Transactional
+    public MemoryResponseDto toggleFavorite(UUID memoryId, UUID currentUserId) {
+        Memory memory = memoryRepository.findById(memoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
+
+        boolean newFavorite = !Boolean.TRUE.equals(memory.getIsFavorite());
+        memory.setIsFavorite(newFavorite);
+        Memory saved = memoryRepository.save(memory);
+        log.info("Toggled memory {} favorite to {} by user {}", memoryId, newFavorite, currentUserId);
+        return MemoryResponseDto.fromEntity(saved);
     }
 
     @Override

@@ -54,6 +54,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/timeline/timeline.component').then(m => m.TimelineComponent)
       },
       {
+        path: 'favorites',
+        loadComponent: () => import('./features/favorites/favorites.component').then(m => m.FavoritesComponent)
+      },
+      {
+        path: 'collections',
+        loadComponent: () => import('./features/collections/collections-list.component').then(m => m.CollectionsListComponent)
+      },
+      {
+        path: 'collections/:id',
+        loadComponent: () => import('./features/collections/collection-detail.component').then(m => m.CollectionDetailComponent)
+      },
+      {
         path: 'places',
         loadComponent: () => import('./features/places/places.component').then(m => m.PlacesComponent)
       },

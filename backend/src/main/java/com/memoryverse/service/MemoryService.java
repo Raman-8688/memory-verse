@@ -16,11 +16,13 @@ public interface MemoryService {
 
     PagedResponse<MemoryResponseDto> getMemoriesTaggedWithUser(UUID userId, Pageable pageable);
 
-    PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Pageable pageable);
+    PagedResponse<MemoryResponseDto> getMemories(UUID journeyId, UUID sectionId, String search, Integer year, Integer month, UUID userId, Boolean isFavorite, Pageable pageable);
 
     List<Integer> getAvailableYears();
 
     MemoryResponseDto getMemoryById(UUID id);
+
+    MemoryResponseDto toggleFavorite(UUID memoryId, UUID currentUserId);
 
     MemoryResponseDto updateMemory(UUID memoryId, MemoryUpdateDto dto, UUID currentUserId);
 

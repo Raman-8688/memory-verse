@@ -62,11 +62,19 @@ public class MemoryController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) Boolean isFavorite,
             @Valid PageRequestDto pageRequest) {
         
         PagedResponse<MemoryResponseDto> memories = memoryService.getMemories(
-                journeyId, sectionId, search, year, month, userId, pageRequest.toPageable());
+                journeyId, sectionId, search, year, month, userId, isFavorite, pageRequest.toPageable());
         return ResponseEntity.ok(ApiResponse.success(memories));
+    }
+
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<ApiResponse<MemoryResponseDto>> toggleFavorite(@PathVariable UUID id) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        MemoryResponseDto updated = memoryService.toggleFavorite(id, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(Boolean.TRUE.equals(updated.getIsFavorite()) ? "Memory added to favorites" : "Memory removed from favorites", updated));
     }
 
     @GetMapping("/years")

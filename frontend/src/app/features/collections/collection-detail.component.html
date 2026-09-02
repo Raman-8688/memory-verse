@@ -1,0 +1,169 @@
+<div class="collection-detail-container">
+
+  <!-- Top Navigation & Banner -->
+  @if (collection(); as col) {
+    <div class="top-nav-row">
+      <a routerLink="/collections" class="back-link">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to Collections</span>
+      </a>
+    </div>
+
+    <header class="collection-hero-banner">
+      <div class="banner-cover-pane">
+        <img 
+          [src]="col.coverImageUrl || 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80'" 
+          [alt]="col.title" 
+          mvFallback 
+          class="banner-img"
+        />
+        <div class="banner-gradient"></div>
+
+        <div class="banner-content">
+          <span class="banner-kicker">THEMATIC ALBUM</span>
+          <h1 class="banner-title">{{ col.title }}</h1>
+          @if (col.description) {
+            <p class="banner-desc">{{ col.description }}</p>
+          }
+          <div class="banner-meta">
+            <span class="meta-pill">
+              <mat-icon>photo_library</mat-icon>
+              <span>{{ col.memoryCount }} {{ col.memoryCount === 1 ? 'moment' : 'moments' }}</span>
+            </span>
+            <span class="meta-curator">Curated by {{ col.createdBy.fullName }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  }
+
+  <!-- Content States -->
+  @if (isLoading()) {
+    <div class="memories-grid skeleton-grid">
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+      <div class="skeleton-card skeleton-box"></div>
+    </div>
+  } @else if (hasError()) {
+    <div class="status-card error-card">
+      <div class="status-icon-wrap error-icon">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h2 class="status-title">Unable to load collection</h2>
+      <p class="status-desc">Something went wrong while retrieving this album's moments.</p>
+      <button type="button" class="action-pill-btn primary" (click)="loadCollectionData()">
+        <mat-icon>refresh</mat-icon>
+        <span>Try Again</span>
+      </button>
+    </div>
+  } @else if (memories().length === 0) {
+    <div class="status-card empty-card">
+      <div class="status-icon-wrap">
+        <mat-icon>photo_album</mat-icon>
+      </div>
+      <h2 class="status-title">No moments in this collection yet</h2>
+      <p class="status-desc">
+        Explore your Timeline or Dashboard and tap the bookmark icon on any memory to add it to this collection.
+      </p>
+      <a routerLink="/timeline" class="action-pill-btn primary">
+        <mat-icon>schedule</mat-icon>
+        <span>Explore Timeline</span>
+      </a>
+    </div>
+  } @else {
+
+    <!-- Memories Grid -->
+    <div class="memories-grid">
+      @for (mem of memories(); track mem.id) {
+        <article class="memory-card" [routerLink]="['/memories', mem.id]">
+          <!-- Media Pane -->
+          <div class="card-media-pane">
+            <img 
+              [src]="getCoverUrl(mem)" 
+              [alt]="mem.title" 
+              loading="lazy" 
+              mvFallback 
+              class="card-img"
+            />
+            <div class="card-media-overlay"></div>
+            <span class="card-date-badge">{{ formatDate(mem.memoryDate) }}</span>
+
+            <!-- Quick actions: Favorite + Remove from collection -->
+            <div class="card-quick-actions">
+              <button 
+                type="button" 
+                class="icon-action-btn heart-btn"
+                [class.active]="mem.isFavorite"
+                (click)="toggleFavorite(mem, $event)"
+                matTooltip="Favorite moment"
+                aria-label="Favorite moment">
+                <mat-icon>{{ mem.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+              </button>
+
+              <button 
+                type="button" 
+                class="icon-action-btn remove-btn"
+                (click)="removeMemoryFromCollection(mem, $event)"
+                matTooltip="Remove from collection"
+                aria-label="Remove from collection">
+                <mat-icon>bookmark_remove</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="card-body">
+            @if (mem.journeyTitle) {
+              <span class="card-journey-tag">
+                <mat-icon>auto_stories</mat-icon>
+                <span>{{ mem.journeyTitle }}</span>
+              </span>
+            }
+
+            <h3 class="card-title">{{ mem.title }}</h3>
+            <p class="card-excerpt">"{{ mem.story }}"</p>
+
+            <div class="card-footer">
+              @if (mem.locationName) {
+                <span class="location-tag">
+                  <mat-icon>place</mat-icon>
+                  <span>{{ mem.locationName }}</span>
+                </span>
+              }
+
+              <div class="author-info">
+                <img 
+                  [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [alt]="mem.createdBy.fullName || 'Author'" 
+                  class="author-avatar"
+                />
+                <span class="author-name">{{ mem.createdBy.fullName || 'Friend' }}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (!isLastPage()) {
+      <div class="pagination-footer">
+        <button 
+          type="button" 
+          class="load-more-btn" 
+          (click)="loadMore()" 
+          [disabled]="isLoadingMore()">
+          @if (isLoadingMore()) {
+            <mat-spinner diameter="18"></mat-spinner>
+            <span>Retrieving more moments...</span>
+          } @else {
+            <mat-icon>expand_more</mat-icon>
+            <span>Load More Moments</span>
+          }
+        </button>
+      </div>
+    }
+
+  }
+
+</div>
