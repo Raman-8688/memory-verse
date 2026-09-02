@@ -81,7 +81,7 @@
   } @else {
     <!-- Premium 1:1 Responsive Media Grid -->
     <main class="uniform-media-grid">
-      @for (item of items(); track item.id; let idx = $index) {
+      @for (item of items(); track (item.id || '') + '-' + idx; let idx = $index) {
         <article class="media-tile-card" (click)="openLightbox(idx)">
           
           <!-- Media Thumbnail -->

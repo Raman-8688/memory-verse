@@ -12,11 +12,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -28,10 +32,12 @@ public class GalleryServiceImpl implements GalleryService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = RedisConfig.CACHE_GALLERY, key = "{#journeyId, #sectionId, #mediaType, #taggedUserId, #pageable.pageNumber, #pageable.pageSize}")
+    @Cacheable(value = RedisConfig.CACHE_GALLERY, key = "{#journeyId, #sectionId, #mediaType, #taggedUserId, #pageable.pageNumber, #pageable.pageSize, #pageable.sort.toString()}")
     public PagedResponse<GalleryItemDto> getGalleryItems(UUID journeyId, UUID sectionId, MediaType mediaType, UUID taggedUserId, Pageable pageable) {
         log.info("Fetching gallery items: journey={}, section={}, type={}, taggedUser={}, page={}",
                 journeyId, sectionId, mediaType, taggedUserId, pageable.getPageNumber());
+
+        Pageable effectivePageable = sanitizePageable(pageable);
 
         Specification<Media> spec = Specification.where(null);
 
@@ -55,7 +61,7 @@ public class GalleryServiceImpl implements GalleryService {
             });
         }
 
-        Page<Media> page = mediaRepository.findAll(spec, pageable);
+        Page<Media> page = mediaRepository.findAll(spec, effectivePageable);
 
         return PagedResponse.<GalleryItemDto>builder()
                 .content(page.getContent().stream().map(GalleryItemDto::fromEntity).toList())
@@ -65,5 +71,26 @@ public class GalleryServiceImpl implements GalleryService {
                 .totalPages(page.getTotalPages())
                 .last(page.isLast())
                 .build();
+    }
+
+    private Pageable sanitizePageable(Pageable pageable) {
+        if (pageable == null || pageable.getSort().isUnsorted()) {
+            return pageable;
+        }
+
+        List<Sort.Order> mappedOrders = new ArrayList<>();
+        for (Sort.Order order : pageable.getSort()) {
+            String property = order.getProperty();
+            if ("memoryDate".equalsIgnoreCase(property) || "date".equalsIgnoreCase(property)) {
+                mappedOrders.add(new Sort.Order(order.getDirection(), "memory.memoryDate"));
+            } else if ("journey".equalsIgnoreCase(property) || "journeyTitle".equalsIgnoreCase(property)) {
+                mappedOrders.add(new Sort.Order(order.getDirection(), "memory.journey.title"));
+            } else if ("section".equalsIgnoreCase(property) || "sectionTitle".equalsIgnoreCase(property)) {
+                mappedOrders.add(new Sort.Order(order.getDirection(), "memory.section.title"));
+            } else {
+                mappedOrders.add(order);
+            }
+        }
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(mappedOrders));
     }
 }

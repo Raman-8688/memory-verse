@@ -9,6 +9,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { CollectionService } from '@core/services/collection.service';
+import { MediaService } from '@core/services/media.service';
 import { Collection } from '@core/models/collection.model';
 
 @Component({
@@ -30,6 +31,7 @@ import { Collection } from '@core/models/collection.model';
 })
 export class CollectionsListComponent implements OnInit {
   private readonly collectionService = inject(CollectionService);
+  private readonly mediaService = inject(MediaService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly collections = signal<Collection[]>([]);
@@ -39,6 +41,12 @@ export class CollectionsListComponent implements OnInit {
   // Creation modal state
   readonly isCreateModalOpen = signal<boolean>(false);
   readonly isSubmitting = signal<boolean>(false);
+  readonly isUploadingCover = signal<boolean>(false);
+  readonly selectedCoverFile = signal<File | null>(null);
+  readonly selectedCoverFileName = signal<string>('');
+  readonly coverPreviewUrl = signal<string | null>(null);
+  readonly showUrlInput = signal<boolean>(false);
+
   newTitle = '';
   newDescription = '';
   newCoverUrl = '';
@@ -67,11 +75,40 @@ export class CollectionsListComponent implements OnInit {
     this.newTitle = '';
     this.newDescription = '';
     this.newCoverUrl = '';
+    this.selectedCoverFile.set(null);
+    this.selectedCoverFileName.set('');
+    this.coverPreviewUrl.set(null);
+    this.showUrlInput.set(false);
     this.isCreateModalOpen.set(true);
   }
 
   closeCreateModal(): void {
     this.isCreateModalOpen.set(false);
+    this.selectedCoverFile.set(null);
+    this.selectedCoverFileName.set('');
+    this.coverPreviewUrl.set(null);
+    this.showUrlInput.set(false);
+  }
+
+  onCoverFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.selectedCoverFile.set(file);
+    this.selectedCoverFileName.set(`${file.name} (${Math.round(file.size / 1024)} KB)`);
+    this.coverPreviewUrl.set(URL.createObjectURL(file));
+    input.value = '';
+  }
+
+  removeCoverFile(): void {
+    this.selectedCoverFile.set(null);
+    this.selectedCoverFileName.set('');
+    this.coverPreviewUrl.set(null);
+  }
+
+  toggleUrlInput(): void {
+    this.showUrlInput.update(v => !v);
   }
 
   submitCreateCollection(): void {
@@ -79,15 +116,39 @@ export class CollectionsListComponent implements OnInit {
     if (!title) return;
 
     this.isSubmitting.set(true);
+
+    const file = this.selectedCoverFile();
+    if (file) {
+      // Step 1: Upload cover photo from device
+      this.isUploadingCover.set(true);
+      this.mediaService.uploadSingleFile(file).subscribe({
+        next: (uploaded) => {
+          this.isUploadingCover.set(false);
+          this.executeCreateCollection(title, uploaded.mediaUrl);
+        },
+        error: (err) => {
+          this.isUploadingCover.set(false);
+          this.isSubmitting.set(false);
+          console.error('Failed to upload collection cover photo:', err);
+          this.snackBar.open('Unable to upload cover photo. Please try again.', 'Close', { duration: 3500 });
+        }
+      });
+    } else {
+      const coverUrl = this.newCoverUrl.trim() || undefined;
+      this.executeCreateCollection(title, coverUrl);
+    }
+  }
+
+  private executeCreateCollection(title: string, coverImageUrl?: string): void {
     this.collectionService.createCollection({
       title,
       description: this.newDescription.trim() || undefined,
-      coverImageUrl: this.newCoverUrl.trim() || undefined
+      coverImageUrl
     }).subscribe({
       next: (created) => {
         this.collections.update(curr => [created, ...curr]);
         this.isSubmitting.set(false);
-        this.isCreateModalOpen.set(false);
+        this.closeCreateModal();
         this.snackBar.open(`Created collection "${created.title}"`, 'Close', { duration: 3000 });
       },
       error: () => {

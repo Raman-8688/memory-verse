@@ -8,6 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 
 import { AiAssistantService } from '../../core/services/ai-assistant.service';
 import { RelatedMedia } from '../../core/models/ai.model';
@@ -26,7 +27,8 @@ import { GalleryItem } from '../../core/models/gallery.model';
     MatChipsModule,
     MatDialogModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ImageFallbackDirective
   ],
   templateUrl: './assistant.component.html',
   styleUrl: './assistant.component.scss'

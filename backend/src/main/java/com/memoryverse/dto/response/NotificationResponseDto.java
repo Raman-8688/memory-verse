@@ -1,5 +1,6 @@
 package com.memoryverse.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.memoryverse.entity.Notification;
 import com.memoryverse.entity.NotificationType;
 import lombok.AllArgsConstructor;
@@ -19,8 +20,20 @@ public class NotificationResponseDto {
     private String message;
     private NotificationType type;
     private UUID relatedEntityId;
+
+    @JsonProperty("isRead")
     private boolean isRead;
+
     private Instant createdAt;
+
+    @JsonProperty("isRead")
+    public boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
 
     public static NotificationResponseDto fromEntity(Notification notification) {
         if (notification == null) return null;

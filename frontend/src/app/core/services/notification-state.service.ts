@@ -85,9 +85,15 @@ export class NotificationStateService {
 
   loadNotifications(page = 0, size = 30): void {
     this.isLoading.set(true);
-    this.api.get<PagedResponse<NotificationItem>>('/notifications', { page, size }).subscribe({
+    this.api.get<PagedResponse<any>>('/notifications', { page, size }).subscribe({
       next: (res) => {
-        this.notifications.set(res.content || []);
+        const rawList = res.content || [];
+        const normalized: NotificationItem[] = rawList.map((item: any) => ({
+          ...item,
+          isRead: item.isRead !== undefined ? Boolean(item.isRead) : Boolean(item.read),
+          read: item.read !== undefined ? Boolean(item.read) : Boolean(item.isRead)
+        }));
+        this.notifications.set(normalized);
         this.isLoading.set(false);
         // Refresh unread count in sync
         this.loadUnreadCount();
@@ -109,7 +115,7 @@ export class NotificationStateService {
   markAsRead(id: string): void {
     // Optimistic UI update
     this.notifications.update(list =>
-      list.map(item => item.id === id ? { ...item, isRead: true } : item)
+      list.map(item => item.id === id ? { ...item, isRead: true, read: true } : item)
     );
     this.unreadCount.update(c => Math.max(0, c - 1));
 
@@ -122,7 +128,7 @@ export class NotificationStateService {
   markAllAsRead(): void {
     // Optimistic UI update
     this.notifications.update(list =>
-      list.map(item => ({ ...item, isRead: true }))
+      list.map(item => ({ ...item, isRead: true, read: true }))
     );
     this.unreadCount.set(0);
 

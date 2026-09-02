@@ -55,6 +55,13 @@ export class NotificationsListComponent implements OnInit {
     }
   }
 
+  onMarkAsReadClick(item: NotificationItem, event: Event): void {
+    event.stopPropagation();
+    if (!item.isRead) {
+      this.notificationState.markAsRead(item.id);
+    }
+  }
+
   getNotificationIcon(type: NotificationType): string {
     switch (type) {
       case 'TAGGED':

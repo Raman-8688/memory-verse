@@ -90,9 +90,15 @@
             <p class="activity-message">{{ item.message }}</p>
           </div>
 
-          <!-- Unread Dot Indicator -->
+          <!-- Unread Dot Indicator & Quick Read Action -->
           @if (!item.isRead) {
-            <div class="unread-indicator-dot" title="Unread notification"></div>
+            <button 
+              type="button" 
+              class="unread-indicator-btn" 
+              (click)="onMarkAsReadClick(item, $event)" 
+              title="Mark as read">
+              <span class="unread-indicator-dot"></span>
+            </button>
           }
 
           <mat-icon class="card-chevron">chevron_right</mat-icon>

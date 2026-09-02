@@ -51,6 +51,13 @@
   box-sizing: border-box;
   scroll-behavior: smooth;
 
+  &:has(mv-assistant) {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
   /* Subtle, modern scrollbar for the central reading pane */
   scrollbar-width: thin;
   scrollbar-color: var(--mv-border) transparent;
@@ -91,5 +98,11 @@
     overflow: visible;
     padding: var(--mv-space-16);
     padding-bottom: calc(84px + env(safe-area-inset-bottom, 20px));
+
+    &:has(mv-assistant) {
+      height: calc(100vh - 68px - 64px);
+      padding: 0;
+      overflow: hidden;
+    }
   }
 }

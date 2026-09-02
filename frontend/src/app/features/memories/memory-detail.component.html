@@ -180,7 +180,7 @@
               </div>
 
               <div class="gallery-grid">
-                @for (media of m.mediaList; track media.id; let idx = $index) {
+                @for (media of m.mediaList; track (media.id || '') + '-' + idx; let idx = $index) {
                   <div 
                     class="gallery-thumbnail-card" 
                     [class.active-thumb]="activeMedia()?.id === media.id"

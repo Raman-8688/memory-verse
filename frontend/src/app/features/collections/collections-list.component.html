@@ -139,21 +139,76 @@
             ></textarea>
           </div>
 
-          <div class="form-field">
-            <label class="field-label" for="colCover">Cover Image URL (Optional)</label>
+          <div class="form-field cover-field-group">
+            <label class="field-label">Cover Image (Optional)</label>
+
+            <!-- Hidden File Input -->
             <input 
-              id="colCover"
-              type="text" 
-              [(ngModel)]="newCoverUrl" 
-              placeholder="https://images.unsplash.com/..." 
-              class="field-input"
+              #coverFileInput 
+              type="file" 
+              accept="image/*" 
+              (change)="onCoverFileSelected($event)" 
+              style="display: none;" 
             />
+
+            <!-- Case A: Image Selected Preview -->
+            @if (coverPreviewUrl()) {
+              <div class="cover-preview-card">
+                <img [src]="coverPreviewUrl()" alt="Cover preview" class="cover-preview-img" />
+                <div class="cover-preview-overlay">
+                  <button type="button" class="preview-btn" (click)="coverFileInput.click()" title="Change photo">
+                    <mat-icon>photo_camera</mat-icon>
+                    <span>Change</span>
+                  </button>
+                  <button type="button" class="preview-btn remove-btn" (click)="removeCoverFile()" title="Remove photo">
+                    <mat-icon>delete_outline</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                </div>
+                <div class="cover-file-tag">
+                  <mat-icon>image</mat-icon>
+                  <span>{{ selectedCoverFileName() }}</span>
+                </div>
+              </div>
+            } @else {
+              <!-- Case B: Upload Dropzone -->
+              <div class="cover-capture-dropzone" (click)="coverFileInput.click()">
+                <div class="capture-icon-circle">
+                  <mat-icon>add_a_photo</mat-icon>
+                </div>
+                <div class="capture-text-content">
+                  <strong class="capture-main-text">Choose or Capture Cover Photo</strong>
+                  <span class="capture-sub-text">Upload from your phone gallery, camera, or computer</span>
+                </div>
+              </div>
+            }
+
+            <!-- URL Alternative Toggle -->
+            <div class="url-toggle-row">
+              <button type="button" class="toggle-url-btn" (click)="toggleUrlInput()">
+                <mat-icon>{{ showUrlInput() ? 'expand_less' : 'link' }}</mat-icon>
+                <span>{{ showUrlInput() ? 'Hide image URL field' : 'Or paste an image web URL' }}</span>
+              </button>
+            </div>
+
+            @if (showUrlInput()) {
+              <div class="url-input-container">
+                <input 
+                  id="colCover"
+                  type="text" 
+                  [(ngModel)]="newCoverUrl" 
+                  placeholder="https://images.unsplash.com/..." 
+                  class="field-input"
+                />
+              </div>
+            }
+
             <span class="field-hint">Leave empty to auto-pick from the latest memory added.</span>
           </div>
         </div>
 
         <footer class="modal-footer">
-          <button type="button" class="btn-cancel" (click)="closeCreateModal()">Cancel</button>
+          <button type="button" class="btn-cancel" (click)="closeCreateModal()" [disabled]="isSubmitting()">Cancel</button>
           <button 
             type="button" 
             class="btn-submit" 
@@ -161,7 +216,7 @@
             [disabled]="!newTitle.trim() || isSubmitting()">
             @if (isSubmitting()) {
               <mat-spinner diameter="16"></mat-spinner>
-              <span>Creating...</span>
+              <span>{{ isUploadingCover() ? 'Uploading Photo...' : 'Creating Collection...' }}</span>
             } @else {
               <mat-icon>bookmark_add</mat-icon>
               <span>Create Collection</span>

@@ -13,5 +13,6 @@ export interface NotificationItem {
   type: NotificationType;
   relatedEntityId?: string;
   isRead: boolean;
+  read?: boolean;
   createdAt: string;
 }
