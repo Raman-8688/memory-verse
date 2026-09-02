@@ -237,6 +237,7 @@ export class QuickCaptureBottomSheetComponent {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const filesArray = Array.from(input.files);
+      input.value = ''; // Reset immediately
       // Dismiss sheet and return captured in-memory File[] array
       this.bottomSheetRef.dismiss(filesArray);
     }

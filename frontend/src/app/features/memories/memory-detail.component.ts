@@ -161,17 +161,21 @@ export class MemoryDetailComponent implements OnInit {
   openEditDialog(m: Memory): void {
     const ref = this.dialog.open(MemoryEditDialogComponent, {
       data: m,
-      width: '580px'
+      width: '580px',
+      maxHeight: '85vh'
     });
 
     ref.afterClosed().subscribe((updated: Memory | undefined) => {
       if (updated) {
-        this.memory.update(curr => curr ? {
-          ...curr,
-          ...updated,
-          mediaList: curr.mediaList,
-          taggedUsers: curr.taggedUsers
-        } : updated);
+        this.memory.set(updated);
+        // Instant Hero Update Fix: update activeMedia immediately when media is added
+        if (updated.mediaList && updated.mediaList.length > 0) {
+          const currentActive = this.activeMedia();
+          if (!currentActive || !updated.mediaList.some(med => med.id === currentActive.id) || !currentActive.mediaUrl) {
+            this.activeMedia.set(updated.mediaList[0]);
+          }
+        }
+        this.loadRelatedMemories(updated);
         this.notificationState.refresh();
       }
     });
@@ -180,7 +184,29 @@ export class MemoryDetailComponent implements OnInit {
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-    const files = Array.from(input.files);
+    const rawFiles = Array.from(input.files);
+    // Crucially reset input value immediately so browser doesn't refire
+    input.value = '';
+
+    if (this.isUploadingMedia()) return;
+
+    // Deduplicate files by name and size
+    const existingFileNames = new Set(this.memory()?.mediaList?.map(med => med.fileName) || []);
+    const seen = new Set<string>();
+    const files: File[] = [];
+    for (const f of rawFiles) {
+      const key = `${f.name}_${f.size}`;
+      if (!seen.has(key) && !existingFileNames.has(f.name)) {
+        seen.add(key);
+        files.push(f);
+      }
+    }
+
+    if (files.length === 0) {
+      this.snackBar.open('Selected photos are already attached to this memory.', 'OK', { duration: 3000 });
+      return;
+    }
+
     const m = this.memory();
     if (!m) return;
 
@@ -199,13 +225,14 @@ export class MemoryDetailComponent implements OnInit {
           const updatedMemory: Memory = httpEvent.body?.data || httpEvent.body;
           if (updatedMemory) {
             this.memory.set(updatedMemory);
-            if (!this.activeMedia() && updatedMemory.mediaList?.length > 0) {
+            if (updatedMemory.mediaList && updatedMemory.mediaList.length > 0) {
+              // Update hero immediately!
               this.activeMedia.set(updatedMemory.mediaList[0]);
             }
+            this.loadRelatedMemories(updatedMemory);
           }
           this.notificationState.refresh();
           this.snackBar.open(`${files.length} photo(s) added successfully!`, 'OK', { duration: 3500 });
-          input.value = '';
         }
       },
       error: (err) => {
@@ -213,7 +240,6 @@ export class MemoryDetailComponent implements OnInit {
         console.error('Failed to append media:', err);
         const msg = err.error?.message || 'Failed to upload photos. Please try again.';
         this.snackBar.open(msg, 'Close', { duration: 4000 });
-        input.value = '';
       }
     });
   }

@@ -24,16 +24,15 @@ export class SidebarComponent {
   readonly notificationState = inject(NotificationStateService);
   readonly authService = inject(AuthService);
 
-  // Desktop Navigation per Phase 3 Shell Specification
   readonly primaryNavItems: NavItem[] = [
-    { path: '/dashboard', label: 'Home', icon: 'home', exact: true },
-    { path: '/assistant', label: 'Ask AI', icon: 'auto_awesome', isAi: true, exact: true },
+    { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard', exact: true },
+    { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: true },
     { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
     { path: '/timeline', label: 'Timeline', icon: 'schedule', exact: true },
     { path: '/places', label: 'Places', icon: 'place', exact: true },
     { path: '/people', label: 'People', icon: 'groups', exact: true },
-    { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: true },
-    { path: '/on-this-day', label: 'On This Day', icon: 'event_repeat', exact: true }
+    { path: '/on-this-day', label: 'On This Day', icon: 'event_repeat', exact: true },
+    { path: '/assistant', label: 'Ask AI', icon: 'auto_awesome', isAi: true, exact: true }
   ];
 
   readonly secondaryNavItems: NavItem[] = [

@@ -115,7 +115,24 @@ export class QuickAddReviewComponent implements OnInit, OnDestroy {
   }
 
   generatePreviews(files: File[]): void {
-    const items: PreviewItem[] = files.map(file => {
+    // Revoke previous blob URLs
+    this.previews().forEach(item => {
+      if (item.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+    });
+
+    const seen = new Set<string>();
+    const uniqueFiles: File[] = [];
+    for (const file of files) {
+      const key = `${file.name}_${file.size}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueFiles.push(file);
+      }
+    }
+
+    const items: PreviewItem[] = uniqueFiles.map(file => {
       const isVideo = file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4');
       const previewUrl = URL.createObjectURL(file);
       return {
@@ -146,8 +163,20 @@ export class QuickAddReviewComponent implements OnInit, OnDestroy {
     if (newFiles && newFiles.length > 0) {
       const existingFiles = this.previews().map(p => p.file);
       const combined = [...existingFiles, ...newFiles];
-      this.captureService.setCapturedFiles(combined);
-      this.generatePreviews(combined);
+
+      // Deduplicate combined files
+      const seen = new Set<string>();
+      const uniqueCombined: File[] = [];
+      for (const file of combined) {
+        const key = `${file.name}_${file.size}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueCombined.push(file);
+        }
+      }
+
+      this.captureService.setCapturedFiles(uniqueCombined);
+      this.generatePreviews(uniqueCombined);
     }
   }
 
@@ -232,7 +261,17 @@ export class QuickAddReviewComponent implements OnInit, OnDestroy {
       sectionId: formVal.sectionId || undefined
     };
 
-    const filesToUpload = this.previews().map(p => p.file);
+    // Deduplicate files to upload
+    const seen = new Set<string>();
+    const filesToUpload: File[] = [];
+    for (const item of this.previews()) {
+      const f = item.file;
+      const key = `${f.name}_${f.size}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        filesToUpload.push(f);
+      }
+    }
 
     this.isUploading.set(true);
     this.uploadProgress.set(5);
@@ -246,6 +285,7 @@ export class QuickAddReviewComponent implements OnInit, OnDestroy {
           this.uploadProgress.set(100);
           this.isUploading.set(false);
           this.captureService.clearCapturedFiles();
+          this.previews.set([]); // Completely clear previews
 
           const createdMemory = event.body?.data;
           this.snackBar.open('Memory published successfully to your journey archive!', 'View', {

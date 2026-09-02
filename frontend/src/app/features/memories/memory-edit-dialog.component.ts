@@ -46,90 +46,92 @@ interface EditPreviewItem {
           <span class="sub-label">Memory Archive</span>
           <h2 class="editorial-title">Edit Memory Story</h2>
         </div>
-        <button mat-icon-button class="close-btn" (click)="dialogRef.close()" [disabled]="isSaving()">
+        <button mat-icon-button class="close-btn" (click)="dialogRef.close()" [disabled]="isSaving()" aria-label="Close dialog">
           <mat-icon>close</mat-icon>
         </button>
       </header>
 
       <form [formGroup]="editForm" (ngSubmit)="save()" class="dialog-form">
-        <!-- Title -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Memory Title *</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. Sunset at Hostel Terrace" />
-          @if (editForm.get('title')?.hasError('required') && editForm.get('title')?.touched) {
-            <mat-error>A memory title is required.</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Date & Location Row -->
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Memory Date *</mat-label>
-            <input matInput [matDatepicker]="datePicker" formControlName="memoryDate" />
-            <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
-            <mat-datepicker #datePicker></mat-datepicker>
-            @if (editForm.get('memoryDate')?.hasError('required') && editForm.get('memoryDate')?.touched) {
-              <mat-error>A date is required.</mat-error>
+        <mat-dialog-content class="edit-dialog-scrollable-content">
+          <!-- Title -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Memory Title *</mat-label>
+            <input matInput formControlName="title" placeholder="e.g. Sunset at Hostel Terrace" />
+            @if (editForm.get('title')?.hasError('required') && editForm.get('title')?.touched) {
+              <mat-error>A memory title is required.</mat-error>
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Location</mat-label>
-            <input matInput formControlName="locationName" placeholder="e.g. Campus Amphitheater" />
-            <mat-icon matSuffix>place</mat-icon>
-          </mat-form-field>
-        </div>
+          <!-- Date & Location Row -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Memory Date *</mat-label>
+              <input matInput [matDatepicker]="datePicker" formControlName="memoryDate" />
+              <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+              <mat-datepicker #datePicker></mat-datepicker>
+              @if (editForm.get('memoryDate')?.hasError('required') && editForm.get('memoryDate')?.touched) {
+                <mat-error>A date is required.</mat-error>
+              }
+            </mat-form-field>
 
-        <!-- Story Narrative -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>The Story & Notes *</mat-label>
-          <textarea matInput formControlName="story" rows="4" placeholder="Share what happened in this moment..."></textarea>
-          @if (editForm.get('story')?.hasError('required') && editForm.get('story')?.touched) {
-            <mat-error>The story narrative cannot be empty.</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Upload & Append Photos Section -->
-        <div class="media-upload-section">
-          <div class="upload-section-header">
-            <div>
-              <span class="upload-title">Capture & Append Photos</span>
-              <span class="upload-desc">Add new snapshots directly into this memory.</span>
-            </div>
-            <label class="add-photos-pill">
-              <mat-icon>add_a_photo</mat-icon>
-              <span>Choose Files</span>
-              <input 
-                type="file" 
-                multiple 
-                accept="image/*,video/*" 
-                (change)="onFilesSelected($event)" 
-                hidden 
-                [disabled]="isSaving()"
-              />
-            </label>
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Location</mat-label>
+              <input matInput formControlName="locationName" placeholder="e.g. Campus Amphitheater" />
+              <mat-icon matSuffix>place</mat-icon>
+            </mat-form-field>
           </div>
 
-          @if (filePreviews().length > 0) {
-            <div class="new-media-previews">
-              @for (item of filePreviews(); track item.file.name; let idx = $index) {
-                <div class="edit-preview-tile">
-                  @if (item.isVideo) {
-                    <video [src]="item.url" class="preview-img"></video>
-                    <div class="video-indicator"><mat-icon>videocam</mat-icon></div>
-                  } @else {
-                    <img [src]="item.url" [alt]="item.file.name" class="preview-img" />
-                  }
-                  <button type="button" class="remove-btn" (click)="removeFile(idx)" [disabled]="isSaving()">
-                    <mat-icon>close</mat-icon>
-                  </button>
-                </div>
-              }
-            </div>
-          }
-        </div>
+          <!-- Story Narrative -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>The Story & Notes *</mat-label>
+            <textarea matInput formControlName="story" rows="4" placeholder="Share what happened in this moment..."></textarea>
+            @if (editForm.get('story')?.hasError('required') && editForm.get('story')?.touched) {
+              <mat-error>The story narrative cannot be empty.</mat-error>
+            }
+          </mat-form-field>
 
-        <footer class="dialog-actions">
+          <!-- Upload & Append Photos Section -->
+          <div class="media-upload-section">
+            <div class="upload-section-header">
+              <div>
+                <span class="upload-title">Capture & Append Photos</span>
+                <span class="upload-desc">Add new snapshots directly into this memory.</span>
+              </div>
+              <label class="add-photos-pill">
+                <mat-icon>add_a_photo</mat-icon>
+                <span>Choose Files</span>
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*,video/*" 
+                  (change)="onFilesSelected($event)" 
+                  hidden 
+                  [disabled]="isSaving()"
+                />
+              </label>
+            </div>
+
+            @if (filePreviews().length > 0) {
+              <div class="new-media-previews">
+                @for (item of filePreviews(); track item.file.name; let idx = $index) {
+                  <div class="edit-preview-tile">
+                    @if (item.isVideo) {
+                      <video [src]="item.url" class="preview-img"></video>
+                      <div class="video-indicator"><mat-icon>videocam</mat-icon></div>
+                    } @else {
+                      <img [src]="item.url" [alt]="item.file.name" class="preview-img" />
+                    }
+                    <button type="button" class="remove-btn" (click)="removeFile(idx)" [disabled]="isSaving()" aria-label="Remove image">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </mat-dialog-content>
+
+        <mat-dialog-actions class="dialog-actions">
           <button mat-button type="button" (click)="dialogRef.close()" [disabled]="isSaving()" class="cancel-btn">
             Cancel
           </button>
@@ -144,15 +146,19 @@ interface EditPreviewItem {
               </ng-container>
             }
           </button>
-        </footer>
+        </mat-dialog-actions>
       </form>
     </div>
   `,
   styles: [`
     .edit-dialog-container {
-      padding: var(--mv-space-20);
+      padding: var(--mv-space-16);
       background-color: var(--mv-bg-surface);
       max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      max-height: 85vh;
     }
 
     .dialog-header {
@@ -162,11 +168,12 @@ interface EditPreviewItem {
       padding-bottom: var(--mv-space-12);
       border-bottom: 1px solid var(--mv-border);
       position: relative;
+      flex-shrink: 0;
     }
 
     .header-icon-wrap {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       background-color: #fef3c7;
       color: var(--mv-primary);
@@ -187,23 +194,36 @@ interface EditPreviewItem {
 
     .editorial-title {
       font-family: var(--font-editorial);
-      font-size: 1.55rem;
+      font-size: 1.45rem;
       margin: 2px 0 0;
       line-height: 1.2;
     }
 
     .close-btn {
       position: absolute;
-      right: -8px;
-      top: -8px;
+      right: -4px;
+      top: -4px;
       color: var(--mv-text-muted);
     }
 
     .dialog-form {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Fixed height scrollable content area */
+    .edit-dialog-scrollable-content {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: var(--mv-space-16) 4px var(--mv-space-12);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
       gap: var(--mv-space-12);
-      padding-top: var(--mv-space-16);
+      box-sizing: border-box;
     }
 
     .full-width {
@@ -326,6 +346,8 @@ interface EditPreviewItem {
       gap: 12px;
       padding-top: var(--mv-space-12);
       border-top: 1px solid var(--mv-border);
+      margin-top: var(--mv-space-8);
+      flex-shrink: 0;
     }
 
     .save-btn {
@@ -380,16 +402,24 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
     if (!input.files || input.files.length === 0) return;
 
     const newFiles = Array.from(input.files);
-    this.selectedFiles.push(...newFiles);
+    // Crucial: reset input value immediately to avoid double firing
+    input.value = '';
 
-    const newPreviews = newFiles.map(file => ({
+    // Deduplicate files by name and size
+    const existingKeys = new Set(this.selectedFiles.map(f => `${f.name}_${f.size}`));
+    const deduplicated = newFiles.filter(f => !existingKeys.has(`${f.name}_${f.size}`));
+
+    if (deduplicated.length === 0) return;
+
+    this.selectedFiles.push(...deduplicated);
+
+    const newPreviews = deduplicated.map(file => ({
       file,
       url: URL.createObjectURL(file),
       isVideo: file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4')
     }));
 
     this.filePreviews.update(prev => [...prev, ...newPreviews]);
-    input.value = '';
   }
 
   removeFile(index: number): void {
@@ -426,7 +456,9 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
       next: (updated) => {
         if (this.selectedFiles.length > 0) {
           this.savingStatus.set(`Uploading ${this.selectedFiles.length} photo(s)...`);
-          this.memoryService.appendMediaWithProgress(this.memory.id, this.selectedFiles).subscribe({
+          const filesToUpload = [...this.selectedFiles];
+          this.selectedFiles = []; // Clear array immediately
+          this.memoryService.appendMediaWithProgress(this.memory.id, filesToUpload).subscribe({
             next: (httpEvent) => {
               if (httpEvent.type === HttpEventType.Response) {
                 this.isSaving.set(false);
