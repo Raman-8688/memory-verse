@@ -1,6 +1,7 @@
 package com.memoryverse.dto.response;
 
 import com.memoryverse.entity.Memory;
+import com.memoryverse.entity.PrivacyLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,7 @@ public class MemoryResponseDto {
     private Double longitude;
     private Boolean isFeatured;
     private Boolean isFavorite;
+    private PrivacyLevel privacyLevel;
     private UUID journeyId;
     private String journeyTitle;
     private UUID sectionId;
@@ -51,6 +53,7 @@ public class MemoryResponseDto {
                 .longitude(memory.getLongitude())
                 .isFeatured(memory.getIsFeatured())
                 .isFavorite(Boolean.TRUE.equals(memory.getIsFavorite()))
+                .privacyLevel(memory.getPrivacyLevel() != null ? memory.getPrivacyLevel() : PrivacyLevel.CIRCLE_COMPANIONS)
                 .journeyId(memory.getJourney() != null ? memory.getJourney().getId() : null)
                 .journeyTitle(memory.getJourney() != null ? memory.getJourney().getTitle() : null)
                 .sectionId(memory.getSection() != null ? memory.getSection().getId() : null)

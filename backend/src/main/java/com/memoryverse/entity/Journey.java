@@ -3,6 +3,8 @@ package com.memoryverse.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,8 +18,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "journeys", indexes = {
         @Index(name = "idx_journeys_slug", columnList = "slug", unique = true),
-        @Index(name = "idx_journeys_display_order", columnList = "display_order")
+        @Index(name = "idx_journeys_display_order", columnList = "display_order"),
+        @Index(name = "idx_journeys_deleted_at", columnList = "deleted_at")
 })
+@SQLDelete(sql = "UPDATE journeys SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @Builder
@@ -56,6 +61,9 @@ public class Journey {
     @Builder.Default
     private Integer displayOrder = 0;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
@@ -71,7 +79,7 @@ public class Journey {
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     public void addSection(JourneySection section) {

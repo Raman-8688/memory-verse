@@ -1,5 +1,6 @@
 package com.memoryverse.dto.request;
 
+import com.memoryverse.entity.PrivacyLevel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -28,4 +29,6 @@ public class MemoryUpdateDto {
 
     @Size(max = 150, message = "Location must not exceed 150 characters")
     private String locationName;
+
+    private PrivacyLevel privacyLevel;
 }

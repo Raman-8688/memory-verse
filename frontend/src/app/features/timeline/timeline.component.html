@@ -284,7 +284,12 @@
                           </span>
                         }
 
-                        <h3 class="card-title">{{ mem.title }}</h3>
+                        <div class="card-title-row">
+                          <h3 class="card-title">{{ mem.title }}</h3>
+                          @if (mem.privacyLevel === 'PRIVATE_TO_ME') {
+                            <mat-icon class="lock-glyph" title="Private to you">lock</mat-icon>
+                          }
+                        </div>
                         <p class="card-excerpt">"{{ mem.story }}"</p>
 
                         <!-- Micro Metadata & Author -->

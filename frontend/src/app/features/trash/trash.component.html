@@ -1,0 +1,105 @@
+<div class="trash-page">
+
+  <!-- Header Banner -->
+  <header class="trash-header">
+    <div class="trash-titles">
+      <span class="eyebrow">ARCHIVE RECOVERY</span>
+      <h1 class="page-title">Trash & Recovery Bin</h1>
+      <p class="sub-text">Soft-deleted memories and journeys are kept here for recovery before permanent erasure.</p>
+    </div>
+
+    @if (items().length > 0) {
+      <div class="trash-actions">
+        <button 
+          mat-stroked-button 
+          class="empty-trash-btn" 
+          (click)="emptyAllTrash()" 
+          [disabled]="isClearingAll()">
+          @if (isClearingAll()) {
+            <mat-spinner diameter="16" class="btn-spinner"></mat-spinner>
+          } @else {
+            <mat-icon>delete_forever</mat-icon>
+          }
+          <span>Empty Bin</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading recovery bin...</p>
+    </div>
+  } @else if (items().length === 0) {
+    <div class="empty-trash-card">
+      <div class="empty-icon-circle">
+        <mat-icon>auto_delete</mat-icon>
+      </div>
+      <h2>Trash Bin is Clean</h2>
+      <p>No deleted memories or journeys. When you delete items from your timeline, they will appear here safely for recovery.</p>
+      <a mat-flat-button routerLink="/dashboard" class="return-home-btn">Return to Archive</a>
+    </div>
+  } @else {
+    <!-- Items Stream -->
+    <div class="trash-grid">
+      @for (item of items(); track item.id) {
+        <div class="trash-card animate-fade-in">
+          <!-- Thumbnail Frame -->
+          <div class="trash-thumb-frame">
+            <img 
+              [src]="item.thumbnailUrl || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=80'" 
+              [alt]="item.title" 
+              mvFallback 
+              class="trash-thumb"
+            />
+            <span class="type-badge" [class.journey-badge]="item.type === 'JOURNEY'">
+              {{ item.type === 'JOURNEY' ? 'Journey' : 'Memory' }}
+            </span>
+          </div>
+
+          <!-- Content Info -->
+          <div class="trash-info">
+            <div class="meta-row">
+              <span class="deleted-tag">{{ formatTimeAgo(item.deletedAt) }}</span>
+              @if (item.originalDate) {
+                <span class="orig-date">• {{ formatDate(item.originalDate) }}</span>
+              }
+            </div>
+
+            <h3 class="item-title">{{ item.title }}</h3>
+            @if (item.description) {
+              <p class="item-desc">{{ item.description }}</p>
+            }
+            @if (item.locationName) {
+              <span class="item-location">📍 {{ item.locationName }}</span>
+            }
+
+            <!-- Action Buttons -->
+            <div class="card-actions">
+              <button 
+                mat-button 
+                class="restore-btn" 
+                (click)="restore(item)" 
+                [disabled]="actionInProgressId() === item.id">
+                <mat-icon>restore_from_trash</mat-icon>
+                <span>Restore</span>
+              </button>
+
+              <button 
+                mat-button 
+                class="hard-delete-btn" 
+                (click)="hardDelete(item)" 
+                [disabled]="actionInProgressId() === item.id">
+                <mat-icon>delete_forever</mat-icon>
+                <span>Delete Permanently</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</div>
