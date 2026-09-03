@@ -106,7 +106,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (p: PlaceSummary[]) => this.places.set(p || [])
     });
 
-    this.memoryService.getMemories({ page: 0, size: 200 }).subscribe({
+    this.memoryService.getMemories({ page: 0, size: 100 }).subscribe({
       next: (res) => {
         const withCoords = (res.content || []).filter(m => m.latitude && m.longitude);
         this.memories.set(withCoords);

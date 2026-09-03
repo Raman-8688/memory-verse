@@ -21,7 +21,7 @@ public class PageRequestDto {
     private int page = 0;
 
     @Min(value = 1, message = "Page size must not be less than one")
-    @Max(value = 100, message = "Page size cannot exceed 100")
+    @Max(value = 500, message = "Page size cannot exceed 500")
     @Builder.Default
     private int size = 20;
 

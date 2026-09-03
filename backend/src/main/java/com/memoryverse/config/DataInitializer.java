@@ -45,10 +45,16 @@ public class DataInitializer implements CommandLineRunner {
 
         try {
             jdbcTemplate.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT FALSE NOT NULL;");
+            jdbcTemplate.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS privacy_level VARCHAR(30) DEFAULT 'CIRCLE_COMPANIONS' NOT NULL;");
+            jdbcTemplate.execute("ALTER TABLE memories ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;");
+            jdbcTemplate.execute("ALTER TABLE journeys ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE;");
+            jdbcTemplate.execute("ALTER TABLE media ADD COLUMN IF NOT EXISTS transcript TEXT;");
             jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_memories_is_favorite ON memories(is_favorite);");
-            log.info("Ensured is_favorite column and index exist on memories table");
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_memories_deleted_at ON memories(deleted_at);");
+            jdbcTemplate.execute("CREATE INDEX IF NOT EXISTS idx_journeys_deleted_at ON journeys(deleted_at);");
+            log.info("Ensured is_favorite, privacy_level, deleted_at, and transcript columns exist");
         } catch (Exception ex) {
-            log.warn("Could not ensure is_favorite column on memories table: {}", ex.getMessage());
+            log.warn("Could not ensure schema columns on memories/journeys/media: {}", ex.getMessage());
         }
 
         try {
