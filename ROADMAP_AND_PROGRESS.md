@@ -170,6 +170,10 @@ npm start
   * Frontend: Multi-stage `Dockerfile` (`node:20-alpine` build -> `nginx:alpine` runtime) + production `nginx.conf` with gzip compression and HTML5 history routing.
   * Backend: Multi-stage `Dockerfile` (`maven:3.9.6-eclipse-temurin-21-alpine` build -> `eclipse-temurin:21-jre-alpine` runtime) with non-root security and JVM G1GC memory optimizations.
   * Root `docker-compose.yml`: 4-container production stack (PostgreSQL 16, Redis 7, Spring Boot Backend, Angular Nginx Frontend) with healthchecks and volume persistence.
+* **Progressive Web App (PWA) & Native Mobile Experience**:
+  * `@angular/service-worker` installed with caching strategy (`ngsw-config.json`).
+  * `manifest.webmanifest`: Configured with `display: "standalone"`, `theme_color: "#FAF9F6"`, `background_color: "#FAF9F6"`, full responsive icon scale (72x72 to 512x512) and SVG brand badge.
+  * iOS Safari Meta Tags: Full-screen mobile status bar, viewport-fit cover, `apple-touch-icon`, and `apple-mobile-web-app-capable` support.
 
 ---
 
