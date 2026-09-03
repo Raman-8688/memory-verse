@@ -131,24 +131,36 @@ npm start
 
 ---
 
+### Phase 8: Advanced Media Intelligence & Interactive Map
+* **Interactive Geolocation Map (`/map`)**:
+  * Free, open-source Leaflet and OpenStreetMap integration with `@types/leaflet`.
+  * Responsive map canvas (`height: calc(100vh - 200px); min-height: 480px;`).
+  * Custom animated terracotta SVG pins with radial ripple pulses.
+  * Rich popup card with photograph thumbnail, title, location badge, and direct "Relive Story →" router link.
+  * Real-time location search and Journey anthology filtering.
+  * Auto-fit bounds button to center and zoom around all geotagged memories.
+* **Voice Memo Transcription Engine**:
+  * Database: Added `transcript` TEXT column to `media` entity table.
+  * Backend REST endpoint: `PUT /api/media/{id}/transcript` with `TranscriptUpdateDto`.
+  * Frontend: Updated `AudioPlayerComponent` with a dedicated "Show Transcript" (`subtitles` icon) toggle drawer, quote formatting, and inline author editing.
+* **Automated "On This Day" Anniversary Push Alerts**:
+  * Backend Spring Scheduling (`@EnableScheduling` + `@Scheduled(cron = "0 0 8 * * *")`).
+  * Algorithm queries `MemoryRepository.findMemoriesOnThisDay(month, day)` for historical memories from previous years (`< currentYear`).
+  * Generates personalized `NotificationType.ON_THIS_DAY` notifications for the memory author and all tagged companions: `✨ On This Day: 3 years ago (2023), 'Goa Sunset' in Goa took place.`
+  * Dedup check ensures companions receive at most one anniversary alert per memory per year.
+  * Added on-demand admin check endpoint: `POST /api/notifications/check-on-this-day`.
+
+---
+
 ## 🔮 Next Phases Roadmap (Ready to Build)
 
-### Phase 8: Advanced Media Intelligence & Interactive Map
-1. **Interactive Geolocation Map (`/map` or Leaflet Map View in Places)**:
-   * Interactive world map showing photo clusters and pins wherever memories took place. Clicking a pin opens the memory card.
-2. **Voice Memo Transcription (Speech-to-Text)**:
-   * Automatic transcription of uploaded audio voice memos into text quotes attached directly to the story prose.
-3. **Anniversary & "On This Day" Automated Push Notifications**:
-   * Scheduled cron notifications/emails reminding companions: *"3 years ago today: You were in Goa with Ramesh and Shayam."*
-
 ### Phase 9: Archive Governance, Security & Production Hardening
-1. **Trash / Recovery Bin (Soft Delete)**:
-   * 30-day recovery bin with restore capability to prevent accidental permanent deletion.
+1. **Trash / Recovery Bin (Soft Delete Lifecycle)**:
+   * 30-day soft-delete trash bin for memories and journeys with 1-click restore or permanent wipe.
 2. **Granular Memory Privacy & Access Controls**:
-   * Visibility settings for each memory: Private to Me, Circle / Companions Only, or Public Archive.
-3. **Redis Query Caching & Production Dockerization**:
-   * Sub-20ms response caching for places, people, and timeline year aggregations.
-   * Multi-stage Dockerfile (distroless Java 21 + Nginx Alpine) and docker-compose.yml.
+   * Privacy settings per memory: `PRIVATE_TO_ME`, `CIRCLE_COMPANIONS`, or `PUBLIC_ARCHIVE`.
+3. **Production Multi-Stage Dockerization & CI/CD**:
+   * Distroless Java 21 Spring Boot container + Nginx Alpine frontend SPA build + Docker Compose orchestration.
 
 ---
 

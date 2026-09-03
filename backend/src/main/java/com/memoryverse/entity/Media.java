@@ -58,6 +58,9 @@ public class Media {
     @Column(name = "duration_seconds")
     private Integer durationSeconds;
 
+    @Column(name = "transcript", columnDefinition = "TEXT")
+    private String transcript;
+
     @Column(name = "display_order", nullable = false)
     @Builder.Default
     private Integer displayOrder = 0;

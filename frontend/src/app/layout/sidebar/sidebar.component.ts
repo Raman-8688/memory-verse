@@ -35,6 +35,7 @@ export class SidebarComponent {
     { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: true },
     { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
     { path: '/places', label: 'Places', icon: 'place', exact: true },
+    { path: '/map', label: 'Memory Map', icon: 'map', exact: true },
     { path: '/people', label: 'People', icon: 'groups', exact: true },
     { path: '/on-this-day', label: 'On This Day', icon: 'event_repeat', exact: true },
     { path: '/assistant', label: 'Ask AI', icon: 'auto_awesome', isAi: true, exact: true }

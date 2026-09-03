@@ -1,0 +1,73 @@
+<div class="map-page-wrapper">
+
+  <!-- Floating Control HUD Bar -->
+  <header class="map-top-bar">
+    <div class="map-titles">
+      <span class="eyebrow-tag">GEOGRAPHIC TAPESTRY</span>
+      <h1 class="page-title">Interactive Memory Map</h1>
+    </div>
+
+    <!-- Filter Controls -->
+    <div class="map-controls">
+      <!-- Search Location / Title -->
+      <div class="search-input-wrap">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (ngModelChange)="onFilterChange()" 
+          placeholder="Filter by city, place, or title..." 
+          class="map-search-input"
+        />
+      </div>
+
+      <!-- Journey Filter Select -->
+      <select 
+        [(ngModel)]="selectedJourneyId" 
+        (change)="onFilterChange()" 
+        class="journey-filter-select">
+        <option value="">All Journeys</option>
+        @for (j of journeys(); track j.id) {
+          <option [value]="j.id">{{ j.title }}</option>
+        }
+      </select>
+
+      <!-- Center / Fit Bounds Button -->
+      <button 
+        mat-flat-button 
+        class="fit-bounds-btn" 
+        (click)="fitAllMarkers()" 
+        title="Zoom to all memory pins">
+        <mat-icon>center_focus_strong</mat-icon>
+        <span>Fit All</span>
+      </button>
+
+      <!-- Toggle to Grid View -->
+      <a routerLink="/places" class="switch-view-btn" title="View Places directory">
+        <mat-icon>grid_view</mat-icon>
+        <span>Places Directory</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Total Pinned Banner -->
+  <div class="map-meta-strip">
+    <div class="meta-pill">
+      <mat-icon>place</mat-icon>
+      <span><strong>{{ getFilteredMemories().length }}</strong> of {{ totalMappedMemories() }} geotagged memories</span>
+    </div>
+  </div>
+
+  <!-- Main Full-Screen Map Canvas -->
+  <div class="map-viewport-frame">
+    <div #mapContainer class="leaflet-map-element"></div>
+
+    @if (isLoading()) {
+      <div class="map-loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+        <span>Pinning moments across coordinates...</span>
+      </div>
+    }
+  </div>
+
+</div>

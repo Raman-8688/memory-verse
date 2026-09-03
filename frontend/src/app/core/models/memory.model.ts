@@ -13,6 +13,7 @@ export interface Media {
   width?: number;
   height?: number;
   durationSeconds?: number;
+  transcript?: string;
   displayOrder: number;
   createdAt: string;
 }
