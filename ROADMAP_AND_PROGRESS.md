@@ -111,33 +111,44 @@ npm start
 * **Reminisce & Margin Notes Thread**:
   * Journal-style margin notes section with companion avatars, relative timestamps (`2h ago`, `just now`), `Ctrl+Enter` quick submit, and author delete permissions.
 
+### Phase 7: Smart Public Sharing & Keepsake Export
+* **Backend SharedLink Engine**:
+  * Database: Added `SharedLink` entity (`shared_links` table) with unguessable tokens, resource mappings (`MEMORY`, `JOURNEY`, `COLLECTION`), view counter, active status, and optional expiration.
+  * APIs:
+    * `POST /shared-links`: Securely creates or returns an active share token.
+    * `GET /public/s/{token}`: Public unauthenticated endpoint returning memory or journey payload with access logging.
+    * `DELETE /shared-links/{id}`: Revokes active share link.
+* **Backend Digital Keepsake Export Engine**:
+  * `ExportService`:
+    * `GET /export/memory/{id}/zip`: Packages `story.json`, `story.md`, printable `keepsake-book.html`, and `media-manifest.txt` into a downloadable ZIP archive.
+    * `GET /export/journey/{id}/zip`: Packages journey metadata and full chapter anthology book into a ZIP archive.
+    * `GET /export/memory/{id}/book`: Standalone self-contained printable HTML5 coffee-table book with `@media print` CSS for browser 1-click **Save to PDF**.
+    * `GET /export/journey/{id}/book`: Standalone printable journey chronicle.
+* **Frontend Public Postcard Experience (`/s/:token`)**:
+  * Standalone route rendered completely outside the App Shell (zero sidebar/navbar) with a centered luxury postcard canvas, ambient brand header, drop-cap typography narrative, photo gallery with lightbox, voice memo audio player, and MemoryVerse watermark footer.
+* **Share & Keepsake Actions**:
+  * Added "Share Link" and "Keepsake" action buttons to both `memory-detail` and `journey-detail` pages with 1-click clipboard copy, snackbar feedback, and downloading state.
+
 ---
 
 ## 🔮 Next Phases Roadmap (Ready to Build)
 
-When you start the next conversation, you can simply paste the prompt for **Phase 7** or any subsequent phase:
-
-### Phase 7: Printable Keepsake Books & Multi-Format Archive Export
-1. **Digital Coffee-Table Book Export (PDF)**:
-   * Generate an editorial PDF book from any Journey, Collection, or filtered Timeline slice.
-   * Standard book sections: Title cover, Table of Contents, full-page photographic spreads, typography quotes, companion credits.
-2. **Full Archive Backup & Export (ZIP / JSON)**:
-   * Companion export: One-click download containing all original resolution images, videos, audio memos, and structured JSON files for complete offline preservation.
-
-### Phase 8: Advanced Media Intelligence & Nostalgia AI
-1. **Voice Note Transcription**:
-   * Automatic transcription of uploaded audio voice memos into text quotes attached to the story narrative.
-2. **Companion Face Tagging & Smart Albums**:
-   * Automatic clustering of memories based on companion avatars and recurring faces.
-3. **Anniversary & "On This Day" Notifications**:
+### Phase 8: Advanced Media Intelligence & Interactive Map
+1. **Interactive Geolocation Map (`/map` or Leaflet Map View in Places)**:
+   * Interactive world map showing photo clusters and pins wherever memories took place. Clicking a pin opens the memory card.
+2. **Voice Memo Transcription (Speech-to-Text)**:
+   * Automatic transcription of uploaded audio voice memos into text quotes attached directly to the story prose.
+3. **Anniversary & "On This Day" Automated Push Notifications**:
    * Scheduled cron notifications/emails reminding companions: *"3 years ago today: You were in Goa with Ramesh and Shayam."*
 
-### Phase 9: Production Deployment, Caching & Performance
-1. **Redis Caching**:
-   * Cache places summaries, people directories, and timeline year aggregations to achieve $< 20\text{ms}$ latency.
-2. **Dockerization & CI/CD**:
-   * Production multi-stage `Dockerfile` for backend (distroless Java 21) and frontend (Nginx Alpine).
-   * Docker Compose configuration for one-command deployment.
+### Phase 9: Archive Governance, Security & Production Hardening
+1. **Trash / Recovery Bin (Soft Delete)**:
+   * 30-day recovery bin with restore capability to prevent accidental permanent deletion.
+2. **Granular Memory Privacy & Access Controls**:
+   * Visibility settings for each memory: Private to Me, Circle / Companions Only, or Public Archive.
+3. **Redis Query Caching & Production Dockerization**:
+   * Sub-20ms response caching for places, people, and timeline year aggregations.
+   * Multi-stage Dockerfile (distroless Java 21 + Nginx Alpine) and docker-compose.yml.
 
 ---
 

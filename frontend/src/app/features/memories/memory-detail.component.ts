@@ -7,12 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatMenuModule } from '@angular/material/menu';
 import { FormsModule } from '@angular/forms';
 import { Memory, Media } from '@core/models/memory.model';
 import { GalleryItem } from '@core/models/gallery.model';
 import { MemoryComment, ReactionSummary } from '@core/models/interaction.model';
 import { MemoryService } from '@core/services/memory.service';
 import { InteractionService } from '@core/services/interaction.service';
+import { ShareService } from '@core/services/share.service';
 import { AuthService } from '@core/auth/auth.service';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
@@ -30,6 +32,7 @@ import { AddToCollectionDialogComponent } from '@shared/components/add-to-collec
     RouterModule,
     MatButtonModule,
     MatIconModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     MatDialogModule,
     ImageFallbackDirective,
@@ -42,6 +45,7 @@ export class MemoryDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly memoryService = inject(MemoryService);
   private readonly interactionService = inject(InteractionService);
+  private readonly shareService = inject(ShareService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -53,6 +57,8 @@ export class MemoryDetailComponent implements OnInit {
   readonly isLoading = signal<boolean>(true);
   readonly isUploadingMedia = signal<boolean>(false);
   readonly uploadProgress = signal<number>(0);
+  readonly isSharing = signal<boolean>(false);
+  readonly isExporting = signal<boolean>(false);
 
   // Interaction Signals
   readonly comments = signal<MemoryComment[]>([]);
@@ -395,6 +401,62 @@ export class MemoryDetailComponent implements OnInit {
   getAudioMedia(mem: Memory | null): Media[] {
     if (!mem || !mem.mediaList) return [];
     return mem.mediaList.filter(m => m.mediaType === 'AUDIO');
+  }
+
+  // --- SHARE & EXPORT ACTIONS ---
+
+  shareMemory(): void {
+    const mem = this.memory();
+    if (!mem) return;
+
+    this.isSharing.set(true);
+    this.shareService.createShareLink('MEMORY', mem.id).subscribe({
+      next: (res) => {
+        this.isSharing.set(false);
+        const fullUrl = `${window.location.origin}${res.shareUrl}`;
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          this.snackBar.open('Public keepsake link copied to clipboard!', 'Close', { duration: 4000 });
+        }).catch(() => {
+          this.snackBar.open(`Share link: ${fullUrl}`, 'Close', { duration: 6000 });
+        });
+      },
+      error: () => {
+        this.isSharing.set(false);
+        this.snackBar.open('Failed to generate share link', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  exportKeepsakeBook(): void {
+    const mem = this.memory();
+    if (!mem) return;
+    window.open(this.shareService.getMemoryBookUrl(mem.id), '_blank');
+  }
+
+  downloadArchiveZip(): void {
+    const mem = this.memory();
+    if (!mem) return;
+
+    this.isExporting.set(true);
+    this.snackBar.open('Packaging keepsake archive...', undefined, { duration: 2000 });
+    this.shareService.downloadMemoryZip(mem.id).subscribe({
+      next: (blob) => {
+        this.isExporting.set(false);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `memory-${mem.id}-keepsake.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Keepsake archive downloaded!', 'Close', { duration: 3000 });
+      },
+      error: () => {
+        this.isExporting.set(false);
+        this.snackBar.open('Failed to download keepsake archive', 'Close', { duration: 3000 });
+      }
+    });
   }
 
   formatTimeAgo(dateStr: string): string {

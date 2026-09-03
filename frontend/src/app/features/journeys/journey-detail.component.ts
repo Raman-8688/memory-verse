@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatMenuModule } from '@angular/material/menu';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { JourneyEditDialogComponent } from './journey-edit-dialog.component';
 import { ChapterEditDialogComponent } from './chapter-edit-dialog.component';
@@ -16,6 +17,7 @@ import { MediaViewerModalComponent } from '@shared/components/media-viewer-modal
 import { Journey, JourneySection } from '@core/models/journey.model';
 import { JourneyService } from '@core/services/journey.service';
 import { MediaService } from '@core/services/media.service';
+import { ShareService } from '@core/services/share.service';
 import { AuthService } from '@core/auth/auth.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
 
@@ -30,6 +32,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    MatMenuModule,
     MatProgressSpinnerModule,
     MatDialogModule,
     ImageFallbackDirective
@@ -99,6 +102,32 @@ import { NotificationStateService } from '@core/services/notification-state.serv
                   <mat-icon>fullscreen</mat-icon>
                   <span>View Photo</span>
                 </button>
+
+                <!-- Share Public Link -->
+                <button mat-stroked-button class="view-cover-btn" (click)="shareJourney(j)" [disabled]="isSharing()" title="Generate public link">
+                  @if (isSharing()) {
+                    <mat-spinner diameter="14" class="white-spinner"></mat-spinner>
+                  } @else {
+                    <mat-icon>share</mat-icon>
+                  }
+                  <span>Share</span>
+                </button>
+
+                <!-- Export Keepsake Book -->
+                <button mat-stroked-button class="view-cover-btn" [matMenuTriggerFor]="journeyExportMenu" title="Export keepsake">
+                  <mat-icon>menu_book</mat-icon>
+                  <span>Keepsake</span>
+                </button>
+                <mat-menu #journeyExportMenu="matMenu">
+                  <button mat-menu-item (click)="exportJourneyBook(j)">
+                    <mat-icon>print</mat-icon>
+                    <span>Print Anthology Book (PDF)</span>
+                  </button>
+                  <button mat-menu-item (click)="downloadJourneyZip(j)">
+                    <mat-icon>inventory_2</mat-icon>
+                    <span>Download Full Archive (ZIP)</span>
+                  </button>
+                </mat-menu>
 
                 <!-- Edit Journey (Neatly positioned at the bottom side) -->
                 @if (canEdit()) {
@@ -948,6 +977,7 @@ export class JourneyDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly journeyService = inject(JourneyService);
   private readonly mediaService = inject(MediaService);
+  private readonly shareService = inject(ShareService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -962,6 +992,8 @@ export class JourneyDetailComponent implements OnInit {
   readonly isLoading = signal<boolean>(true);
   readonly showAddSectionForm = signal<boolean>(false);
   readonly isAddingSection = signal<boolean>(false);
+  readonly isSharing = signal<boolean>(false);
+  readonly isExporting = signal<boolean>(false);
 
   // New chapter image file and preview
   readonly newChapterImagePreview = signal<string | null>(null);
@@ -1170,6 +1202,54 @@ export class JourneyDetailComponent implements OnInit {
       if (updated) {
         this.journey.update(curr => curr ? { ...curr, ...updated, sections: curr.sections } : updated);
         this.notificationState.refresh();
+      }
+    });
+  }
+
+  // --- SHARE & EXPORT ACTIONS ---
+
+  shareJourney(j: Journey): void {
+    this.isSharing.set(true);
+    this.shareService.createShareLink('JOURNEY', j.id).subscribe({
+      next: (res) => {
+        this.isSharing.set(false);
+        const fullUrl = `${window.location.origin}${res.shareUrl}`;
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          this.snackBar.open('Public anthology link copied to clipboard!', 'Close', { duration: 4000 });
+        }).catch(() => {
+          this.snackBar.open(`Share link: ${fullUrl}`, 'Close', { duration: 6000 });
+        });
+      },
+      error: () => {
+        this.isSharing.set(false);
+        this.snackBar.open('Failed to generate journey share link', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  exportJourneyBook(j: Journey): void {
+    window.open(this.shareService.getJourneyBookUrl(j.id), '_blank');
+  }
+
+  downloadJourneyZip(j: Journey): void {
+    this.isExporting.set(true);
+    this.snackBar.open('Packaging journey archive...', undefined, { duration: 2000 });
+    this.shareService.downloadJourneyZip(j.id).subscribe({
+      next: (blob) => {
+        this.isExporting.set(false);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `journey-${j.id}-keepsake.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Journey keepsake archive downloaded!', 'Close', { duration: 3000 });
+      },
+      error: () => {
+        this.isExporting.set(false);
+        this.snackBar.open('Failed to download journey archive', 'Close', { duration: 3000 });
       }
     });
   }
