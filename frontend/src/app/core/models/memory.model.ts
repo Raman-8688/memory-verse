@@ -1,3 +1,4 @@
+export type PrivacyLevel = 'PRIVATE_TO_ME' | 'CIRCLE_COMPANIONS' | 'PUBLIC_ARCHIVE';
 import { User } from './user.model';
 
 export type MediaType = 'IMAGE' | 'VIDEO' | 'AUDIO';
@@ -28,6 +29,7 @@ export interface Memory {
   longitude?: number;
   isFeatured: boolean;
   isFavorite?: boolean;
+  privacyLevel?: PrivacyLevel;
   journeyId: string;
   journeyTitle?: string;
   sectionId?: string;
@@ -47,6 +49,7 @@ export interface MemoryCreateDto {
   longitude?: number;
   journeyId: string;
   sectionId?: string;
+  privacyLevel?: PrivacyLevel;
   taggedUserIds?: string[];
   isFeatured?: boolean;
   externalImageUrls?: string[];
@@ -57,6 +60,7 @@ export interface MemoryUpdateDto {
   story: string;
   memoryDate: string;
   locationName?: string;
+  privacyLevel?: PrivacyLevel;
 }
 
 export interface MemoryFilterParams {

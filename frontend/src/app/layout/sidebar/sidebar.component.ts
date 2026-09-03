@@ -43,6 +43,7 @@ export class SidebarComponent {
 
   readonly secondaryNavItems: NavItem[] = [
     { path: '/gallery', label: 'Media Gallery', icon: 'collections' },
-    { path: '/notifications', label: 'Notifications', icon: 'notifications' }
+    { path: '/notifications', label: 'Notifications', icon: 'notifications' },
+    { path: '/trash', label: 'Trash Bin', icon: 'delete_outline' }
   ];
 }

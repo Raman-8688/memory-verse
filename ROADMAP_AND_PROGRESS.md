@@ -152,15 +152,24 @@ npm start
 
 ---
 
-## 🔮 Next Phases Roadmap (Ready to Build)
-
 ### Phase 9: Archive Governance, Security & Production Hardening
-1. **Trash / Recovery Bin (Soft Delete Lifecycle)**:
-   * 30-day soft-delete trash bin for memories and journeys with 1-click restore or permanent wipe.
-2. **Granular Memory Privacy & Access Controls**:
-   * Privacy settings per memory: `PRIVATE_TO_ME`, `CIRCLE_COMPANIONS`, or `PUBLIC_ARCHIVE`.
-3. **Production Multi-Stage Dockerization & CI/CD**:
-   * Distroless Java 21 Spring Boot container + Nginx Alpine frontend SPA build + Docker Compose orchestration.
+* **Trash & Recovery Bin (Soft Delete Lifecycle)**:
+  * Entities: Annotated `Memory` and `Journey` with Hibernate `@SQLDelete(sql = "UPDATE ... SET deleted_at = NOW() WHERE id = ?")` and `@SQLRestriction("deleted_at IS NULL")`.
+  * Safe Defaulting: `deleted_at` defaults to NULL, ensuring all existing and future standard JPA queries automatically exclude soft-deleted records.
+  * APIs:
+    * `GET /trash`: Queries soft-deleted memories and journeys for the authenticated user.
+    * `POST /trash/restore/memory/{id}` & `POST /trash/restore/journey/{id}`: Restores items (`deleted_at = NULL`).
+    * `DELETE /trash/memory/{id}` & `DELETE /trash/journey/{id}`: Permanently hard-deletes items and child records.
+    * `DELETE /trash/empty`: Wipes the entire trash bin.
+  * Frontend UI (`/trash`): Dedicated recovery bin page with item previews, relative deletion age, 1-click restore, and permanent erasure. Added to sidebar secondary navigation.
+* **Granular Memory Privacy & Access Controls**:
+  * Added `PrivacyLevel` enum (`PRIVATE_TO_ME`, `CIRCLE_COMPANIONS`, `PUBLIC_ARCHIVE`).
+  * Backend prevents unauthorized users from fetching memories marked `PRIVATE_TO_ME` unless they are the author or administrator.
+  * Frontend: Added privacy level dropdown selector in `memory-edit-dialog` and subtle lock badges (🔒) on memory cards across the Timeline.
+* **Production Multi-Stage Dockerization**:
+  * Frontend: Multi-stage `Dockerfile` (`node:20-alpine` build -> `nginx:alpine` runtime) + production `nginx.conf` with gzip compression and HTML5 history routing.
+  * Backend: Multi-stage `Dockerfile` (`maven:3.9.6-eclipse-temurin-21-alpine` build -> `eclipse-temurin:21-jre-alpine` runtime) with non-root security and JVM G1GC memory optimizations.
+  * Root `docker-compose.yml`: 4-container production stack (PostgreSQL 16, Redis 7, Spring Boot Backend, Angular Nginx Frontend) with healthchecks and volume persistence.
 
 ---
 

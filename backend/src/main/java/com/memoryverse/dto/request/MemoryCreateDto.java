@@ -1,5 +1,6 @@
 package com.memoryverse.dto.request;
 
+import com.memoryverse.entity.PrivacyLevel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -41,12 +42,14 @@ public class MemoryCreateDto {
     private UUID sectionId;
 
     @Builder.Default
+    private PrivacyLevel privacyLevel = PrivacyLevel.CIRCLE_COMPANIONS;
+
+    @Builder.Default
     private List<UUID> taggedUserIds = new ArrayList<>();
 
     @Builder.Default
     private Boolean isFeatured = false;
 
-    // Optional direct URLs (e.g. curated Unsplash images or pre-uploaded URLs)
     @Builder.Default
     private List<String> externalImageUrls = new ArrayList<>();
 }

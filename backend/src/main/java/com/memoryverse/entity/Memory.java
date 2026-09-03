@@ -3,6 +3,8 @@ package com.memoryverse.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -22,8 +24,11 @@ import java.util.UUID;
         @Index(name = "idx_memories_section_id", columnList = "section_id"),
         @Index(name = "idx_memories_created_by", columnList = "created_by"),
         @Index(name = "idx_memories_created_at", columnList = "created_at"),
-        @Index(name = "idx_memories_is_favorite", columnList = "is_favorite")
+        @Index(name = "idx_memories_is_favorite", columnList = "is_favorite"),
+        @Index(name = "idx_memories_deleted_at", columnList = "deleted_at")
 })
+@SQLDelete(sql = "UPDATE memories SET deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @Builder
@@ -62,6 +67,14 @@ public class Memory {
     @Builder.Default
     private Boolean isFavorite = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "privacy_level", nullable = false)
+    @Builder.Default
+    private PrivacyLevel privacyLevel = PrivacyLevel.CIRCLE_COMPANIONS;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "journey_id", nullable = false)
     private Journey journey;
@@ -82,13 +95,9 @@ public class Memory {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "memory_tags",
+            name = "memory_tagged_users",
             joinColumns = @JoinColumn(name = "memory_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"),
-            indexes = {
-                    @Index(name = "idx_memory_tags_user", columnList = "user_id"),
-                    @Index(name = "idx_memory_tags_memory", columnList = "memory_id")
-            }
+            inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @Builder.Default
     private Set<User> taggedUsers = new HashSet<>();
@@ -98,7 +107,7 @@ public class Memory {
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
     public void addMedia(Media media) {
@@ -113,5 +122,9 @@ public class Memory {
 
     public void tagUser(User user) {
         taggedUsers.add(user);
+    }
+
+    public void untagUser(User user) {
+        taggedUsers.remove(user);
     }
 }

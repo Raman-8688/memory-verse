@@ -9,9 +9,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpEventType } from '@angular/common/http';
-import { Memory, MemoryUpdateDto } from '@core/models/memory.model';
+import { Memory, MemoryUpdateDto, PrivacyLevel } from '@core/models/memory.model';
 import { MemoryService } from '@core/services/memory.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
 
@@ -32,6 +33,7 @@ interface EditPreviewItem {
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressSpinnerModule
@@ -80,6 +82,16 @@ interface EditPreviewItem {
               <mat-icon matSuffix>place</mat-icon>
             </mat-form-field>
           </div>
+
+          <!-- Privacy Level Selector -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Privacy Level</mat-label>
+            <mat-select formControlName="privacyLevel">
+              <mat-option value="PRIVATE_TO_ME">🔒 Private to Me (Only visible to you)</mat-option>
+              <mat-option value="CIRCLE_COMPANIONS">👥 Circle Companions (Visible to group & companions)</mat-option>
+              <mat-option value="PUBLIC_ARCHIVE">🌐 Public Archive (Accessible via share link)</mat-option>
+            </mat-select>
+          </mat-form-field>
 
           <!-- Story Narrative -->
           <mat-form-field appearance="outline" class="full-width">
@@ -389,6 +401,7 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
       title: [this.memory.title, [Validators.required, Validators.maxLength(200)]],
       memoryDate: [memDate, Validators.required],
       locationName: [this.memory.locationName || ''],
+      privacyLevel: [this.memory.privacyLevel || 'CIRCLE_COMPANIONS'],
       story: [this.memory.story, Validators.required]
     });
   }
@@ -449,7 +462,8 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
       title: formVal.title.trim(),
       story: formVal.story.trim(),
       memoryDate: dateStr,
-      locationName: formVal.locationName ? formVal.locationName.trim() : undefined
+      locationName: formVal.locationName ? formVal.locationName.trim() : undefined,
+      privacyLevel: formVal.privacyLevel as PrivacyLevel
     };
 
     this.memoryService.updateMemory(this.memory.id, payload).subscribe({
