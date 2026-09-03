@@ -1,0 +1,235 @@
+<div class="public-share-stage">
+
+  <!-- Ambient Top Bar -->
+  <header class="public-top-bar">
+    <div class="brand-monogram">
+      <div class="brand-logo-circle">
+        <mat-icon class="brand-icon">auto_awesome</mat-icon>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">MemoryVerse</span>
+        <span class="brand-sub">Collective Memory Archive</span>
+      </div>
+    </div>
+
+    @if (payload(); as data) {
+      <div class="public-actions">
+        <button mat-button class="action-pill-btn" (click)="copyShareLink()" title="Copy shareable link">
+          <mat-icon>share</mat-icon>
+          <span>Share</span>
+        </button>
+        <button mat-button class="action-pill-btn" (click)="exportPrintableKeepsake()" title="Print or save as PDF">
+          <mat-icon>menu_book</mat-icon>
+          <span>Keepsake Book</span>
+        </button>
+        <button mat-flat-button class="action-primary-btn" (click)="downloadArchiveZip()" [disabled]="isExporting()">
+          @if (isExporting()) {
+            <mat-spinner diameter="16" class="white-spinner"></mat-spinner>
+            <span>Archiving...</span>
+          } @else {
+            <span class="btn-flex-inner">
+              <mat-icon>file_download</mat-icon>
+              <span>Export Archive</span>
+            </span>
+          }
+        </button>
+      </div>
+    }
+  </header>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="state-card loading-state">
+      <mat-spinner diameter="44"></mat-spinner>
+      <h2>Unfolding Shared Keepsake...</h2>
+      <p>Retrieving authentic moment from private memory archive</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="state-card error-state">
+      <div class="error-icon-wrap">
+        <mat-icon>history_edu</mat-icon>
+      </div>
+      <h2>Link Unavailable</h2>
+      <p>{{ errorMessage() }}</p>
+      <a mat-stroked-button routerLink="/auth/login" class="home-cta-btn">Go to MemoryVerse</a>
+    </div>
+  } @else {
+    @if (payload(); as data) {
+      <!-- Main Editorial Content Canvas -->
+      <main class="postcard-canvas animate-fade-in">
+
+      <!-- Case A: Shared Memory -->
+      @if (data.resourceType === 'MEMORY' && data.memory) {
+        @let m = data.memory;
+        <article class="postcard-article">
+
+          <!-- Kicker & Title -->
+          <div class="postcard-header">
+            <div class="shared-by-banner">
+              @if (data.sharedBy) {
+                <img 
+                  [src]="data.sharedBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [alt]="data.sharedBy.fullName" 
+                  class="sharer-avatar" 
+                />
+                <span class="sharer-text">Preserved & shared by <strong>{{ data.sharedBy.fullName }}</strong></span>
+              }
+            </div>
+
+            @if (m.journeyTitle) {
+              <div class="journey-tag">
+                <mat-icon>auto_stories</mat-icon>
+                <span>{{ m.journeyTitle }}</span>
+                @if (m.sectionTitle) {
+                  <span class="sec-dot">•</span>
+                  <span>{{ m.sectionTitle }}</span>
+                }
+              </div>
+            }
+
+            <h1 class="postcard-headline">{{ m.title }}</h1>
+
+            <div class="postcard-metadata">
+              <span class="meta-item">
+                <mat-icon>calendar_today</mat-icon>
+                {{ formatDate(m.memoryDate) }}
+              </span>
+              @if (m.locationName) {
+                <span class="meta-item">
+                  <mat-icon>place</mat-icon>
+                  {{ m.locationName }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Hero Image Cover -->
+          @if (getCoverMedia(m); as cover) {
+            <div class="hero-cover-frame" (click)="openLightbox(m.mediaList, 0)">
+              <img [src]="cover.mediaUrl" [alt]="m.title" mvFallback class="hero-cover-img" />
+              <div class="cover-lens-badge">
+                <mat-icon>fullscreen</mat-icon>
+                <span>View Fullscreen</span>
+              </div>
+            </div>
+          }
+
+          <!-- Narrative Prose -->
+          @if (m.story) {
+            <section class="postcard-narrative">
+              <p class="story-paragraph">{{ m.story }}</p>
+            </section>
+          }
+
+          <!-- Audio Voice Memo Player -->
+          @for (audio of getAudioMedia(m.mediaList); track (audio.id || '') + '-' + $index) {
+            <div class="audio-section-wrap">
+              <div class="audio-kicker">
+                <mat-icon>mic</mat-icon>
+                <span>Voice Memo Record</span>
+              </div>
+              <mv-audio-player 
+                [audioUrl]="audio.mediaUrl" 
+                [title]="audio.fileName || 'Spoken Note'">
+              </mv-audio-player>
+            </div>
+          }
+
+          <!-- Photo Gallery Grid -->
+          @if (getVisualMedia(m.mediaList).length > 1) {
+            <section class="visual-gallery-section">
+              <h3 class="gallery-heading">
+                <mat-icon>photo_library</mat-icon>
+                <span>Photographs & Media ({{ getVisualMedia(m.mediaList).length }})</span>
+              </h3>
+              <div class="gallery-grid">
+                @for (media of getVisualMedia(m.mediaList); track (media.id || '') + '-' + idx; let idx = $index) {
+                  <div class="photo-card" (click)="openLightbox(m.mediaList, idx)">
+                    <img 
+                      [src]="media.thumbnailUrl || media.mediaUrl" 
+                      [alt]="media.fileName || 'Memory photo'" 
+                      mvFallback 
+                      class="gallery-thumb" 
+                      loading="lazy" 
+                    />
+                    @if (media.mediaType === 'VIDEO') {
+                      <div class="video-pill"><mat-icon>play_arrow</mat-icon></div>
+                    }
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- Companions Section -->
+          @if (m.taggedUsers && m.taggedUsers.length > 0) {
+            <section class="companions-card">
+              <span class="companions-label">Companions in this memory</span>
+              <div class="companions-avatars-row">
+                @for (user of m.taggedUsers; track user.id) {
+                  <div class="companion-tag-chip">
+                    <img 
+                      [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [alt]="user.fullName" 
+                      class="chip-avatar" 
+                    />
+                    <span>{{ user.fullName }}</span>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+        </article>
+      }
+
+      <!-- Case B: Shared Journey -->
+      @if (data.resourceType === 'JOURNEY' && data.journey) {
+        @let j = data.journey;
+        <article class="postcard-article journey-article">
+          <div class="journey-hero-header">
+            <span class="journey-kicker">JOURNEY ANTHOLOGY</span>
+            <h1 class="postcard-headline">{{ j.title }}</h1>
+            <p class="journey-desc">{{ j.description }}</p>
+          </div>
+
+          @if (j.coverImageUrl) {
+            <div class="hero-cover-frame">
+              <img [src]="j.coverImageUrl" [alt]="j.title" mvFallback class="hero-cover-img" />
+            </div>
+          }
+
+          <div class="chapters-stream">
+            <h3 class="chapters-header">Recorded Chapters ({{ j.sections ? j.sections.length : 0 }})</h3>
+            @for (sec of j.sections; track sec.id) {
+              <div class="chapter-card">
+                <div class="chapter-info">
+                  <h4 class="chapter-title">{{ sec.title }}</h4>
+                  <p class="chapter-text">{{ sec.description }}</p>
+                </div>
+                @if (sec.imageUrl) {
+                  <img [src]="sec.imageUrl" [alt]="sec.title" mvFallback class="chapter-thumb" />
+                }
+              </div>
+            }
+          </div>
+        </article>
+      }
+
+    </main>
+    }
+  }
+
+  <!-- Watermark & Guest Footer -->
+  <footer class="postcard-footer">
+    <div class="footer-inner">
+      <div class="watermark-brand">
+        <mat-icon class="sparkle-icon">auto_awesome</mat-icon>
+        <strong>MemoryVerse</strong>
+      </div>
+      <p class="footer-tagline">Preserving authentic moments and shared stories across time.</p>
+      <a routerLink="/auth/login" class="login-link">Sign In to Your Archive &rarr;</a>
+    </div>
+  </footer>
+
+</div>

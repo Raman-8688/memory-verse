@@ -47,6 +47,41 @@
             <span>Collect</span>
           </button>
 
+          <!-- Share Link Button -->
+          <button 
+            type="button" 
+            class="action-btn share-btn"
+            (click)="shareMemory()"
+            [disabled]="isSharing()"
+            title="Generate & copy shareable link">
+            @if (isSharing()) {
+              <mat-spinner diameter="14" class="white-spinner"></mat-spinner>
+            } @else {
+              <mat-icon>share</mat-icon>
+            }
+            <span>Share</span>
+          </button>
+
+          <!-- Export Keepsake Menu / Button -->
+          <button 
+            type="button" 
+            class="action-btn export-btn"
+            [matMenuTriggerFor]="exportMenu"
+            title="Export keepsake">
+            <mat-icon>menu_book</mat-icon>
+            <span>Keepsake</span>
+          </button>
+          <mat-menu #exportMenu="matMenu">
+            <button mat-menu-item (click)="exportKeepsakeBook()">
+              <mat-icon>print</mat-icon>
+              <span>Print Keepsake Book (PDF)</span>
+            </button>
+            <button mat-menu-item (click)="downloadArchiveZip()">
+              <mat-icon>inventory_2</mat-icon>
+              <span>Download Archive (ZIP)</span>
+            </button>
+          </mat-menu>
+
           @if (canEdit()) {
             <button mat-stroked-button class="action-btn edit-btn" (click)="openEditDialog(m)">
               <mat-icon>edit</mat-icon>
