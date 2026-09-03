@@ -1,79 +1,123 @@
-<div class="audio-player-card" [class.playing]="isPlaying()">
-
-  <!-- Hidden native HTML audio element -->
+<div class="editorial-audio-card" [class.playing]="isPlaying()">
+  <!-- Hidden native audio element -->
   <audio 
     #audioElement 
     [src]="audioUrl" 
+    preload="metadata"
     (timeupdate)="onTimeUpdate()" 
     (loadedmetadata)="onLoadedMetadata()" 
-    (ended)="onEnded()"
-    preload="metadata">
+    (ended)="onAudioEnded()">
   </audio>
 
-  <!-- Play / Pause Circular Action -->
-  <button 
-    type="button" 
-    mat-icon-button 
-    class="play-toggle-btn" 
-    (click)="togglePlay()" 
-    [attr.aria-label]="isPlaying() ? 'Pause audio note' : 'Play audio note'">
-    <mat-icon>{{ isPlaying() ? 'pause' : 'play_arrow' }}</mat-icon>
-  </button>
+  <div class="player-main-row">
+    <!-- Play / Pause Circular Terracotta Button -->
+    <button 
+      type="button" 
+      class="play-control-btn" 
+      (click)="togglePlay()" 
+      [attr.aria-label]="isPlaying() ? 'Pause voice memo' : 'Play voice memo'"
+      [title]="isPlaying() ? 'Pause' : 'Play voice memo'">
+      <mat-icon>{{ isPlaying() ? 'pause' : 'play_arrow' }}</mat-icon>
+    </button>
 
-  <!-- Player Main Body -->
-  <div class="player-body">
+    <!-- Meta & Visual Waveform -->
+    <div class="player-body">
+      <div class="player-top-line">
+        <div class="player-title-block">
+          <mat-icon class="mic-glyph">mic</mat-icon>
+          <span class="audio-title">{{ title }}</span>
+          @if (authorName) {
+            <span class="audio-author">• {{ authorName }}</span>
+          }
+        </div>
 
-    <!-- Top Row: Title, Waveform Bars & Author -->
-    <div class="player-top-row">
-      <div class="player-title-block">
-        <mat-icon class="audio-mic-icon">graphic_eq</mat-icon>
-        <span class="audio-title">{{ title }}</span>
-        @if (authorName) {
-          <span class="audio-author">by {{ authorName }}</span>
-        }
-      </div>
-
-      <!-- Animated Sound Waveform Bars -->
-      <div class="sound-wave-bars" [class.active]="isPlaying()">
-        <span class="bar bar-1"></span>
-        <span class="bar bar-2"></span>
-        <span class="bar bar-3"></span>
-        <span class="bar bar-4"></span>
-        <span class="bar bar-5"></span>
-      </div>
-
-      <!-- Time Display -->
-      <div class="time-readout">
-        <span class="curr-time">{{ formattedCurrentTime() }}</span>
-        <span class="time-sep">/</span>
-        <span class="total-time">{{ formattedDuration() }}</span>
-      </div>
-    </div>
-
-    <!-- Bottom Row: Scrubbable Progress Track -->
-    <div class="player-bottom-row">
-      <div 
-        #progressBar 
-        class="progress-track" 
-        (click)="seek($event)" 
-        matTooltip="Click to jump" 
-        matTooltipPosition="above">
-        <div class="progress-fill" [style.width.%]="progressPercentage()">
-          <span class="scrub-handle"></span>
+        <div class="player-time-readout">
+          <span class="time-curr">{{ formattedCurrentTime() }}</span>
+          <span class="time-sep">/</span>
+          <span class="time-dur">{{ formattedDuration() }}</span>
         </div>
       </div>
 
-      <!-- Mute / Unmute Button -->
+      <!-- Animated Waveform Bars & Scrub Track -->
+      <div class="scrub-container" #progressBar (click)="seek($event)">
+        <div class="waveform-visualizer">
+          @for (bar of waveformBars; track $index) {
+            <div 
+              class="wave-bar" 
+              [style.height.%]="bar"
+              [class.active-bar]="($index / waveformBars.length) * 100 <= progressPercent()"
+              [class.pulsing]="isPlaying()">
+            </div>
+          }
+        </div>
+        <div class="progress-fill" [style.width.%]="progressPercent()"></div>
+        <div class="scrub-thumb" [style.left.%]="progressPercent()"></div>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="right-controls">
+      <!-- Transcript Toggle Button -->
       <button 
         type="button" 
-        mat-icon-button 
-        class="mute-btn" 
+        class="ctrl-icon-btn" 
+        [class.active-toggle]="showTranscript()"
+        (click)="toggleTranscript()" 
+        title="Toggle voice transcript">
+        <mat-icon>subtitles</mat-icon>
+      </button>
+
+      <!-- Volume / Mute -->
+      <button 
+        type="button" 
+        class="ctrl-icon-btn" 
         (click)="toggleMute()" 
         [title]="isMuted() ? 'Unmute' : 'Mute'">
         <mat-icon>{{ isMuted() ? 'volume_off' : 'volume_up' }}</mat-icon>
       </button>
     </div>
-
   </div>
 
+  <!-- Expandable Transcript Drawer -->
+  @if (showTranscript()) {
+    <div class="transcript-drawer animate-fade-in">
+      <div class="transcript-header">
+        <div class="transcript-label">
+          <mat-icon>format_quote</mat-icon>
+          <span>Spoken Transcript</span>
+        </div>
+        @if (!isEditingTranscript()) {
+          <button type="button" class="edit-transcript-btn" (click)="startEditingTranscript()">
+            <mat-icon>edit</mat-icon>
+            <span>{{ currentTranscript() ? 'Edit' : 'Add Transcript' }}</span>
+          </button>
+        }
+      </div>
+
+      @if (isEditingTranscript()) {
+        <div class="transcript-edit-box">
+          <textarea 
+            [(ngModel)]="editedTranscriptText" 
+            placeholder="Type or refine the voice memo transcription..."
+            class="transcript-textarea"
+            rows="3">
+          </textarea>
+          <div class="edit-actions">
+            <button type="button" class="btn-cancel" (click)="cancelEditingTranscript()">Cancel</button>
+            <button type="button" class="btn-save" (click)="saveTranscript()" [disabled]="isSavingTranscript()">
+              @if (isSavingTranscript()) {
+                <mat-spinner diameter="14" class="white-spinner"></mat-spinner>
+              } @else {
+                <span>Save Transcript</span>
+              }
+            </button>
+          </div>
+        </div>
+      } @else {
+        <p class="transcript-text" [class.empty-text]="!currentTranscript()">
+          {{ currentTranscript() || 'No transcription added yet. Click "Add Transcript" to type spoken narrative.' }}
+        </p>
+      }
+    </div>
+  }
 </div>

@@ -78,6 +78,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/places/places.component').then(m => m.PlacesComponent)
       },
       {
+        path: 'map',
+        loadComponent: () => import('./features/map/map.component').then(m => m.MapComponent)
+      },
+      {
         path: 'people',
         loadComponent: () => import('./features/people/people.component').then(m => m.PeopleComponent)
       },

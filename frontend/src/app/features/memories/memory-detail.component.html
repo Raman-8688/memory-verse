@@ -174,10 +174,12 @@
                 <mat-icon class="voice-header-icon">mic</mat-icon>
                 <span class="voice-header-title">Voice Memos & Audio Stories ({{ getAudioMedia(m).length }})</span>
               </div>
-              @for (audio of getAudioMedia(m); track audio.id) {
+              @for (audio of getAudioMedia(m); track (audio.id || '') + '-' + $index) {
                 <mv-audio-player 
                   [audioUrl]="audio.mediaUrl" 
                   [title]="audio.fileName || 'Voice Memo'"
+                  [transcript]="audio.transcript"
+                  [mediaId]="audio.id"
                   [authorName]="m.createdBy.fullName">
                 </mv-audio-player>
               }

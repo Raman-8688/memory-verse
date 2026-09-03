@@ -22,4 +22,6 @@ public interface NotificationService {
     Notification createNotification(User recipient, String message, NotificationType type, UUID relatedEntityId);
 
     void notifyGroup(User actor, String actorMessage, String othersMessage, NotificationType type, UUID relatedEntityId);
+
+    int checkAndGenerateOnThisDayNotifications();
 }

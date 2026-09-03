@@ -25,6 +25,7 @@ public class MediaResponseDto {
     private Integer width;
     private Integer height;
     private Integer durationSeconds;
+    private String transcript;
     private Integer displayOrder;
     private Instant createdAt;
 
@@ -41,6 +42,7 @@ public class MediaResponseDto {
                 .width(media.getWidth())
                 .height(media.getHeight())
                 .durationSeconds(media.getDurationSeconds())
+                .transcript(media.getTranscript())
                 .displayOrder(media.getDisplayOrder())
                 .createdAt(media.getCreatedAt())
                 .build();

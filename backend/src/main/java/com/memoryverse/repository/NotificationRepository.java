@@ -1,6 +1,7 @@
 package com.memoryverse.repository;
 
 import com.memoryverse.entity.Notification;
+import com.memoryverse.entity.NotificationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +26,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.id = :id AND n.recipient.id = :recipientId")
     int markAsRead(@Param("id") UUID id, @Param("recipientId") UUID recipientId);
+
+    boolean existsByRecipientIdAndRelatedEntityIdAndType(UUID recipientId, UUID relatedEntityId, NotificationType type);
 }
