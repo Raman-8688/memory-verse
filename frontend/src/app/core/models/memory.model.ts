@@ -24,6 +24,7 @@ export interface Memory {
   title: string;
   story: string;
   memoryDate: string;
+  coverImageUrl?: string;
   locationName?: string;
   latitude?: number;
   longitude?: number;
@@ -44,6 +45,7 @@ export interface MemoryCreateDto {
   title: string;
   story: string;
   memoryDate: string;
+  coverImageUrl?: string;
   locationName?: string;
   latitude?: number;
   longitude?: number;
@@ -59,6 +61,7 @@ export interface MemoryUpdateDto {
   title: string;
   story: string;
   memoryDate: string;
+  coverImageUrl?: string;
   locationName?: string;
   privacyLevel?: PrivacyLevel;
 }

@@ -24,6 +24,7 @@ public class MemoryResponseDto {
     private String title;
     private String story;
     private LocalDate memoryDate;
+    private String coverImageUrl;
     private String locationName;
     private Double latitude;
     private Double longitude;
@@ -48,6 +49,7 @@ public class MemoryResponseDto {
                 .title(memory.getTitle())
                 .story(memory.getStory())
                 .memoryDate(memory.getMemoryDate())
+                .coverImageUrl(memory.getCoverImageUrl())
                 .locationName(memory.getLocationName())
                 .latitude(memory.getLatitude())
                 .longitude(memory.getLongitude())

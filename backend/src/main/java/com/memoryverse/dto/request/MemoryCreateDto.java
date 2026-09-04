@@ -30,6 +30,8 @@ public class MemoryCreateDto {
     @NotNull(message = "Memory date is required")
     private LocalDate memoryDate;
 
+    private String coverImageUrl;
+
     private String locationName;
 
     private Double latitude;

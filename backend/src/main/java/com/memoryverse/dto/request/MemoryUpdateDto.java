@@ -27,6 +27,8 @@ public class MemoryUpdateDto {
     @NotNull(message = "Memory date is required")
     private LocalDate memoryDate;
 
+    private String coverImageUrl;
+
     @Size(max = 150, message = "Location must not exceed 150 characters")
     private String locationName;
 

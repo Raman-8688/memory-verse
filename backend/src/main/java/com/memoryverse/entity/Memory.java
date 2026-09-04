@@ -50,6 +50,9 @@ public class Memory {
     @Column(name = "memory_date", nullable = false)
     private LocalDate memoryDate;
 
+    @Column(name = "cover_image_url", length = 500)
+    private String coverImageUrl;
+
     @Column(name = "location_name", length = 200)
     private String locationName;
 

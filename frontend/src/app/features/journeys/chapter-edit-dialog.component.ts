@@ -10,7 +10,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { JourneySection } from '@core/models/journey.model';
+import { JourneySection, JourneySectionCreateDto } from '@core/models/journey.model';
 import { JourneyService } from '@core/services/journey.service';
 import { MediaService } from '@core/services/media.service';
 
@@ -50,78 +50,80 @@ export interface ChapterEditDialogData {
       </header>
 
       <form [formGroup]="editForm" (ngSubmit)="save()" class="dialog-form">
-        <!-- Title -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Chapter Title *</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. First Year & Hostel Beginnings" />
-          @if (editForm.get('title')?.hasError('required') && editForm.get('title')?.touched) {
-            <mat-error>A chapter title is required.</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Dates Row -->
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="startPicker" formControlName="startDate" />
-            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
+        <mat-dialog-content class="edit-dialog-content">
+          <!-- Title -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Chapter Title *</mat-label>
+            <input matInput formControlName="title" placeholder="e.g. First Year & Hostel Beginnings" />
+            @if (editForm.get('title')?.hasError('required') && editForm.get('title')?.touched) {
+              <mat-error>A chapter title is required.</mat-error>
+            }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>End Date</mat-label>
-            <input matInput [matDatepicker]="endPicker" formControlName="endDate" />
-            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
+          <!-- Dates Row -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Start Date</mat-label>
+              <input matInput [matDatepicker]="startPicker" formControlName="startDate" placeholder="YYYY-MM-DD" />
+              <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>End Date</mat-label>
+              <input matInput [matDatepicker]="endPicker" formControlName="endDate" placeholder="YYYY-MM-DD" />
+              <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <!-- Chapter Cover Image Upload Section -->
+          <div class="cover-upload-block">
+            <label class="section-label">Chapter Cover Photo</label>
+
+            <!-- Hidden single file input -->
+            <input 
+              type="file" 
+              #coverFileInput 
+              accept="image/*" 
+              (change)="onCoverFileSelected($event)" 
+              style="display: none;" />
+
+            @if (coverPreviewUrl()) {
+              <div class="cover-preview-card">
+                <img [src]="coverPreviewUrl()" alt="Chapter cover preview" class="cover-preview-img" />
+                <div class="preview-actions-overlay">
+                  <button type="button" mat-flat-button class="overlay-btn change-btn" (click)="coverFileInput.click()" [disabled]="isSaving()">
+                    <mat-icon>photo_camera</mat-icon>
+                    <span>Change Photo</span>
+                  </button>
+                  <button type="button" mat-stroked-button class="overlay-btn remove-btn" (click)="removeCover()" [disabled]="isSaving()">
+                    <mat-icon>delete</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="upload-dropzone" (click)="coverFileInput.click()">
+                <div class="dropzone-icon">
+                  <mat-icon>add_photo_alternate</mat-icon>
+                </div>
+                <div class="dropzone-text">
+                  <strong>Upload Chapter Photo from Device</strong>
+                  <span>Browse from computer, phone gallery, or camera</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Story / Narrative</mat-label>
+            <textarea matInput formControlName="description" rows="3" placeholder="What unforgettable memories defined this chapter?"></textarea>
           </mat-form-field>
-        </div>
+        </mat-dialog-content>
 
-        <!-- Chapter Cover Image Upload Section -->
-        <div class="cover-upload-block">
-          <label class="section-label">Chapter Cover Photo</label>
-
-          <!-- Hidden single file input -->
-          <input 
-            type="file" 
-            #coverFileInput 
-            accept="image/*" 
-            (change)="onCoverFileSelected($event)" 
-            style="display: none;" />
-
-          @if (coverPreviewUrl()) {
-            <div class="cover-preview-card">
-              <img [src]="coverPreviewUrl()" alt="Chapter cover preview" class="cover-preview-img" />
-              <div class="preview-actions-overlay">
-                <button type="button" mat-flat-button class="overlay-btn change-btn" (click)="coverFileInput.click()" [disabled]="isSaving()">
-                  <mat-icon>photo_camera</mat-icon>
-                  <span>Change Photo</span>
-                </button>
-                <button type="button" mat-stroked-button class="overlay-btn remove-btn" (click)="removeCover()" [disabled]="isSaving()">
-                  <mat-icon>delete</mat-icon>
-                  <span>Remove</span>
-                </button>
-              </div>
-            </div>
-          } @else {
-            <div class="upload-dropzone" (click)="coverFileInput.click()">
-              <div class="dropzone-icon">
-                <mat-icon>add_photo_alternate</mat-icon>
-              </div>
-              <div class="dropzone-text">
-                <strong>Upload Chapter Photo from Device</strong>
-                <span>Browse from computer, phone gallery, or camera</span>
-              </div>
-            </div>
-          }
-        </div>
-
-        <!-- Description -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Story / Narrative</mat-label>
-          <textarea matInput formControlName="description" rows="3" placeholder="What unforgettable memories defined this chapter?"></textarea>
-        </mat-form-field>
-
-        <footer class="dialog-actions">
+        <mat-dialog-actions align="end" class="dialog-actions">
           <button mat-button type="button" (click)="dialogRef.close()" [disabled]="isSaving()" class="cancel-btn">
             Cancel
           </button>
@@ -136,24 +138,29 @@ export interface ChapterEditDialogData {
               </ng-container>
             }
           </button>
-        </footer>
+        </mat-dialog-actions>
       </form>
     </div>
   `,
   styles: [`
     .edit-dialog-container {
-      padding: var(--space-4);
+      padding: var(--space-4, 16px);
       background-color: var(--mv-bg-surface);
       max-width: 580px;
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      box-sizing: border-box;
     }
 
     .dialog-header {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding-bottom: var(--space-2);
+      padding-bottom: var(--space-2, 8px);
       border-bottom: 1px solid var(--mv-border);
       position: relative;
+      flex-shrink: 0;
     }
 
     .header-icon-wrap {
@@ -194,8 +201,20 @@ export interface ChapterEditDialogData {
     .dialog-form {
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
-      padding-top: var(--space-3);
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .edit-dialog-content {
+      max-height: 65vh;
+      overflow-y: auto;
+      padding: 16px 4px 12px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-sizing: border-box;
     }
 
     .form-row {
@@ -229,7 +248,7 @@ export interface ChapterEditDialogData {
     .upload-dropzone {
       border: 2px dashed #fde68a;
       background-color: #fef9ee;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-md, 8px);
       padding: 16px;
       display: flex;
       align-items: center;
@@ -253,7 +272,7 @@ export interface ChapterEditDialogData {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: var(--shadow-subtle);
+      box-shadow: var(--shadow-subtle, 0 1px 3px rgba(0,0,0,0.1));
       flex-shrink: 0;
     }
 
@@ -276,18 +295,21 @@ export interface ChapterEditDialogData {
     .cover-preview-card {
       position: relative;
       width: 100%;
-      height: 150px;
-      border-radius: var(--radius-md);
+      height: 160px;
+      max-height: 160px;
+      border-radius: var(--mv-radius, 8px);
       overflow: hidden;
       border: 1px solid var(--mv-border);
-      box-shadow: var(--shadow-subtle);
+      box-shadow: var(--shadow-subtle, 0 1px 3px rgba(0,0,0,0.1));
       background-color: #1c1917;
     }
 
     .cover-preview-img {
       width: 100%;
       height: 100%;
+      max-height: 160px;
       object-fit: cover;
+      border-radius: var(--mv-radius, 8px);
     }
 
     .preview-actions-overlay {
@@ -302,7 +324,7 @@ export interface ChapterEditDialogData {
     }
 
     .overlay-btn {
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-full, 9999px);
       font-size: 0.8rem;
       font-weight: 600;
       display: inline-flex;
@@ -328,16 +350,17 @@ export interface ChapterEditDialogData {
       justify-content: flex-end;
       align-items: center;
       gap: 12px;
-      padding-top: var(--space-2);
+      padding-top: var(--space-2, 8px);
       border-top: 1px solid var(--mv-border);
       margin-top: 4px;
+      flex-shrink: 0;
     }
 
     .save-btn {
       background-color: var(--mv-primary) !important;
       color: #ffffff !important;
       font-weight: 600;
-      border-radius: var(--radius-md);
+      border-radius: var(--radius-md, 8px);
       padding: 0 20px;
       height: 40px;
       display: flex;
@@ -375,8 +398,8 @@ export class ChapterEditDialogComponent implements OnInit {
   editForm!: FormGroup;
 
   ngOnInit(): void {
-    const start = this.data.section.startDate ? new Date(this.data.section.startDate) : null;
-    const end = this.data.section.endDate ? new Date(this.data.section.endDate) : null;
+    const start = this.parseDate(this.data.section.startDate);
+    const end = this.parseDate(this.data.section.endDate);
 
     this.editForm = this.fb.group({
       title: [this.data.section.title, [Validators.required, Validators.maxLength(150)]],
@@ -384,6 +407,33 @@ export class ChapterEditDialogComponent implements OnInit {
       startDate: [start],
       endDate: [end]
     });
+  }
+
+  private parseDate(val?: string | null): Date | null {
+    if (!val) return null;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  private formatDateString(val: any): string | null {
+    if (!val) return null;
+    if (val instanceof Date && !isNaN(val.getTime())) {
+      const year = val.getFullYear();
+      const month = String(val.getMonth() + 1).padStart(2, '0');
+      const day = String(val.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    if (typeof val === 'string' && val.trim().length > 0) {
+      const parsed = new Date(val);
+      if (!isNaN(parsed.getTime())) {
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      return val.trim();
+    }
+    return null;
   }
 
   onCoverFileSelected(event: Event): void {
@@ -432,20 +482,15 @@ export class ChapterEditDialogComponent implements OnInit {
   private executeSectionUpdate(finalCoverUrl: string | null): void {
     const formVal = this.editForm.value;
 
-    const startDateStr = formVal.startDate instanceof Date 
-      ? formVal.startDate.toISOString().split('T')[0] 
-      : (formVal.startDate || null);
+    const startDateStr = this.formatDateString(formVal.startDate);
+    const endDateStr = this.formatDateString(formVal.endDate);
 
-    const endDateStr = formVal.endDate instanceof Date 
-      ? formVal.endDate.toISOString().split('T')[0] 
-      : (formVal.endDate || null);
-
-    const payload = {
+    const payload: JourneySectionCreateDto = {
       title: formVal.title.trim(),
-      description: formVal.description?.trim() || null,
-      startDate: startDateStr,
-      endDate: endDateStr,
-      imageUrl: finalCoverUrl ? finalCoverUrl.trim() : null
+      description: formVal.description?.trim() || undefined,
+      startDate: startDateStr || undefined,
+      endDate: endDateStr || undefined,
+      imageUrl: finalCoverUrl ? finalCoverUrl.trim() : undefined
     };
 
     this.journeyService.updateSection(this.data.journeyId, this.data.section.id, payload).subscribe({

@@ -120,7 +120,8 @@ export class MemoryDetailComponent implements OnInit {
   }
 
   getCoverUrl(m: Memory): string {
-    if (m.mediaList && m.mediaList.length > 0) {
+    if (m?.coverImageUrl) return m.coverImageUrl;
+    if (m?.mediaList && m.mediaList.length > 0) {
       return m.mediaList[0].thumbnailUrl || m.mediaList[0].mediaUrl;
     }
     return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80';

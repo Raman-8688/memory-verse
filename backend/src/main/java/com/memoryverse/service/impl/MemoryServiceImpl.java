@@ -13,6 +13,7 @@ import com.memoryverse.entity.Media;
 import com.memoryverse.entity.MediaType;
 import com.memoryverse.entity.Memory;
 import com.memoryverse.entity.NotificationType;
+import com.memoryverse.entity.PrivacyLevel;
 import com.memoryverse.entity.User;
 import com.memoryverse.exception.ForbiddenException;
 import com.memoryverse.exception.ResourceNotFoundException;
@@ -70,10 +71,12 @@ public class MemoryServiceImpl implements MemoryService {
                 .title(dto.getTitle().trim())
                 .story(dto.getStory().trim())
                 .memoryDate(dto.getMemoryDate())
+                .coverImageUrl(dto.getCoverImageUrl() != null && !dto.getCoverImageUrl().isBlank() ? dto.getCoverImageUrl().trim() : null)
                 .locationName(dto.getLocationName())
                 .latitude(dto.getLatitude())
                 .longitude(dto.getLongitude())
                 .isFeatured(dto.getIsFeatured() != null ? dto.getIsFeatured() : false)
+                .privacyLevel(dto.getPrivacyLevel() != null ? dto.getPrivacyLevel() : PrivacyLevel.CIRCLE_COMPANIONS)
                 .journey(journey)
                 .section(section)
                 .createdBy(creator)
@@ -281,7 +284,13 @@ public class MemoryServiceImpl implements MemoryService {
         memory.setTitle(dto.getTitle().trim());
         memory.setStory(dto.getStory().trim());
         memory.setMemoryDate(dto.getMemoryDate());
+        if (dto.getCoverImageUrl() != null) {
+            memory.setCoverImageUrl(dto.getCoverImageUrl().isBlank() ? null : dto.getCoverImageUrl().trim());
+        }
         memory.setLocationName(dto.getLocationName() != null ? dto.getLocationName().trim() : null);
+        if (dto.getPrivacyLevel() != null) {
+            memory.setPrivacyLevel(dto.getPrivacyLevel());
+        }
 
         Memory updated = memoryRepository.save(memory);
         log.info("Memory updated: id={}, title='{}'", updated.getId(), updated.getTitle());

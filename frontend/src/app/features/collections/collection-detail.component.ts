@@ -159,6 +159,7 @@ export class CollectionDetailComponent implements OnInit {
 
   getCoverUrl(memory?: Memory): string {
     if (!memory) return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
+    if (memory.coverImageUrl) return memory.coverImageUrl;
     if (memory.mediaList && memory.mediaList.length > 0) {
       const m = memory.mediaList[0];
       return m.thumbnailUrl || m.mediaUrl;

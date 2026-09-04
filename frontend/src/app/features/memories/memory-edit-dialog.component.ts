@@ -14,6 +14,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpEventType } from '@angular/common/http';
 import { Memory, MemoryUpdateDto, PrivacyLevel } from '@core/models/memory.model';
 import { MemoryService } from '@core/services/memory.service';
+import { MediaService } from '@core/services/media.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
 
 interface EditPreviewItem {
@@ -55,6 +56,45 @@ interface EditPreviewItem {
 
       <form [formGroup]="editForm" (ngSubmit)="save()" class="dialog-form">
         <mat-dialog-content class="edit-dialog-scrollable-content">
+          <!-- Dedicated Memory Cover Image Upload Section -->
+          <div class="cover-upload-block">
+            <label class="section-label">Memory Cover Photo (Hero Image)</label>
+
+            <!-- Hidden single file input -->
+            <input 
+              type="file" 
+              #coverFileInput 
+              accept="image/*" 
+              (change)="onCoverFileSelected($event)" 
+              style="display: none;" />
+
+            @if (coverPreviewUrl()) {
+              <div class="cover-preview-card">
+                <img [src]="coverPreviewUrl()" alt="Memory cover preview" class="cover-preview-img" />
+                <div class="preview-actions-overlay">
+                  <button type="button" mat-flat-button class="overlay-btn change-btn" (click)="coverFileInput.click()" [disabled]="isSaving()">
+                    <mat-icon>photo_camera</mat-icon>
+                    <span>Change Cover</span>
+                  </button>
+                  <button type="button" mat-stroked-button class="overlay-btn remove-btn" (click)="removeCover()" [disabled]="isSaving()">
+                    <mat-icon>delete</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="upload-dropzone" (click)="coverFileInput.click()">
+                <div class="dropzone-icon">
+                  <mat-icon>add_photo_alternate</mat-icon>
+                </div>
+                <div class="dropzone-text">
+                  <strong>Upload Dedicated Cover Photo from Device</strong>
+                  <span>Acts as the primary hero image for this memory</span>
+                </div>
+              </div>
+            }
+          </div>
+
           <!-- Title -->
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Memory Title *</mat-label>
@@ -256,6 +296,125 @@ interface EditPreviewItem {
       flex: 1;
     }
 
+    /* Cover Upload Block */
+    .cover-upload-block {
+      margin: 4px 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--mv-text-secondary);
+    }
+
+    .upload-dropzone {
+      border: 2px dashed #fde68a;
+      background-color: #fef9ee;
+      border-radius: var(--mv-radius-md, 8px);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .upload-dropzone:hover {
+      border-color: var(--mv-primary);
+      background-color: #fef3c7;
+      transform: translateY(-1px);
+    }
+
+    .dropzone-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      color: var(--mv-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+
+    .dropzone-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .dropzone-text strong {
+      font-size: 0.9rem;
+      color: var(--mv-text-primary);
+    }
+
+    .dropzone-text span {
+      font-size: 0.76rem;
+      color: var(--mv-text-muted);
+    }
+
+    .cover-preview-card {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      max-height: 160px;
+      border-radius: var(--mv-radius, 8px);
+      overflow: hidden;
+      border: 1px solid var(--mv-border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background-color: #1c1917;
+    }
+
+    .cover-preview-img {
+      width: 100%;
+      height: 100%;
+      max-height: 160px;
+      object-fit: cover;
+      border-radius: var(--mv-radius, 8px);
+    }
+
+    .preview-actions-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(28, 25, 23, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      backdrop-filter: blur(2px);
+    }
+
+    .overlay-btn {
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: 36px;
+    }
+
+    .overlay-btn.change-btn {
+      background-color: #ffffff !important;
+      color: var(--mv-text-primary) !important;
+    }
+
+    .overlay-btn.remove-btn {
+      background-color: rgba(239, 68, 68, 0.9) !important;
+      color: #ffffff !important;
+      border: none !important;
+      position: static;
+      width: auto;
+      border-radius: 9999px;
+    }
+
     /* Media Upload Section */
     .media-upload-section {
       background-color: var(--mv-bg-subtle);
@@ -403,6 +562,7 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
 
   private readonly fb = inject(FormBuilder);
   private readonly memoryService = inject(MemoryService);
+  private readonly mediaService = inject(MediaService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly snackBar = inject(MatSnackBar);
 
@@ -410,6 +570,8 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
 
   readonly isSaving = signal<boolean>(false);
   readonly savingStatus = signal<string>('Saving...');
+  readonly coverPreviewUrl = signal<string | null>(this.memory.coverImageUrl || null);
+  readonly selectedCoverFile = signal<File | null>(null);
   readonly filePreviews = signal<{ file: File; url: string; isVideo: boolean; isAudio?: boolean }[]>([]);
   private selectedFiles: File[] = [];
 
@@ -429,6 +591,21 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.filePreviews().forEach(p => URL.revokeObjectURL(p.url));
+  }
+
+  onCoverFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    this.selectedCoverFile.set(file);
+    const objectUrl = URL.createObjectURL(file);
+    this.coverPreviewUrl.set(objectUrl);
+    input.value = '';
+  }
+
+  removeCover(): void {
+    this.selectedCoverFile.set(null);
+    this.coverPreviewUrl.set(null);
   }
 
   onFilesSelected(event: Event): void {
@@ -471,6 +648,26 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
     }
 
     this.isSaving.set(true);
+
+    const coverFile = this.selectedCoverFile();
+    if (coverFile) {
+      this.savingStatus.set('Uploading cover photo...');
+      this.mediaService.uploadSingleFile(coverFile).subscribe({
+        next: (uploaded) => {
+          this.executeUpdateWithCover(uploaded.mediaUrl);
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          console.error('Failed to upload cover photo:', err);
+          this.snackBar.open('Failed to upload cover photo. Please try again.', 'Close', { duration: 4000 });
+        }
+      });
+    } else {
+      this.executeUpdateWithCover(this.coverPreviewUrl());
+    }
+  }
+
+  private executeUpdateWithCover(finalCoverUrl: string | null): void {
     this.savingStatus.set('Updating story...');
     const formVal = this.editForm.value;
 
@@ -482,6 +679,7 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
       title: formVal.title.trim(),
       story: formVal.story.trim(),
       memoryDate: dateStr,
+      coverImageUrl: finalCoverUrl ? finalCoverUrl.trim() : undefined,
       locationName: formVal.locationName ? formVal.locationName.trim() : undefined,
       privacyLevel: formVal.privacyLevel as PrivacyLevel
     };
