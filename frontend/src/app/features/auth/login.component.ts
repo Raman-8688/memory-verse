@@ -102,11 +102,11 @@ import { AuthService } from '@core/auth/auth.service';
             <div class="demo-buttons">
               <button type="button" class="demo-chip" (click)="fillCredentials('admin@memoryverse.com', 'password123')">
                 <mat-icon>admin_panel_settings</mat-icon>
-                <span>Admin (Arjun)</span>
+                <span>Admin (Raman)</span>
               </button>
-              <button type="button" class="demo-chip" (click)="fillCredentials('ravi@memoryverse.com', 'password123')">
+              <button type="button" class="demo-chip" (click)="fillCredentials('ramesh@memoryverse.com', 'password123')">
                 <mat-icon>person</mat-icon>
-                <span>Member (Ravi)</span>
+                <span>Admin (Ramesh)</span>
               </button>
             </div>
           </div>
