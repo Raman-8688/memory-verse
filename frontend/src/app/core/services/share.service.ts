@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { Memory } from '../models/memory.model';
 import { Journey } from '../models/journey.model';
 import { User } from '../models/user.model';
+import { environment } from '@env/environment';
 
 export interface SharedLinkResponse {
   id: string;
@@ -48,18 +49,18 @@ export class ShareService {
   }
 
   downloadMemoryZip(memoryId: string): Observable<Blob> {
-    return this.http.get(`/api/export/memory/${memoryId}/zip`, { responseType: 'blob' });
+    return this.http.get(`${environment.apiUrl}/export/memory/${memoryId}/zip`, { responseType: 'blob' });
   }
 
   downloadJourneyZip(journeyId: string): Observable<Blob> {
-    return this.http.get(`/api/export/journey/${journeyId}/zip`, { responseType: 'blob' });
+    return this.http.get(`${environment.apiUrl}/export/journey/${journeyId}/zip`, { responseType: 'blob' });
   }
 
   getMemoryBookUrl(memoryId: string): string {
-    return `/api/export/memory/${memoryId}/book`;
+    return `${environment.apiUrl}/export/memory/${memoryId}/book`;
   }
 
   getJourneyBookUrl(journeyId: string): string {
-    return `/api/export/journey/${journeyId}/book`;
+    return `${environment.apiUrl}/export/journey/${journeyId}/book`;
   }
 }
