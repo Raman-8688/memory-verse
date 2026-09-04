@@ -1,0 +1,205 @@
+<div class="guide-page">
+
+  <!-- Hero Guide Header -->
+  <header class="guide-hero">
+    <div class="guide-kicker">
+      <mat-icon>auto_stories</mat-icon>
+      <span>MEMORYVERSE COMPENDIUM</span>
+    </div>
+    <h1 class="guide-title">How to Use MemoryVerse</h1>
+    <p class="guide-subtitle">
+      A thoughtful guide to curating, organizing, and reliving the stories that define your collective history.
+    </p>
+  </header>
+
+  <!-- 1. The Philosophy -->
+  <section class="guide-section philosophy-section">
+    <div class="section-badge">
+      <mat-icon>lightbulb</mat-icon>
+      <span>The Philosophy</span>
+    </div>
+    <blockquote class="philosophy-quote">
+      "MemoryVerse is not a cloud drive; it is your digital coffee-table book. It is designed to preserve the story behind the photo, not just the photo itself."
+    </blockquote>
+    <p class="philosophy-body">
+      Traditional cloud storage dumps thousands of uncurated files into endless folders. MemoryVerse is built differently: every moment has an author, an emotion, a place in time, and an editorial narrative that companions can cherish for generations.
+    </p>
+  </section>
+
+  <!-- 2. The Hierarchy (How to Organize) -->
+  <section class="guide-section hierarchy-section">
+    <div class="section-badge">
+      <mat-icon>account_tree</mat-icon>
+      <span>The Hierarchy</span>
+    </div>
+    <h2 class="section-heading">How to Organize Your Archive</h2>
+    <p class="section-intro">
+      Follow this four-tier structure to turn raw snapshots into cohesive, living chronicles:
+    </p>
+
+    <div class="hierarchy-grid">
+      <!-- Tier 1: Journeys -->
+      <div class="tier-card tier-1">
+        <div class="tier-number">01</div>
+        <div class="tier-header">
+          <mat-icon class="tier-icon">auto_stories</mat-icon>
+          <h3 class="tier-title">Journeys</h3>
+          <span class="tier-alias">The Overarching Books</span>
+        </div>
+        <p class="tier-desc">
+          <strong>Start here.</strong> Journeys are the overarching "Books" of your life. They represent major chapters and shared eras (e.g., <em>"B.Tech College Days"</em>, <em>"Euro Trip 2025"</em>, <em>"Our Startup Years"</em>).
+        </p>
+        <div class="tier-tip">
+          <mat-icon>tips_and_updates</mat-icon>
+          <span>Create a Journey first before adding individual memories.</span>
+        </div>
+      </div>
+
+      <!-- Tier 2: Chapters -->
+      <div class="tier-card tier-2">
+        <div class="tier-number">02</div>
+        <div class="tier-header">
+          <mat-icon class="tier-icon">bookmark_border</mat-icon>
+          <h3 class="tier-title">Chapters</h3>
+          <span class="tier-alias">The Milestones & Eras</span>
+        </div>
+        <p class="tier-desc">
+          Inside Journeys, create Chapters for specific milestones, semesters, or trips (e.g., <em>"First Year Hostel"</em>, <em>"Paris Weekend"</em>, <em>"Graduation Week"</em>).
+        </p>
+        <div class="tier-tip">
+          <mat-icon>tips_and_updates</mat-icon>
+          <span>Chapters give your journey a rich chronological narrative spine.</span>
+        </div>
+      </div>
+
+      <!-- Tier 3: Memories -->
+      <div class="tier-card tier-3">
+        <div class="tier-number">03</div>
+        <div class="tier-header">
+          <mat-icon class="tier-icon">photo_library</mat-icon>
+          <h3 class="tier-title">Memories</h3>
+          <span class="tier-alias">The Individual Pages</span>
+        </div>
+        <p class="tier-desc">
+          Memories are the individual "Pages" in the book. Create a memory, assign it to a Journey and Chapter, set the historical Date and Location, and write the story behind the moment.
+        </p>
+        <div class="tier-tip">
+          <mat-icon>tips_and_updates</mat-icon>
+          <span>Focus on the emotional narrative—what made this specific day unforgettable.</span>
+        </div>
+      </div>
+
+      <!-- Tier 4: Media -->
+      <div class="tier-card tier-4">
+        <div class="tier-number">04</div>
+        <div class="tier-header">
+          <mat-icon class="tier-icon">collections</mat-icon>
+          <h3 class="tier-title">Media & Voice Notes</h3>
+          <span class="tier-alias">The Visuals & Audio</span>
+        </div>
+        <p class="tier-desc">
+          Finally, upload the high-resolution photographs, videos, and voice memos that belong to that specific memory. Listen to audio notes directly in the story.
+        </p>
+        <div class="tier-tip">
+          <mat-icon>tips_and_updates</mat-icon>
+          <span>Supports JPG, PNG, WEBP, MP4 videos, and MP3/WAV audio notes.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Discovery Features -->
+  <section class="guide-section discovery-section">
+    <div class="section-badge">
+      <mat-icon>travel_explore</mat-icon>
+      <span>Automated Discovery</span>
+    </div>
+    <h2 class="section-heading">How MemoryVerse Auto-Organizes For You</h2>
+    <p class="section-intro">
+      Once your memories follow the hierarchy above, our discovery engines automatically present your moments across multiple perspectives:
+    </p>
+
+    <div class="discovery-grid">
+      <!-- Timeline -->
+      <div class="discovery-card">
+        <div class="discovery-icon-box">
+          <mat-icon>schedule</mat-icon>
+        </div>
+        <h3 class="discovery-card-title">Global Timeline</h3>
+        <p class="discovery-card-desc">
+          <strong>Chronological Lens:</strong> Answers <em>"What happened over time?"</em> Dynamically groups all archive moments into a continuous vertical Year &rarr; Month timeline based on when the memory actually happened.
+        </p>
+        <a routerLink="/timeline" class="discovery-link">
+          <span>Open Timeline</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <!-- Collections & Favorites -->
+      <div class="discovery-card">
+        <div class="discovery-icon-box">
+          <mat-icon>collections_bookmark</mat-icon>
+        </div>
+        <h3 class="discovery-card-title">Collections & Favorites</h3>
+        <p class="discovery-card-desc">
+          <strong>Thematic Lens:</strong> Answers <em>"What are my absolute best moments?"</em> Group memories across different journeys into themed living albums (e.g. <em>"Best Sunsets"</em>, <em>"Food Adventures"</em>).
+        </p>
+        <a routerLink="/collections" class="discovery-link">
+          <span>Explore Collections</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <!-- Memory Map -->
+      <div class="discovery-card">
+        <div class="discovery-icon-box">
+          <mat-icon>map</mat-icon>
+        </div>
+        <h3 class="discovery-card-title">Places & Memory Map</h3>
+        <p class="discovery-card-desc">
+          <strong>Geographic Lens:</strong> Answers <em>"Where did this happen?"</em> Interactive world map pins and destination directory that lets you explore moments by city, campus, or coordinates.
+        </p>
+        <a routerLink="/map" class="discovery-link">
+          <span>Open Memory Map</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      <!-- Storybook Mode -->
+      <div class="discovery-card">
+        <div class="discovery-icon-box">
+          <mat-icon>fullscreen</mat-icon>
+        </div>
+        <h3 class="discovery-card-title">Storybook Presentation</h3>
+        <p class="discovery-card-desc">
+          <strong>Cinematic Lens:</strong> Turn any Journey into a full-screen, digital coffee-table magazine experience with keyboard navigation, split visual stages, and audio narration.
+        </p>
+        <a routerLink="/journeys" class="discovery-link">
+          <span>Relive a Journey</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Quick Action Footer -->
+  <footer class="guide-footer-cta">
+    <h2 class="footer-title">Ready to Preserve Your Next Story?</h2>
+    <p class="footer-subtitle">Start by creating an overarching Journey, or capture a spontaneous moment.</p>
+    <div class="cta-button-group">
+      <a routerLink="/journeys" mat-flat-button class="cta-primary-btn">
+        <mat-icon>auto_stories</mat-icon>
+        <span>Create a Journey</span>
+      </a>
+      <a routerLink="/memories/new" mat-stroked-button class="cta-secondary-btn">
+        <mat-icon>add_photo_alternate</mat-icon>
+        <span>Add a Memory</span>
+      </a>
+      <a routerLink="/timeline" mat-button class="cta-tertiary-btn">
+        <mat-icon>schedule</mat-icon>
+        <span>Browse Timeline</span>
+      </a>
+    </div>
+  </footer>
+
+</div>

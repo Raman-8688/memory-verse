@@ -102,6 +102,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/trash/trash.component').then(m => m.TrashComponent)
       },
       {
+        path: 'guide',
+        loadComponent: () => import('./features/guide/user-guide.component').then(m => m.UserGuideComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },

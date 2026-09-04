@@ -148,10 +148,16 @@ import { NotificationStateService } from '@core/services/notification-state.serv
                 <h2 class="editorial-title">Chapters of this Journey</h2>
               </div>
 
-              <button mat-button class="toggle-add-btn" (click)="showAddSectionForm.set(!showAddSectionForm())">
-                <mat-icon>{{ showAddSectionForm() ? 'close' : 'add_circle_outline' }}</mat-icon>
-                <span>{{ showAddSectionForm() ? 'Cancel' : 'Add Chapter' }}</span>
-              </button>
+              <div class="sections-header-actions">
+                <a [routerLink]="['/timeline']" [queryParams]="{ journey: j.id }" class="timeline-scope-link">
+                  <mat-icon>schedule</mat-icon>
+                  <span>View All in Timeline</span>
+                </a>
+                <button mat-button class="toggle-add-btn" (click)="showAddSectionForm.set(!showAddSectionForm())">
+                  <mat-icon>{{ showAddSectionForm() ? 'close' : 'add_circle_outline' }}</mat-icon>
+                  <span>{{ showAddSectionForm() ? 'Cancel' : 'Add Chapter' }}</span>
+                </button>
+              </div>
             </div>
 
             <!-- Inline Add Chapter Box with Image Upload -->
@@ -283,9 +289,9 @@ import { NotificationStateService } from '@core/services/notification-state.serv
                             </button>
                           }
 
-                          <a [routerLink]="['/memories']" [queryParams]="{ journeyId: j.id, sectionId: section.id }" class="view-memories-link">
-                            <mat-icon>photo_library</mat-icon>
-                            <span>View memories in this chapter</span>
+                          <a [routerLink]="['/timeline']" [queryParams]="{ journey: j.id, section: section.id }" class="view-memories-link">
+                            <mat-icon>schedule</mat-icon>
+                            <span>View chapter in Timeline</span>
                             <mat-icon class="arrow-mini">arrow_forward</mat-icon>
                           </a>
                         </div>
@@ -555,6 +561,34 @@ import { NotificationStateService } from '@core/services/notification-state.serv
     .editorial-title {
       font-size: 2rem;
       margin: 2px 0 0 0;
+    }
+
+    .sections-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .timeline-scope-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--mv-primary);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: var(--mv-radius-full);
+      background: rgba(180, 83, 9, 0.08);
+      border: 1px solid rgba(180, 83, 9, 0.2);
+      transition: all var(--mv-transition-fast);
+
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+      &:hover {
+        background: var(--mv-primary);
+        color: #ffffff;
+      }
     }
 
     .toggle-add-btn {

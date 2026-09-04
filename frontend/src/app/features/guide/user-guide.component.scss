@@ -1,0 +1,378 @@
+.guide-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--mv-space-32) var(--mv-space-24) var(--mv-space-64);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mv-space-48);
+}
+
+/* 1. Hero Header */
+.guide-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  align-items: center;
+  padding: var(--mv-space-32) 0 var(--mv-space-16);
+}
+
+.guide-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(180, 83, 9, 0.1);
+  color: var(--mv-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  border-radius: var(--mv-radius-full);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.guide-title {
+  font-family: var(--font-editorial);
+  font-size: 2.8rem;
+  font-weight: 600;
+  color: var(--mv-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.guide-subtitle {
+  font-size: 1.05rem;
+  color: var(--mv-text-secondary);
+  max-width: 620px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 2. Generic Section Layout */
+.guide-section {
+  background: var(--mv-bg-surface);
+  border: 1px solid var(--mv-border);
+  border-radius: var(--mv-radius-xl);
+  padding: var(--mv-space-40);
+  box-shadow: var(--mv-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mv-space-20);
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mv-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.section-heading {
+  font-family: var(--font-editorial);
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--mv-text-primary);
+  margin: 0;
+}
+
+.section-intro {
+  font-size: 0.95rem;
+  color: var(--mv-text-secondary);
+  line-height: 1.65;
+  margin: 0;
+  max-width: 780px;
+}
+
+/* 3. Philosophy Section */
+.philosophy-section {
+  border-left: 4px solid var(--mv-primary);
+  background: linear-gradient(135deg, var(--mv-bg-surface) 0%, var(--mv-bg-subtle) 100%);
+}
+
+.philosophy-quote {
+  font-family: var(--font-editorial);
+  font-size: 1.45rem;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--mv-primary);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.philosophy-body {
+  font-size: 0.95rem;
+  color: var(--mv-text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* 4. Hierarchy Cards */
+.hierarchy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mv-space-24);
+  margin-top: 8px;
+}
+
+.tier-card {
+  position: relative;
+  background: var(--mv-bg-subtle);
+  border: 1px solid var(--mv-border-subtle);
+  border-radius: var(--mv-radius-lg);
+  padding: var(--mv-space-24);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all var(--mv-transition-smooth);
+
+  &:hover {
+    border-color: var(--mv-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--mv-shadow-sm);
+  }
+}
+
+.tier-number {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-family: var(--font-editorial);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: rgba(180, 83, 9, 0.15);
+}
+
+.tier-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tier-icon {
+  color: var(--mv-primary);
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+.tier-title {
+  font-family: var(--font-editorial);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--mv-text-primary);
+  margin: 0;
+}
+
+.tier-alias {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mv-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tier-desc {
+  font-size: 0.88rem;
+  color: var(--mv-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.tier-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--mv-text-muted);
+  background: var(--mv-bg-surface);
+  padding: 6px 10px;
+  border-radius: var(--mv-radius-sm);
+  border: 1px solid var(--mv-border-subtle);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: var(--mv-primary);
+    flex-shrink: 0;
+  }
+}
+
+/* 5. Discovery Features Grid */
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mv-space-24);
+  margin-top: 8px;
+}
+
+.discovery-card {
+  background: var(--mv-bg-subtle);
+  border: 1px solid var(--mv-border-subtle);
+  border-radius: var(--mv-radius-lg);
+  padding: var(--mv-space-24);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.discovery-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--mv-radius-md);
+  background: rgba(180, 83, 9, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mv-primary);
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.discovery-card-title {
+  font-family: var(--font-editorial);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--mv-text-primary);
+  margin: 0;
+}
+
+.discovery-card-desc {
+  font-size: 0.88rem;
+  color: var(--mv-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.discovery-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mv-primary);
+  text-decoration: none;
+  margin-top: 6px;
+
+  mat-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    transition: transform var(--mv-transition-fast);
+  }
+
+  &:hover mat-icon {
+    transform: translateX(4px);
+  }
+}
+
+/* 6. Footer CTA */
+.guide-footer-cta {
+  background: var(--mv-bg-surface);
+  border: 1px solid var(--mv-border);
+  border-radius: var(--mv-radius-xl);
+  padding: var(--mv-space-40) var(--mv-space-32);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-title {
+  font-family: var(--font-editorial);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--mv-text-primary);
+  margin: 0;
+}
+
+.footer-subtitle {
+  font-size: 0.95rem;
+  color: var(--mv-text-secondary);
+  margin: 0;
+  max-width: 520px;
+}
+
+.cta-button-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cta-primary-btn {
+  background: var(--mv-primary) !important;
+  color: #ffffff !important;
+  border-radius: var(--mv-radius-full) !important;
+  padding: 0 22px !important;
+  height: 42px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cta-secondary-btn {
+  border-color: var(--mv-border) !important;
+  border-radius: var(--mv-radius-full) !important;
+  padding: 0 20px !important;
+  height: 42px;
+  font-weight: 600;
+  color: var(--mv-text-primary) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cta-tertiary-btn {
+  color: var(--mv-primary) !important;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .guide-page {
+    padding: var(--mv-space-20) var(--mv-space-16);
+    gap: var(--mv-space-32);
+  }
+
+  .guide-title {
+    font-size: 2.2rem;
+  }
+
+  .hierarchy-grid,
+  .discovery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-section {
+    padding: var(--mv-space-24);
+  }
+}

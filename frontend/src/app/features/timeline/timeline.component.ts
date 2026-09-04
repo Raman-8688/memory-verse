@@ -79,9 +79,17 @@ export class TimelineComponent implements OnInit, OnDestroy {
   readonly selectedYear = signal<number | null>(null);
   readonly selectedMonth = signal<number | null>(null);
   readonly selectedJourneyId = signal<string | null>(null);
+  readonly selectedSectionId = signal<string | null>(null);
   readonly selectedPlace = signal<string | null>(null);
   readonly selectedPersonId = signal<string | null>(null);
   readonly searchInput = signal<string>('');
+
+  readonly selectedJourneyTitle = computed<string | null>(() => {
+    const jId = this.selectedJourneyId();
+    if (!jId) return null;
+    const match = this.journeys().find(j => j.id === jId);
+    return match ? match.title : 'Selected Journey';
+  });
 
   readonly monthsList = [
     { value: 1, name: 'Jan' },
@@ -104,6 +112,7 @@ export class TimelineComponent implements OnInit, OnDestroy {
     if (this.selectedYear() !== null) count++;
     if (this.selectedMonth() !== null) count++;
     if (this.selectedJourneyId() !== null) count++;
+    if (this.selectedSectionId() !== null) count++;
     if (this.selectedPlace() !== null) count++;
     if (this.selectedPersonId() !== null) count++;
     if (this.searchInput().trim() !== '') count++;
@@ -177,7 +186,8 @@ export class TimelineComponent implements OnInit, OnDestroy {
     this.querySub = this.route.queryParams.subscribe(params => {
       const yearParam = params['year'] ? parseInt(params['year'], 10) : null;
       const monthParam = params['month'] ? parseInt(params['month'], 10) : null;
-      const journeyParam = params['journey'] || null;
+      const journeyParam = params['journey'] || params['journeyId'] || null;
+      const sectionParam = params['section'] || params['sectionId'] || params['chapter'] || null;
       const placeParam = params['place'] || null;
       const personParam = params['person'] || params['userId'] || null;
       const searchParam = params['search'] || '';
@@ -185,6 +195,7 @@ export class TimelineComponent implements OnInit, OnDestroy {
       this.selectedYear.set(yearParam);
       this.selectedMonth.set(monthParam);
       this.selectedJourneyId.set(journeyParam);
+      this.selectedSectionId.set(sectionParam);
       this.selectedPlace.set(placeParam);
       this.selectedPersonId.set(personParam);
       this.searchInput.set(searchParam);
@@ -238,6 +249,9 @@ export class TimelineComponent implements OnInit, OnDestroy {
     }
     if (this.selectedJourneyId()) {
       params.journeyId = this.selectedJourneyId()!;
+    }
+    if (this.selectedSectionId()) {
+      params.sectionId = this.selectedSectionId()!;
     }
     if (this.selectedPlace()) {
       params.place = this.selectedPlace()!;

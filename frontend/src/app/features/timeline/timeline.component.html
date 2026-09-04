@@ -58,6 +58,28 @@
         }
       </div>
 
+      <!-- Active Journey / Context Scope Banner -->
+      @if (selectedJourneyId()) {
+        <div class="active-context-filter-banner animate-fade-in">
+          <div class="context-banner-content">
+            <mat-icon class="context-banner-icon">auto_stories</mat-icon>
+            <div class="context-banner-text">
+              <span class="context-kicker">Strict Contextual Filter</span>
+              <h3 class="context-title">
+                Active Filter: <strong>{{ selectedJourneyTitle() }}</strong>
+                @if (selectedSectionId()) {
+                  <span class="chapter-sub-badge">· Chapter Selected</span>
+                }
+              </h3>
+            </div>
+          </div>
+          <button type="button" class="view-all-btn" (click)="resetAllFilters()">
+            <mat-icon>clear_all</mat-icon>
+            <span>View All Memories</span>
+          </button>
+        </div>
+      }
+
       <!-- Active Place or Person Scope Banner -->
       @if (selectedPlace() || selectedPersonId()) {
         <div class="active-scope-banner animate-fade-in">

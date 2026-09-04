@@ -29,11 +29,11 @@ export class SidebarComponent {
 
   readonly primaryNavItems: NavItem[] = [
     { path: '/dashboard', label: 'Dashboard', icon: 'space_dashboard', exact: true },
+    { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: false },
+    { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
     { path: '/timeline', label: 'Timeline', icon: 'schedule', exact: true },
     { path: '/favorites', label: 'Favorites', icon: 'favorite_border', exact: true },
     { path: '/collections', label: 'Collections', icon: 'collections_bookmark', exact: false },
-    { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: true },
-    { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
     { path: '/places', label: 'Places', icon: 'place', exact: true },
     { path: '/map', label: 'Memory Map', icon: 'map', exact: true },
     { path: '/people', label: 'People', icon: 'groups', exact: true },
@@ -42,6 +42,7 @@ export class SidebarComponent {
   ];
 
   readonly secondaryNavItems: NavItem[] = [
+    { path: '/guide', label: 'User Guide', icon: 'menu_book' },
     { path: '/gallery', label: 'Media Gallery', icon: 'collections' },
     { path: '/notifications', label: 'Notifications', icon: 'notifications' },
     { path: '/trash', label: 'Trash Bin', icon: 'delete_outline' }

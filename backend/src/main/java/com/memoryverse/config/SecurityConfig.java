@@ -70,7 +70,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:[*]", "http://127.0.0.1:[*]"));
+        String envOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (envOrigins != null && !envOrigins.trim().isEmpty()) {
+            configuration.setAllowedOriginPatterns(Arrays.asList(envOrigins.split(",")));
+        } else {
+            configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:[*]",
+                "http://127.0.0.1:[*]",
+                "https://*.vercel.app",
+                "https://*.netlify.app",
+                "https://*.onrender.com"
+            ));
+        }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
         configuration.setExposedHeaders(List.of("Authorization"));
