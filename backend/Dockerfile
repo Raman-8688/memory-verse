@@ -19,7 +19,7 @@ USER appuser
 
 COPY --from=builder /build/target/*.jar app.jar
 
-ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseStringDeduplication -Xms256m -Xmx512m"
+ENV JAVA_OPTS="-Xmx256m -Xms128m -XX:+UseSerialGC -Dspring.profiles.active=prod"
 
 EXPOSE 8080
 
