@@ -1,0 +1,151 @@
+<div class="on-this-day-page">
+
+  <!-- Header -->
+  <header class="otd-header">
+    <div class="otd-badge">
+      <mat-icon>event_repeat</mat-icon>
+      <span>Anniversary Archive</span>
+    </div>
+    <h1 class="otd-title">On This Day · {{ todayFormatted() }}</h1>
+    <p class="otd-subtitle">
+      A journey through time. Relive what happened on this exact calendar day across our shared archives.
+    </p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Scanning archive for anniversary moments...</span>
+    </div>
+  } @else {
+
+    <!-- Exact Date Anniversaries Across Years -->
+    @if (exactAnniversaryGroups().length > 0) {
+      <div class="anniversary-stream">
+        @for (group of exactAnniversaryGroups(); track group.year) {
+          <section class="year-group-section">
+            
+            <div class="year-group-header">
+              <div class="year-pill">
+                <mat-icon>history</mat-icon>
+                <span class="pill-ago">{{ group.yearsAgoLabel }}</span>
+                <span class="pill-year">({{ group.year }})</span>
+              </div>
+              <div class="year-divider"></div>
+              <span class="group-count">{{ group.memories.length }} {{ group.memories.length === 1 ? 'moment' : 'moments' }}</span>
+            </div>
+
+            <div class="memories-grid">
+              @for (m of group.memories; track m.id) {
+                <article class="memory-card">
+                  <div class="card-media-wrap" (click)="openLightbox(m)">
+                    <img [src]="getHeroImage(m)" [alt]="m.title" mvFallback class="card-media" loading="lazy">
+                    <div class="media-overlay">
+                      <mat-icon class="zoom-icon">fullscreen</mat-icon>
+                    </div>
+
+                    @if (m.mediaList && m.mediaList.length > 1) {
+                      <div class="photo-count-badge">
+                        <mat-icon>photo_library</mat-icon>
+                        <span>{{ m.mediaList.length }}</span>
+                      </div>
+                    }
+
+                    <button 
+                      type="button" 
+                      class="fav-btn" 
+                      [class.active]="m.isFavorite"
+                      (click)="toggleFavorite(m, $event)" 
+                      title="Favorite moment">
+                      <mat-icon>{{ m.isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon>
+                    </button>
+                  </div>
+
+                  <div class="card-content">
+                    <div class="card-meta-top">
+                      @if (m.locationName) {
+                        <span class="meta-location">
+                          <mat-icon>place</mat-icon>
+                          <span>{{ m.locationName }}</span>
+                        </span>
+                      }
+                      <span class="meta-date">{{ formatDate(m.memoryDate) }}</span>
+                    </div>
+
+                    <h3 class="card-title">
+                      <a [routerLink]="['/memories', m.id]">{{ m.title }}</a>
+                    </h3>
+
+                    <p class="card-story-snippet">{{ m.story }}</p>
+
+                    <div class="card-footer">
+                      @if (m.createdBy; as author) {
+                        <div class="author-chip">
+                          <img [src]="author.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=60&q=80'" [alt]="author.fullName" mvFallback class="author-avatar">
+                          <span class="author-name">{{ author.fullName }}</span>
+                        </div>
+                      }
+
+                      <a [routerLink]="['/memories', m.id]" class="read-story-btn">
+                        <span>Read Story</span>
+                        <mat-icon>arrow_forward</mat-icon>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    } @else {
+      <!-- Empty Exact Match State -->
+      <div class="empty-otd-box">
+        <div class="empty-icon-wrap">
+          <mat-icon>calendar_today</mat-icon>
+        </div>
+        <h2 class="empty-title">No direct moments recorded on {{ todayFormatted() }}</h2>
+        <p class="empty-desc">
+          There are no memories filed on this exact calendar day in previous years. Keep capturing new moments to build your future anniversaries!
+        </p>
+        <a routerLink="/timeline" mat-flat-button class="browse-timeline-btn">
+          <mat-icon>schedule</mat-icon>
+          <span>Explore Global Timeline</span>
+        </a>
+      </div>
+    }
+
+    <!-- Extra: Moments from this Month in Past Years -->
+    @if (thisMonthMemories().length > 0) {
+      <section class="this-month-section">
+        <div class="section-title-wrap">
+          <mat-icon class="section-icon">auto_awesome</mat-icon>
+          <h2 class="section-title">More Moments From This Month</h2>
+        </div>
+        <p class="section-subtitle">Other cherished stories captured during this time of year.</p>
+
+        <div class="memories-grid">
+          @for (m of thisMonthMemories(); track m.id) {
+            <article class="memory-card mini-card">
+              <div class="card-media-wrap" (click)="openLightbox(m)">
+                <img [src]="getHeroImage(m)" [alt]="m.title" mvFallback class="card-media" loading="lazy">
+                <div class="media-overlay">
+                  <mat-icon class="zoom-icon">fullscreen</mat-icon>
+                </div>
+              </div>
+              <div class="card-content">
+                <div class="card-meta-top">
+                  <span class="meta-date">{{ formatDate(m.memoryDate) }}</span>
+                </div>
+                <h4 class="card-title">
+                  <a [routerLink]="['/memories', m.id]">{{ m.title }}</a>
+                </h4>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+
+  }
+</div>

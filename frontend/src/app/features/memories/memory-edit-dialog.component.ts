@@ -115,7 +115,7 @@ interface EditPreviewItem {
                 <input 
                   type="file" 
                   multiple 
-                  accept="image/*,video/*" 
+                  accept="image/*,video/*,audio/*" 
                   (change)="onFilesSelected($event)" 
                   hidden 
                   [disabled]="isSaving()"
@@ -130,6 +130,11 @@ interface EditPreviewItem {
                     @if (item.isVideo) {
                       <video [src]="item.url" class="preview-img"></video>
                       <div class="video-indicator"><mat-icon>videocam</mat-icon></div>
+                    } @else if (item.isAudio) {
+                      <div class="preview-img audio-preview-box">
+                        <mat-icon>mic</mat-icon>
+                      </div>
+                      <div class="video-indicator"><mat-icon>mic</mat-icon></div>
                     } @else {
                       <img [src]="item.url" [alt]="item.file.name" class="preview-img" />
                     }
@@ -323,6 +328,15 @@ interface EditPreviewItem {
       object-fit: cover;
     }
 
+    .audio-preview-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--mv-bg-subtle);
+      color: var(--mv-primary);
+      mat-icon { font-size: 24px; width: 24px; height: 24px; }
+    }
+
     .video-indicator {
       position: absolute;
       bottom: 2px;
@@ -368,34 +382,41 @@ interface EditPreviewItem {
       font-weight: 600;
       min-height: 40px;
       padding: 0 20px;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .cancel-btn {
-      color: var(--mv-text-secondary);
+      color: var(--mv-text-muted);
     }
 
     .btn-spinner {
-      margin-right: 6px;
+      margin-right: 4px;
     }
   `]
 })
 export class MemoryEditDialogComponent implements OnInit, OnDestroy {
-  readonly memory: Memory = inject(MAT_DIALOG_DATA);
   readonly dialogRef = inject(MatDialogRef<MemoryEditDialogComponent>);
+  readonly memory: Memory = inject(MAT_DIALOG_DATA);
+
   private readonly fb = inject(FormBuilder);
   private readonly memoryService = inject(MemoryService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly snackBar = inject(MatSnackBar);
 
-  readonly isSaving = signal<boolean>(false);
-  readonly savingStatus = signal<string>('Saving...');
-  readonly filePreviews = signal<EditPreviewItem[]>([]);
-  private selectedFiles: File[] = [];
-
   editForm!: FormGroup;
 
+  readonly isSaving = signal<boolean>(false);
+  readonly savingStatus = signal<string>('Saving...');
+  readonly filePreviews = signal<{ file: File; url: string; isVideo: boolean; isAudio?: boolean }[]>([]);
+  private selectedFiles: File[] = [];
+
   ngOnInit(): void {
-    const memDate = this.memory.memoryDate ? new Date(this.memory.memoryDate) : new Date();
+    const memDate = this.memory.memoryDate 
+      ? new Date(this.memory.memoryDate).toISOString().substring(0, 10) 
+      : new Date().toISOString().substring(0, 10);
 
     this.editForm = this.fb.group({
       title: [this.memory.title, [Validators.required, Validators.maxLength(200)]],
@@ -415,10 +436,8 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
     if (!input.files || input.files.length === 0) return;
 
     const newFiles = Array.from(input.files);
-    // Crucial: reset input value immediately to avoid double firing
     input.value = '';
 
-    // Deduplicate files by name and size
     const existingKeys = new Set(this.selectedFiles.map(f => `${f.name}_${f.size}`));
     const deduplicated = newFiles.filter(f => !existingKeys.has(`${f.name}_${f.size}`));
 
@@ -429,7 +448,8 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
     const newPreviews = deduplicated.map(file => ({
       file,
       url: URL.createObjectURL(file),
-      isVideo: file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4')
+      isVideo: file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4'),
+      isAudio: file.type.startsWith('audio') || !!file.name.toLowerCase().match(/\.(mp3|wav|m4a|aac|ogg|weba)$/)
     }));
 
     this.filePreviews.update(prev => [...prev, ...newPreviews]);

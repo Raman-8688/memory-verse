@@ -87,7 +87,7 @@ export const routes: Routes = [
       },
       {
         path: 'on-this-day',
-        redirectTo: 'dashboard'
+        loadComponent: () => import('./features/on-this-day/on-this-day.component').then(m => m.OnThisDayComponent)
       },
       {
         path: 'notifications',

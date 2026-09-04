@@ -23,6 +23,7 @@ interface PreviewMedia {
   name: string;
   size: string;
   isVideo: boolean;
+  isAudio?: boolean;
 }
 
 @Component({
@@ -177,13 +178,13 @@ interface PreviewMedia {
             <ng-template matStepLabel>Media</ng-template>
             <div class="step-content">
               <div class="step-intro">
-                <h2 class="step-heading">Photos & Videos</h2>
-                <p class="step-sub">Upload your photographs and MP4 videos (max 50MB). You can review previews before publishing.</p>
+                <h2 class="step-heading">Photos, Videos & Audio Notes</h2>
+                <p class="step-sub">Upload photographs, MP4 videos, or voice memos (max 50MB). You can review previews before publishing.</p>
               </div>
 
               <!-- Drag and Drop Dropzone -->
               <div class="dropzone" (click)="fileInput.click()" (dragover)="onDragOver($event)" (drop)="onDrop($event)">
-                <input #fileInput type="file" multiple accept="image/*,video/mp4" (change)="onFilesSelected($event)" style="display: none">
+                <input #fileInput type="file" multiple accept="image/*,video/*,audio/*" (change)="onFilesSelected($event)" style="display: none">
                 <div class="dropzone-icon">
                   <mat-icon>cloud_upload</mat-icon>
                 </div>
@@ -191,7 +192,7 @@ interface PreviewMedia {
                   <strong>Click to browse files</strong> or drag and drop here
                 </div>
                 <div class="dropzone-limits">
-                  Supports JPG, PNG, WEBP, and MP4 videos up to 50MB
+                  Supports JPG, PNG, WEBP, MP4 videos, and MP3/WAV/M4A audio notes up to 50MB
                 </div>
               </div>
 
@@ -213,6 +214,14 @@ interface PreviewMedia {
                           <video [src]="item.previewUrl" class="preview-media" controls></video>
                           <span class="media-type-pill video">
                             <mat-icon>videocam</mat-icon> Video
+                          </span>
+                        } @else if (item.isAudio) {
+                          <div class="preview-media preview-audio-box">
+                            <mat-icon class="audio-icon">mic</mat-icon>
+                            <span class="audio-name">{{ item.name }}</span>
+                          </div>
+                          <span class="media-type-pill audio">
+                            <mat-icon>mic</mat-icon> Audio
                           </span>
                         } @else {
                           <img [src]="item.previewUrl" [alt]="item.name" class="preview-media">
@@ -600,6 +609,37 @@ interface PreviewMedia {
       background-color: #b91c1c;
     }
 
+    .media-type-pill.audio {
+      background-color: var(--mv-primary);
+    }
+
+    .preview-audio-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--mv-bg-subtle);
+      color: var(--mv-primary);
+      padding: 12px;
+      text-align: center;
+      gap: 6px;
+
+      .audio-icon {
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+
+      .audio-name {
+        font-size: 0.7rem;
+        color: var(--mv-text-secondary);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
     .media-type-pill mat-icon {
       font-size: 10px;
       width: 10px;
@@ -924,6 +964,7 @@ export class MemoryStepperCreateComponent implements OnInit {
 
     for (const file of files) {
       const isVideo = file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4');
+      const isAudio = file.type.startsWith('audio') || !!file.name.toLowerCase().match(/\.(mp3|wav|m4a|aac|ogg|weba)$/);
 
       // Video constraint: Max 50MB and MP4 format only
       if (isVideo) {
@@ -946,7 +987,8 @@ export class MemoryStepperCreateComponent implements OnInit {
         previewUrl: URL.createObjectURL(file),
         name: file.name,
         size: sizeStr,
-        isVideo
+        isVideo,
+        isAudio
       });
     }
 

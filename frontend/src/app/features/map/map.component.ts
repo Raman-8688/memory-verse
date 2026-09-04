@@ -12,7 +12,8 @@ import { PlaceService } from '@core/services/place.service';
 import { Memory } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { PlaceSummary } from '@core/models/place.model';
-import * as L from 'leaflet';
+
+declare let L: any;
 
 @Component({
   selector: 'mv-map',
@@ -44,8 +45,8 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly searchQuery = signal<string>('');
   readonly totalMappedMemories = signal<number>(0);
 
-  private map?: L.Map;
-  private markersLayer?: L.LayerGroup;
+  private map?: any;
+  private markersLayer?: any;
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -129,7 +130,7 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy {
     this.markersLayer.clearLayers();
 
     const filtered = this.getFilteredMemories();
-    const latLngs: L.LatLngExpression[] = [];
+    const latLngs: any[] = [];
 
     // Custom pulse terracotta marker icon
     const customIcon = L.divIcon({
