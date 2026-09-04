@@ -5,13 +5,14 @@ import { map } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-response.model';
 import { UploadedMediaResult } from '../models/media.model';
 import { Media } from '../models/memory.model';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MediaService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/media';
+  private readonly baseUrl = `${environment.apiUrl}/media`;
 
   uploadSingleFile(file: File): Observable<UploadedMediaResult> {
     const formData = new FormData();

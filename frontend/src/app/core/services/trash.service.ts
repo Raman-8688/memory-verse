@@ -4,13 +4,14 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-response.model';
 import { TrashItem } from '../models/trash.model';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TrashService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/trash';
+  private readonly baseUrl = `${environment.apiUrl}/trash`;
 
   getTrashItems(): Observable<TrashItem[]> {
     return this.http.get<ApiResponse<TrashItem[]>>(this.baseUrl).pipe(
