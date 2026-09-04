@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/index.html"
+      "destination": "https://memoryverse-backend.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
