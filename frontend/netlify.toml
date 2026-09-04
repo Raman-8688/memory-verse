@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://memoryverse-backend.onrender.com/api/:splat"
+  to = "https://memoryverse-backend-mkap.onrender.com/api/:splat"
   status = 200
   force = true
 
