@@ -1,5 +1,6 @@
 package com.memoryverse.controller;
 
+import com.memoryverse.dto.request.UserCreateRequest;
 import com.memoryverse.dto.request.UserUpdateRequest;
 import com.memoryverse.dto.response.ApiResponse;
 import com.memoryverse.dto.response.UserDto;
@@ -8,6 +9,7 @@ import com.memoryverse.security.SecurityUtils;
 import com.memoryverse.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,15 @@ public class UserController {
         List<UserDto> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.success(users));
     }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserDto>> createUser(@Valid @RequestBody UserCreateRequest request) {
+        UserDto created = userService.createUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("User created successfully", created));
+    }
+
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

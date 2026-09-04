@@ -1,5 +1,6 @@
 package com.memoryverse.service;
 
+import com.memoryverse.dto.request.UserCreateRequest;
 import com.memoryverse.dto.request.UserUpdateRequest;
 import com.memoryverse.dto.response.PersonSummaryDto;
 import com.memoryverse.dto.response.UserDto;
@@ -14,7 +15,10 @@ public interface UserService {
 
     List<PersonSummaryDto> getPeopleDirectory();
 
+    UserDto createUser(UserCreateRequest request);
+
     UserDto updateUser(UUID id, UserUpdateRequest request);
 
     UserDto updateUserAvatar(UUID id, MultipartFile file);
 }
+

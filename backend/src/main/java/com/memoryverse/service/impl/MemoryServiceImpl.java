@@ -190,7 +190,10 @@ public class MemoryServiceImpl implements MemoryService {
                 spec = spec.and((root, query, cb) -> cb.between(root.get("memoryDate"), start, end));
             }
         } else if (month != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(cb.function("MONTH", Integer.class, root.get("memoryDate")), month));
+            spec = spec.and((root, query, cb) -> cb.equal(
+                    cb.function("to_char", String.class, root.get("memoryDate"), cb.literal("MM")),
+                    String.format("%02d", month)
+            ));
         }
 
         if (userId != null) {

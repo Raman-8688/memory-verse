@@ -1,17 +1,20 @@
 package com.memoryverse.service.impl;
 
+import com.memoryverse.dto.request.UserCreateRequest;
 import com.memoryverse.dto.request.UserUpdateRequest;
 import com.memoryverse.dto.response.PersonSummaryDto;
 import com.memoryverse.dto.response.UploadedMediaResult;
 import com.memoryverse.dto.response.UserDto;
 import com.memoryverse.entity.Role;
 import com.memoryverse.entity.User;
+import com.memoryverse.exception.BusinessValidationException;
 import com.memoryverse.exception.ResourceNotFoundException;
 import com.memoryverse.integration.storage.CloudinaryStorageService;
 import com.memoryverse.repository.UserRepository;
 import com.memoryverse.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +30,30 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final CloudinaryStorageService cloudinaryStorageService;
+    private final PasswordEncoder passwordEncoder;
+
+    @Override
+    @Transactional
+    public UserDto createUser(UserCreateRequest request) {
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            throw new BusinessValidationException("An account with email " + normalizedEmail + " already exists.");
+        }
+
+        User user = User.builder()
+                .email(normalizedEmail)
+                .password(passwordEncoder.encode(request.getPassword()))
+                .fullName(request.getFullName().trim())
+                .role(request.getRole() != null ? request.getRole() : Role.MEMBER)
+                .avatarUrl(request.getAvatarUrl() != null && !request.getAvatarUrl().isBlank()
+                        ? request.getAvatarUrl().trim()
+                        : null)
+                .build();
+
+        User saved = userRepository.save(user);
+        log.info("Admin created new user: id={}, email={}, role={}", saved.getId(), saved.getEmail(), saved.getRole());
+        return UserDto.fromEntity(saved);
+    }
 
     @Override
     @Transactional(readOnly = true)

@@ -18,6 +18,10 @@ export class UserService {
     return this.api.get<PersonSummary[]>('/people');
   }
 
+  createUser(payload: { fullName: string; email: string; password: string; role: string; avatarUrl?: string }): Observable<User> {
+    return this.api.post<User>('/users', payload);
+  }
+
   updateUser(id: string, payload: { fullName: string; role: string; avatarUrl?: string }): Observable<User> {
     return this.api.put<User>(`/users/${id}`, payload);
   }

@@ -35,7 +35,7 @@ import { AuthService } from '@core/auth/auth.service';
           </p>
           <div class="hero-timeline-indicator">
             <span class="dot"></span>
-            <span class="label">B.Tech 2018 — Present & Forever</span>
+            <span class="label">B.Tech 2020 — Present & Forever</span>
           </div>
         </div>
       </div>

@@ -8,15 +8,26 @@
       <p class="page-subtitle">The companion circle of our shared journey — exploring the memories you lived and captured together.</p>
     </div>
 
-    <!-- Search Input -->
-    <div class="people-search-wrap">
-      <mat-icon class="search-ico">search</mat-icon>
-      <input 
-        type="text" 
-        [(ngModel)]="searchQuery" 
-        placeholder="Search friends by name..." 
-        class="people-search-input" 
-      />
+    <!-- Header Actions -->
+    <div class="header-actions-wrap">
+      <!-- Search Input -->
+      <div class="people-search-wrap">
+        <mat-icon class="search-ico">search</mat-icon>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          placeholder="Search friends by name..." 
+          class="people-search-input" 
+        />
+      </div>
+
+      <!-- Add Companion Button (Admin only) -->
+      @if (isAdmin()) {
+        <button mat-flat-button class="add-companion-btn" (click)="openAddPersonDialog()">
+          <mat-icon>person_add</mat-icon>
+          <span>Add Member</span>
+        </button>
+      }
     </div>
   </header>
 

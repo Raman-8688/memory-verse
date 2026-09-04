@@ -26,11 +26,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     }
 
     @Query(value = "SELECT u.id AS id, u.full_name AS fullName, u.email AS email, u.avatar_url AS avatarUrl, u.role AS role, " +
-            "COUNT(DISTINCT COALESCE(m1.id, mt.memory_id)) AS memoryCount " +
+            "(SELECT COUNT(DISTINCT m.id) FROM memories m " +
+            " LEFT JOIN memory_tagged_users mtu ON mtu.memory_id = m.id " +
+            " WHERE m.deleted_at IS NULL AND (m.created_by = u.id OR mtu.user_id = u.id)) AS memoryCount " +
             "FROM users u " +
-            "LEFT JOIN memories m1 ON m1.created_by = u.id " +
-            "LEFT JOIN memory_tags mt ON mt.user_id = u.id " +
-            "GROUP BY u.id, u.full_name, u.email, u.avatar_url, u.role " +
             "ORDER BY memoryCount DESC, u.full_name ASC",
             nativeQuery = true)
     List<PersonSummaryProjection> findPeopleSummary();
