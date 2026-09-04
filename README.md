@@ -149,68 +149,90 @@ MemoryVerse is designed as an enterprise **Modular Monolith** for low operationa
 memory-verse/
 ├── docker-compose.yml              # Local PostgreSQL 16 & Redis 7 containers
 ├── seed_raw_data.sql               # Complete SQL database seed script
+├── PROJECT_DOCUMENTATION.md        # Technical specifications & design docs
+├── ROADMAP_AND_PROGRESS.md         # Implementation phase tracking & audit logs
 ├── README.md                       # Main repository documentation
+├── users&admins_details/           # User avatar photographs & reference accounts
 │
-├── backend/                        # Spring Boot 3.3.4 Application (Java 21)
-│   ├── pom.xml                     # Maven dependencies
+├── backend/                        # Spring Boot 3.3.4 Application (Java 21 LTS)
+│   ├── pom.xml                     # Maven dependencies (Spring AI, Security, Redis, Cloudinary)
 │   └── src/main/
 │       ├── java/com/memoryverse/
-│       │   ├── common/             # Global exceptions, ApiResponse wrapper, JWT security
-│       │   ├── config/             # SecurityConfig, CacheConfig, DataInitializer
-│       │   └── modules/            # Domain-driven feature modules
-│       │       ├── ai/             # AI Memory Assistant & NVIDIA NIM client
-│       │       ├── auth/           # Login, Registration, JWT verification
-│       │       ├── collection/     # Custom user collections & albums
-│       │       ├── comment/        # Reminiscing margin comments
-│       │       ├── dashboard/      # Masthead statistics, milestones
-│       │       ├── export/         # ZIP & standalone HTML Keepsake Book generator
-│       │       ├── gallery/        # Media filtering & masonry endpoints
-│       │       ├── journey/        # Journeys, chapters/sections, narratives
-│       │       ├── media/          # File uploads, Cloudinary & local storage engine
-│       │       ├── memory/         # Memories, search specs, favorite toggles
-│       │       ├── notification/   # Tag & activity notifications
-│       │       ├── place/          # Geographic aggregation & coordinates
-│       │       ├── reaction/       # Emoji reactions
-│       │       ├── share/          # Tokenized public safe links
-│       │       ├── trash/          # Soft-delete & 30-day recovery bin
-│       │       └── user/           # User profiles & avatar uploads
+│       │   ├── MemoryVerseApplication.java # Spring Boot entry point
+│       │   ├── config/             # SecurityConfig, CacheConfig, DataInitializer, AppConfig
+│       │   ├── controller/         # REST API Controllers (Memory, Journey, AI, Export, etc.)
+│       │   ├── dto/                # Request/Response DTOs, Search Criteria, Aggregations
+│       │   ├── entity/             # JPA Entities (User, Memory, Journey, Comment, Reaction, etc.)
+│       │   ├── exception/          # GlobalExceptionHandler & custom domain exceptions
+│       │   ├── integration/        # External integrations
+│       │   │   ├── ai/             # NvidiaNimClient, ModelProvider, PromptTemplates
+│       │   │   └── storage/        # CloudinaryService & LocalStorageService
+│       │   ├── repository/         # Spring Data Repositories & JPA Criteria Specifications
+│       │   ├── security/           # JwtAuthFilter, JwtTokenProvider, CustomUserDetailsService
+│       │   ├── service/            # Business logic interfaces & implementation classes
+│       │   │   └── impl/           # Service implementation layer
+│       │   └── util/               # SecurityUtils, SlugUtils, date helpers
 │       └── resources/
 │           ├── application.yml     # Base configuration (multipart, common settings)
 │           ├── application-dev.yml # Local development profile
-│           └── application-prod.yml# Cloud production profile (Neon, Env Vars)
+│           ├── application-prod.yml# Cloud production profile (Neon Postgres, Env Vars)
+│           └── application-secrets.yml # Git-ignored local secrets (DB, API keys)
 │
-└── frontend/                       # Angular 18 Standalone Web & PWA
-    ├── angular.json                # Angular build & environment fileReplacements
-    ├── package.json                # Dependencies (@angular/material, leaflet, etc.)
+└── frontend/                       # Angular 18 Standalone Web & PWA Application
+    ├── angular.json                # Angular CLI configuration & production fileReplacements
+    ├── package.json                # Dependencies (@angular/material, leaflet, rxjs, etc.)
+    ├── tsconfig.json               # TypeScript path mappings (@core, @features, @layout, @env)
     ├── vercel.json                 # Vercel SPA rewrite configuration
     ├── netlify.toml                # Netlify SPA redirect configuration
+    ├── nginx.conf                  # Nginx reverse proxy configuration for Docker
+    ├── Dockerfile                  # Containerized multi-stage build definition
+    ├── proxy.conf.json             # Dev server API proxy configuration
+    ├── public/                     # Static assets, web manifest, _redirects
     └── src/
-        ├── environments/
+        ├── environments/           # Environment profiles
         │   ├── environment.ts      # Local development (http://localhost:8080/api)
         │   └── environment.prod.ts # Cloud production (/api)
         ├── manifest.webmanifest    # PWA installable manifest
-        ├── styles.scss             # Warm editorial design tokens & typography
+        ├── styles.scss             # Design system tokens (stone, amber, espresso, typography)
         └── app/
-            ├── core/               # AuthService (Signals), Guards, Interceptors, ApiService
-            ├── features/           # Feature pages & standalone components
-            │   ├── admin/          # System management
+            ├── app.component.ts    # Root application component
+            ├── app.config.ts       # Application providers, animations, interceptors
+            ├── app.routes.ts       # Standalone routing tree with lazy loading
+            ├── core/               # Singletons, auth guards, interceptors, models
+            │   ├── auth/           # AuthService (Signals), AuthGuard, RoleGuard
+            │   ├── interceptors/   # JwtInterceptor, ErrorInterceptor
+            │   ├── models/         # TypeScript data models & API response interfaces
+            │   └── services/       # ApiService, MemoryService, JourneyService, etc.
+            ├── layout/             # Shell navigation & structural layouts
+            │   ├── main-layout/    # Main application shell with navbar & sidebar
+            │   ├── navbar/         # Header navigation bar & user avatar dropdown
+            │   ├── sidebar/        # Desktop collapsible menu (ordered by priority)
+            │   └── mobile-nav/     # Mobile bottom navigation bar
+            ├── features/           # Standalone feature modules & pages
+            │   ├── admin/          # Admin management dashboard
             │   ├── assistant/      # AI Assistant chat feed & model selector
-            │   ├── auth/           # Login & Registration
-            │   ├── capture/        # Touch Quick Capture & Review
-            │   ├── collections/    # User Curated Collections
-            │   ├── dashboard/      # Editorial masthead & quick links
+            │   ├── auth/           # Login & Registration views
+            │   ├── capture/        # Touch Quick Capture & Review screen
+            │   ├── collections/    # User Curated Memory Albums
+            │   ├── dashboard/      # Editorial masthead, milestones & statistics
             │   ├── favorites/      # Bookmarked memories
             │   ├── gallery/        # Masonry photo & video grid
-            │   ├── guide/          # Interactive onboarding guide
-            │   ├── journeys/       # Journey list, details, and Storybook mode
-            │   ├── memories/       # Memory timeline, details, Stepper create
+            │   ├── guide/          # Interactive onboarding user guide
+            │   ├── journeys/       # Journey list, detail, and Storybook flipbook
+            │   ├── map/            # Interactive Leaflet memory map
+            │   ├── memories/       # Memory feed, detail, and multi-step creator
+            │   ├── notifications/  # Tag & activity notification center
             │   ├── on-this-day/    # Calendar nostalgia flashback
-            │   ├── people/         # Companion directory
-            │   ├── places/         # Interactive Leaflet map & location cards
-            │   ├── profile/        # User profile & avatar photo upload
-            │   ├── shared-link-view/# Public guest viewer
-            │   └── trash/          # Soft-deleted memory recovery
-            └── shared/             # Reusable UI components & image fallback directive
+            │   ├── people/         # Companion directory & tagged member explorer
+            │   ├── places/         # Geographic location cards & memory clusters
+            │   ├── profile/        # User profile & avatar photograph upload
+            │   ├── share/          # Public shared link preview & guest viewer
+            │   ├── timeline/       # Global chronological memory stream
+            │   └── trash/          # Soft-deleted memory recovery bin (30-day lifecycle)
+            └── shared/             # Reusable UI components & directives
+                ├── components/     # Lightbox modal, empty states, confirm dialogs
+                ├── directives/     # ImageFallbackDirective (mvFallback)
+                └── pipes/          # Relative time, safe HTML, formatting pipes
 ```
 
 ---
@@ -227,7 +249,7 @@ memory-verse/
 
 ## ⚙️ Backend Architecture
 
-* **Modular Package Isolation**: Each domain module encapsulates its own Controller, Service, Repository, DTOs, and JPA Entities.
+* **Layered Clean Architecture**: Structured cleanly into `controller`, `service` (with `impl`), `repository`, `entity`, `dto`, `integration`, and `security` layers.
 * **Zero-Hallucination AI Pipeline**: Natural language queries are parsed into type-safe JPA Criteria queries before invoking the LLM, ensuring 100% verified facts.
 * **Dual Storage Engine**: Automatically saves media files to Cloudinary CDN if credentials exist, or falls back to local disk (`uploads/media/`).
 * **Connection Pooling Optimization**: Tuned HikariCP pool (`maximum-pool-size: 5`, `minimum-idle: 1`, `idle-timeout: 30000`) for serverless databases like Neon.
