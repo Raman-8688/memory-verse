@@ -1,5 +1,6 @@
 package com.memoryverse.dto.response;
 
+import com.memoryverse.entity.Media;
 import com.memoryverse.entity.Memory;
 import com.memoryverse.entity.PrivacyLevel;
 import lombok.AllArgsConstructor;
@@ -10,7 +11,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -61,13 +64,30 @@ public class MemoryResponseDto {
                 .sectionId(memory.getSection() != null ? memory.getSection().getId() : null)
                 .sectionTitle(memory.getSection() != null ? memory.getSection().getTitle() : null)
                 .createdBy(UserDto.fromEntity(memory.getCreatedBy()))
-                .mediaList(memory.getMediaList() != null
-                        ? memory.getMediaList().stream().map(MediaResponseDto::fromEntity).collect(Collectors.toList())
-                        : new ArrayList<>())
+                .mediaList(mapMediaList(memory.getMediaList()))
                 .taggedUsers(memory.getTaggedUsers() != null
                         ? memory.getTaggedUsers().stream().map(UserDto::fromEntity).collect(Collectors.toList())
                         : new ArrayList<>())
                 .createdAt(memory.getCreatedAt())
                 .build();
+    }
+
+    private static List<MediaResponseDto> mapMediaList(List<Media> mediaList) {
+        if (mediaList == null || mediaList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        Map<UUID, Media> uniqueMedia = new LinkedHashMap<>();
+        for (Media m : mediaList) {
+            if (m != null) {
+                if (m.getId() != null) {
+                    uniqueMedia.putIfAbsent(m.getId(), m);
+                } else {
+                    uniqueMedia.put(UUID.randomUUID(), m);
+                }
+            }
+        }
+        return uniqueMedia.values().stream()
+                .map(MediaResponseDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }

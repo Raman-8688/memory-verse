@@ -17,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface MemoryRepository extends JpaRepository<Memory, UUID>, JpaSpecificationExecutor<Memory> {
 
-    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList", "taggedUsers"})
+    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList"})
     Optional<Memory> findWithDetailsById(UUID id);
 
     Page<Memory> findByJourneyIdOrderByMemoryDateDesc(UUID journeyId, Pageable pageable);
@@ -34,10 +34,10 @@ public interface MemoryRepository extends JpaRepository<Memory, UUID>, JpaSpecif
 
     long countByJourneyId(UUID journeyId);
 
-    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList", "taggedUsers"})
+    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList"})
     Optional<Memory> findFirstByIsFeaturedTrueOrderByMemoryDateDesc();
 
-    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList", "taggedUsers"})
+    @EntityGraph(attributePaths = {"journey", "section", "createdBy", "mediaList"})
     Page<Memory> findAllByOrderByMemoryDateDesc(Pageable pageable);
 
     @Query("SELECT DISTINCT EXTRACT(YEAR FROM m.memoryDate) FROM Memory m ORDER BY EXTRACT(YEAR FROM m.memoryDate) DESC")

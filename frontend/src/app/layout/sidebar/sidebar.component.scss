@@ -13,6 +13,34 @@
   &.mini-variant {
     padding: var(--mv-space-16) var(--mv-space-8);
 
+    .nav-section-header {
+      justify-content: center;
+      padding: 10px 0;
+      gap: 0;
+
+      .section-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+
+      &.has-active-child {
+        background-color: var(--mv-primary-light);
+        color: var(--mv-primary);
+
+        &::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 6px;
+          bottom: 6px;
+          width: 3px;
+          background-color: var(--mv-primary);
+          border-radius: var(--mv-radius-full);
+        }
+      }
+    }
+
     .nav-link {
       justify-content: center;
       padding: 10px 0;
@@ -23,6 +51,10 @@
         width: 22px;
         height: 22px;
       }
+    }
+
+    .sub-nav-link {
+      padding-left: 0;
     }
 
     .nav-divider {
@@ -55,6 +87,137 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+}
+
+/* Accordion Architecture */
+.accordion-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-accordion-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--mv-space-12);
+  width: 100%;
+  padding: 8px var(--mv-space-12);
+  border-radius: var(--mv-radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--mv-text-secondary);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--mv-transition-fast);
+  text-align: left;
+  user-select: none;
+  box-sizing: border-box;
+  position: relative;
+
+  &:hover {
+    background-color: var(--mv-bg-subtle);
+    color: var(--mv-text-primary);
+  }
+
+  &.expanded {
+    color: var(--mv-text-primary);
+  }
+
+  &.has-active-child {
+    color: var(--mv-primary);
+
+    .section-icon {
+      color: var(--mv-primary);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mv-primary);
+    outline-offset: 1px;
+  }
+}
+
+.header-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.section-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.785rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.section-badge {
+  margin-left: auto;
+  margin-right: var(--mv-space-4);
+}
+
+.chevron-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--mv-text-muted);
+  transition: transform var(--mv-transition-fast);
+  flex-shrink: 0;
+  margin-left: auto;
+
+  &.rotated {
+    transform: rotate(180deg);
+  }
+}
+
+/* Accordion Animation */
+.nav-submenu-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.is-open {
+    grid-template-rows: 1fr;
+  }
+}
+
+.nav-submenu-content {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 4px;
+}
+
+.sub-nav-link {
+  padding-left: var(--mv-space-28);
+  font-size: 0.85rem;
+
+  .nav-icon {
+    font-size: 19px;
+    width: 19px;
+    height: 19px;
+  }
 }
 
 .nav-link {

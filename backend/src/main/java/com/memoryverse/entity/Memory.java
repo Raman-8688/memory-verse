@@ -3,6 +3,7 @@ package com.memoryverse.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
@@ -92,6 +93,7 @@ public class Memory {
 
     @OneToMany(mappedBy = "memory", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("displayOrder ASC, createdAt ASC")
+    @BatchSize(size = 30)
     @JsonManagedReference
     @Builder.Default
     private List<Media> mediaList = new ArrayList<>();
@@ -102,6 +104,7 @@ public class Memory {
             joinColumns = @JoinColumn(name = "memory_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @BatchSize(size = 30)
     @Builder.Default
     private Set<User> taggedUsers = new HashSet<>();
 
@@ -114,8 +117,10 @@ public class Memory {
     private Instant updatedAt;
 
     public void addMedia(Media media) {
-        mediaList.add(media);
-        media.setMemory(this);
+        if (media != null && !mediaList.contains(media)) {
+            mediaList.add(media);
+            media.setMemory(this);
+        }
     }
 
     public void removeMedia(Media media) {

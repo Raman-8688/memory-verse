@@ -1,59 +1,105 @@
 <aside class="sidebar" [class.mini-variant]="sidebarService.isCollapsed()">
-  <!-- Main Core Navigation (Phase 3 Shell) -->
+  <!-- Main Core Navigation (Accordion Architecture) -->
   <div class="sidebar-top">
+    <!-- HOME Section -->
     @if (!sidebarService.isCollapsed()) {
-      <div class="nav-section-label">MEMORIES & JOURNEY</div>
+      <div class="nav-section-label">HOME</div>
     }
-    <nav class="nav-list">
-      @for (item of primaryNavItems; track item.path) {
-        <a [routerLink]="item.path" 
-           routerLinkActive="active" 
-           [routerLinkActiveOptions]="{ exact: !!item.exact }"
-           class="nav-link"
-           [class.ai-item]="item.isAi"
-           [matTooltip]="sidebarService.isCollapsed() ? item.label : ''"
-           matTooltipPosition="right">
-          <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-          @if (!sidebarService.isCollapsed()) {
-            <span class="nav-label">{{ item.label }}</span>
-            @if (item.isAi) {
-              <span class="ai-pill">AI</span>
-            }
-          }
-        </a>
-      }
+    <nav class="nav-list" aria-label="Home Navigation">
+      <a [routerLink]="homeItem.path" 
+         routerLinkActive="active" 
+         [routerLinkActiveOptions]="{ exact: !!homeItem.exact }"
+         class="nav-link"
+         [matTooltip]="sidebarService.isCollapsed() ? homeItem.label : ''"
+         matTooltipPosition="right">
+        <mat-icon class="nav-icon">{{ homeItem.icon }}</mat-icon>
+        @if (!sidebarService.isCollapsed()) {
+          <span class="nav-label">{{ homeItem.label }}</span>
+        }
+      </a>
     </nav>
 
     <div class="nav-divider"></div>
 
-    @if (!sidebarService.isCollapsed()) {
-      <div class="nav-section-label">ARCHIVE & DISCOVERY</div>
-    }
-    <nav class="nav-list">
-      @for (item of secondaryNavItems; track item.path) {
-        <a [routerLink]="item.path" 
-           routerLinkActive="active" 
-           [routerLinkActiveOptions]="{ exact: !!item.exact }"
-           class="nav-link"
-           [matTooltip]="sidebarService.isCollapsed() ? item.label : ''"
-           matTooltipPosition="right">
-          <div class="icon-wrap-with-badge">
-            <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
-            @if (sidebarService.isCollapsed() && item.path === '/notifications' && notificationState.unreadCount() > 0) {
-              <span class="mini-unread-dot"></span>
+    <!-- Accordion Sections (Memories, Explore, AI & Discovery, Archive) -->
+    <div class="accordion-nav-list" role="navigation" aria-label="Main Navigation">
+      @for (section of navSections; track section.id) {
+        <div class="nav-accordion-group">
+          <!-- Accordion Header / Trigger Button -->
+          <button 
+            type="button" 
+            class="nav-section-header"
+            [class.expanded]="isSectionExpanded(section.id)"
+            [class.has-active-child]="isSectionActive(section)"
+            (click)="toggleSection(section.id)"
+            [attr.aria-expanded]="isSectionExpanded(section.id)"
+            [attr.aria-controls]="'section-panel-' + section.id"
+            [id]="'section-header-' + section.id"
+            [matTooltip]="sidebarService.isCollapsed() ? section.title : ''"
+            matTooltipPosition="right">
+            
+            <div class="header-icon-wrap">
+              <mat-icon class="section-icon">{{ section.icon }}</mat-icon>
+              @if (sidebarService.isCollapsed() && getSectionBadgeCount(section.id) > 0) {
+                <span class="mini-unread-dot"></span>
+              }
+            </div>
+
+            @if (!sidebarService.isCollapsed()) {
+              <span class="section-title">{{ section.title }}</span>
+
+              @if (getSectionBadgeCount(section.id) > 0 && !isSectionExpanded(section.id)) {
+                <span class="sidebar-badge section-badge">
+                  {{ getSectionBadgeCount(section.id) > 99 ? '99+' : getSectionBadgeCount(section.id) }}
+                </span>
+              }
+
+              <mat-icon class="chevron-icon" [class.rotated]="isSectionExpanded(section.id)">
+                expand_more
+              </mat-icon>
             }
+          </button>
+
+          <!-- Accordion Submenu Panel -->
+          <div 
+            class="nav-submenu-wrapper"
+            [class.is-open]="isSectionExpanded(section.id)"
+            [id]="'section-panel-' + section.id"
+            role="region"
+            [attr.aria-labelledby]="'section-header-' + section.id">
+            <nav class="nav-submenu-content">
+              @for (item of section.items; track item.path) {
+                <a [routerLink]="item.path" 
+                   routerLinkActive="active" 
+                   [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                   class="nav-link sub-nav-link"
+                   [class.ai-item]="item.isAi"
+                   [matTooltip]="sidebarService.isCollapsed() ? item.label : ''"
+                   matTooltipPosition="right">
+                  <div class="icon-wrap-with-badge">
+                    <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                    @if (sidebarService.isCollapsed() && item.path === '/notifications' && notificationState.unreadCount() > 0) {
+                      <span class="mini-unread-dot"></span>
+                    }
+                  </div>
+                  @if (!sidebarService.isCollapsed()) {
+                    <span class="nav-label">{{ item.label }}</span>
+                    @if (item.isAi) {
+                      <span class="ai-pill">AI</span>
+                    }
+                    @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
+                      <span class="sidebar-badge">
+                        {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+                      </span>
+                    }
+                  }
+                </a>
+              }
+            </nav>
           </div>
-          @if (!sidebarService.isCollapsed()) {
-            <span class="nav-label">{{ item.label }}</span>
-            @if (item.path === '/notifications' && notificationState.unreadCount() > 0) {
-              <span class="sidebar-badge">
-                {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
-              </span>
-            }
-          }
-        </a>
+        </div>
       }
-    </nav>
+    </div>
   </div>
 
   <!-- Sidebar Footer -->
