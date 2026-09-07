@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { AiChatRequest, AiChatResponse, AiModelInfo, ChatMessage } from '../models/ai.model';
+import { AiChatRequest, AiChatResponse, AiModelInfo, AiNarrativeRequest, AiNarrativeResponse, ChatMessage } from '../models/ai.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -154,6 +155,10 @@ export class AiAssistantService {
     } catch {
       // Keep defaults on failure
     }
+  }
+
+  generateNarrative(request: AiNarrativeRequest): Observable<AiNarrativeResponse> {
+    return this.api.post<AiNarrativeResponse>('/ai/generate-narrative', request);
   }
 
   clearConversation(): void {

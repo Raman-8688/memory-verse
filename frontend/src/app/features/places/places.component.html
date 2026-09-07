@@ -8,17 +8,59 @@
       <p class="page-subtitle">Every geographic destination where your shared memories unfolded — from campus courtyards to coastal escapes.</p>
     </div>
 
-    <!-- Search Input -->
-    <div class="location-search-wrap">
-      <mat-icon class="search-ico">place</mat-icon>
-      <input 
-        type="text" 
-        [(ngModel)]="searchQuery" 
-        placeholder="Search destinations, cities, campus..." 
-        class="location-search-input" 
-      />
+    <!-- Smart Search Input & Active Filter Chips -->
+    <div class="places-smart-search-col">
+      <div class="places-smart-search-box" [class.is-extracting]="isExtractingIntent()">
+        <div class="search-indicator">
+          @if (isExtractingIntent()) {
+            <mat-spinner diameter="16" class="places-spinner"></mat-spinner>
+          } @else {
+            <mat-icon class="search-ico">auto_awesome</mat-icon>
+          }
+        </div>
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (keyup.enter)="onSmartSearchSubmit()"
+          placeholder="Smart Filter: e.g. 'Goa trip in 2024' or 'Campus'..." 
+          class="places-smart-input" 
+          [disabled]="isExtractingIntent()"
+        />
+        @if (searchQuery) {
+          <button type="button" class="clear-input-btn" (click)="searchQuery = ''" aria-label="Clear input">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+        <button 
+          type="button" 
+          class="places-search-action-btn" 
+          [disabled]="!searchQuery.trim() || isExtractingIntent()"
+          (click)="onSmartSearchSubmit()"
+          aria-label="Filter places">
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+
+      <!-- Active UI Filter Chips -->
+      @if (activeChips().length > 0) {
+        <div class="places-active-chips-row animate-fade-in">
+          @for (chip of activeChips(); track chip.id) {
+            <div class="place-active-chip">
+              <mat-icon class="chip-ico">{{ chip.icon }}</mat-icon>
+              <span class="chip-text">{{ chip.label }}</span>
+              <button type="button" class="chip-del-btn" (click)="removeChip(chip)" title="Remove filter">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+          <button type="button" class="clear-all-places-chips-btn" (click)="clearAllChips()">
+            <span>Clear</span>
+          </button>
+        </div>
+      }
     </div>
   </header>
+
 
   <!-- Loading State -->
   @if (isLoading()) {

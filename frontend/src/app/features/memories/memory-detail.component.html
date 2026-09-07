@@ -87,6 +87,14 @@
               <mat-icon>edit</mat-icon>
               <span>Edit Story</span>
             </button>
+            <button mat-stroked-button class="action-btn delete-memory-btn" (click)="confirmDeleteMemory(m)" [disabled]="isDeletingMemory()" title="Delete Memory">
+              @if (isDeletingMemory()) {
+                <mat-spinner diameter="14" class="red-spinner"></mat-spinner>
+              } @else {
+                <mat-icon>delete_outline</mat-icon>
+              }
+              <span>Delete</span>
+            </button>
           }
           <label class="add-photos-btn action-btn">
             <mat-icon>add_photo_alternate</mat-icon>
@@ -222,6 +230,15 @@
                     class="gallery-thumbnail-card" 
                     [class.active-thumb]="activeMedia()?.id === media.id"
                     (click)="setActiveMedia(media); openLightbox(idx)">
+                    @if (canEdit()) {
+                      <button 
+                        type="button" 
+                        class="thumb-delete-btn" 
+                        (click)="deleteMedia(media, $event)" 
+                        title="Delete photo">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    }
                     @if (media.mediaType === 'VIDEO') {
                       <video [src]="media.mediaUrl" class="thumb-media"></video>
                       <div class="play-overlay">
@@ -387,15 +404,15 @@
 
       </div>
 
-      <!-- Related Memories Section -->
+      <!-- Related Moments Section (Contextual Discovery) -->
       @if (relatedMemories().length > 0) {
         <section class="related-memories-section">
           <div class="related-header-row">
             <div class="related-title-box">
-              <mat-icon class="related-icon">auto_stories</mat-icon>
-              <h3 class="related-title">Related Memories from {{ m.journeyTitle || m.locationName || 'This Circle' }}</h3>
+              <mat-icon class="related-icon">auto_awesome</mat-icon>
+              <h3 class="related-title">Related Moments & Discover More</h3>
             </div>
-            <span class="related-count-tag">{{ relatedMemories().length }} moments</span>
+            <span class="related-count-tag">{{ relatedMemories().length }} related moments</span>
           </div>
 
           <div class="related-scroll-container">
@@ -403,17 +420,34 @@
               @for (rel of relatedMemories(); track rel.id) {
                 <article class="related-memory-card" [routerLink]="['/memories', rel.id]">
                   <div class="related-thumb-wrapper">
-                    <img [src]="getCoverUrl(rel)" [alt]="rel.title" mvFallback class="related-thumb-img" />
+                    <img 
+                      [src]="rel.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=400&q=80'" 
+                      [alt]="rel.title" 
+                      mvFallback 
+                      class="related-thumb-img" 
+                      loading="lazy" 
+                    />
                     <span class="related-date-chip">{{ formatDate(rel.memoryDate) }}</span>
+                    @if (rel.relationReason) {
+                      <span class="related-reason-pill">{{ rel.relationReason }}</span>
+                    }
                   </div>
                   <div class="related-info-pane">
                     <h4 class="related-card-title">{{ rel.title }}</h4>
-                    @if (rel.locationName) {
-                      <span class="related-loc-line">
-                        <mat-icon>place</mat-icon>
-                        <span>{{ rel.locationName }}</span>
-                      </span>
-                    }
+                    <div class="related-sub-row">
+                      @if (rel.locationName) {
+                        <span class="related-loc-line">
+                          <mat-icon>place</mat-icon>
+                          <span>{{ rel.locationName }}</span>
+                        </span>
+                      }
+                      @if (rel.mediaCount) {
+                        <span class="related-media-count">
+                          <mat-icon>photo_library</mat-icon>
+                          <span>{{ rel.mediaCount }}</span>
+                        </span>
+                      }
+                    </div>
                   </div>
                 </article>
               }

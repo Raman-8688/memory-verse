@@ -11,7 +11,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 
 import { AiAssistantService } from '../../core/services/ai-assistant.service';
-import { RelatedMedia } from '../../core/models/ai.model';
+import { AiSearchService } from '../../core/services/ai-search.service';
+import { ChatMessage, RelatedMedia, RelatedMemory } from '../../core/models/ai.model';
+import { MemorySearchFilter, SearchActionChip } from '../../core/models/ai-search.model';
 import { MediaViewerModalComponent, MediaViewerData } from '../../shared/components/media-viewer-modal.component';
 import { GalleryItem } from '../../core/models/gallery.model';
 
@@ -35,6 +37,7 @@ import { GalleryItem } from '../../core/models/gallery.model';
 })
 export class AssistantComponent implements OnInit {
   readonly aiService = inject(AiAssistantService);
+  readonly aiSearchService = inject(AiSearchService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
@@ -84,6 +87,7 @@ export class AssistantComponent implements OnInit {
     effect(() => {
       this.aiService.messages();
       this.aiService.isLoading();
+      this.aiSearchService.isLoadingSummary();
       this.scrollToBottom();
     });
   }
@@ -94,25 +98,137 @@ export class AssistantComponent implements OnInit {
     // Check if query was forwarded from the dashboard search bar
     const query = this.route.snapshot.queryParamMap.get('q');
     if (query?.trim()) {
-      this.aiService.sendMessage(query.trim());
+      this.dispatchQuery(query.trim());
     }
   }
 
   submitMessage(): void {
     const text = this.userInput?.trim();
-    if (!text || this.aiService.isLoading()) return;
+    if (!text || this.aiService.isLoading() || this.aiSearchService.isLoadingSummary()) return;
 
     this.userInput = '';
-    this.aiService.sendMessage(text);
+    this.dispatchQuery(text);
   }
 
   sendPresetQuestion(question: string): void {
-    if (this.aiService.isLoading()) return;
-    this.aiService.sendMessage(question);
+    if (this.aiService.isLoading() || this.aiSearchService.isLoadingSummary()) return;
+    this.dispatchQuery(question);
+  }
+
+  dispatchQuery(query: string, contextToken?: string, previousFilters?: MemorySearchFilter): void {
+    const cleanQuery = query.trim();
+    if (!cleanQuery) return;
+
+    const userMsg: ChatMessage = {
+      id: 'user-' + Date.now(),
+      role: 'user',
+      content: cleanQuery,
+      timestamp: new Date()
+    };
+
+    this.aiService.messages.update(prev => [...prev, userMsg]);
+    this.aiService.isLoading.set(true);
+
+    // Tier 1 Progressive Disclosure Search
+    this.aiSearchService.getSearchSummary(cleanQuery, previousFilters, contextToken).subscribe({
+      next: (summary) => {
+        this.aiService.isLoading.set(false);
+
+        if (summary.matchingMemoryCount > 0 || summary.totalImageCount > 0 || summary.totalVideoCount > 0 ||
+            (summary.suggestedActions && summary.suggestedActions.length > 0)) {
+          const assistantMsg: ChatMessage = {
+            id: 'reply-' + Date.now(),
+            role: 'assistant',
+            content: summary.conversationalSummary,
+            timestamp: new Date(),
+            mode: 'MEMORY',
+            searchToken: summary.searchToken,
+            searchSummary: summary,
+            actionChips: summary.suggestedActions || [],
+            relatedMemories: [],
+            relatedMedia: [],
+            isLoadingRecords: false,
+            activeRecordView: null
+          };
+          this.aiService.messages.update(prev => [...prev, assistantMsg]);
+        } else {
+          // If no direct memory hits, leverage general conversational AI fallback
+          this.aiService.sendMessage(cleanQuery);
+        }
+      },
+      error: (err) => {
+        console.warn('AI Search summary unavailable, falling back to chat provider:', err);
+        this.aiService.sendMessage(cleanQuery);
+      }
+    });
+  }
+
+  triggerActionChip(chip: SearchActionChip, msg: ChatMessage): void {
+    if (chip.action === 'VIEW_PHOTOS' || chip.action === 'VIEW_VIDEOS') {
+      if (msg.relatedMedia && msg.relatedMedia.length > 0) {
+        msg.activeRecordView = msg.activeRecordView === 'MEDIA' ? null : 'MEDIA';
+        return;
+      }
+
+      if (!msg.searchToken) return;
+      msg.isLoadingRecords = true;
+
+      this.aiSearchService.fetchRecords(msg.searchToken, 'MEDIA', 0, 50).subscribe({
+        next: (res) => {
+          msg.isLoadingRecords = false;
+          msg.relatedMedia = res.mediaItems || [];
+          msg.activeRecordView = 'MEDIA';
+          if (msg.relatedMedia.length > 0) {
+            this.openLightbox(msg.relatedMedia, 0);
+          }
+        },
+        error: (err) => {
+          msg.isLoadingRecords = false;
+          console.error('Failed to fetch media records:', err);
+        }
+      });
+    } else if (chip.action === 'VIEW_MEMORIES') {
+      if (msg.relatedMemories && msg.relatedMemories.length > 0) {
+        msg.activeRecordView = msg.activeRecordView === 'MEMORIES' ? null : 'MEMORIES';
+        return;
+      }
+
+      if (!msg.searchToken) return;
+      msg.isLoadingRecords = true;
+
+      this.aiSearchService.fetchRecords(msg.searchToken, 'MEMORIES', 0, 20).subscribe({
+        next: (res) => {
+          msg.isLoadingRecords = false;
+          msg.relatedMemories = (res.memories || []).map(m => ({
+            id: m.id,
+            title: m.title,
+            story: m.story,
+            memoryDate: m.memoryDate,
+            locationName: m.locationName,
+            journeyTitle: m.journeyTitle,
+            sectionTitle: m.sectionTitle,
+            coverImageUrl: m.coverImageUrl || (m.mediaList?.[0]?.thumbnailUrl || m.mediaList?.[0]?.mediaUrl),
+            mediaCount: m.mediaList?.length || 0
+          }));
+          msg.activeRecordView = 'MEMORIES';
+        },
+        error: (err) => {
+          msg.isLoadingRecords = false;
+          console.error('Failed to fetch memory records:', err);
+        }
+      });
+    } else if (chip.action === 'FILTER_PERSON') {
+      const name = chip.value || chip.label.replace(/^(Filter by|Only)\s+/i, '');
+      this.dispatchQuery(`Only ${name}`, msg.searchToken, msg.searchSummary?.activeFilters);
+    } else if (chip.action === 'FILTER_LOCATION') {
+      const loc = chip.value || chip.label.replace(/^(Filter by|In)\s+/i, '');
+      this.dispatchQuery(`In ${loc}`, msg.searchToken, msg.searchSummary?.activeFilters);
+    }
   }
 
   resetConversation(): void {
     this.aiService.clearConversation();
+    this.aiSearchService.clearContext();
     if (this.messageInputRef) {
       this.messageInputRef.nativeElement.focus();
     }

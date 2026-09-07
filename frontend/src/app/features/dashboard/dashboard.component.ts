@@ -11,6 +11,7 @@ import { DashboardService } from '@core/services/dashboard.service';
 import { MediaCaptureService } from '@core/services/media-capture.service';
 import { DashboardResponse } from '@core/models/dashboard.model';
 import { Memory } from '@core/models/memory.model';
+import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
 
 @Component({
   selector: 'mv-dashboard',
@@ -135,10 +136,10 @@ export class DashboardComponent implements OnInit {
 
   getCoverUrl(memory?: Memory): string {
     if (!memory) return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
-    if (memory.coverImageUrl) return memory.coverImageUrl;
+    if (memory.coverImageUrl) return optimizeCloudinaryUrl(memory.coverImageUrl, 800);
     if (memory.mediaList && memory.mediaList.length > 0) {
       const media = memory.mediaList[0];
-      return media.thumbnailUrl || media.mediaUrl;
+      return optimizeCloudinaryUrl(media.thumbnailUrl || media.mediaUrl, 800);
     }
     return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
   }

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/user.model';
+import { TimelineRouteReuseStrategy } from '../routing/timeline-route-reuse-strategy';
 
 @Injectable({
   providedIn: 'root'
@@ -36,6 +37,7 @@ export class AuthService {
   }
 
   logout(): void {
+    TimelineRouteReuseStrategy.clearCache();
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.USER_KEY);

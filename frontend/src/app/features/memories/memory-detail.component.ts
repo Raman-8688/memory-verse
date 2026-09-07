@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpEventType } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,7 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { FormsModule } from '@angular/forms';
-import { Memory, Media } from '@core/models/memory.model';
+import { Memory, Media, RelatedMomentBrief } from '@core/models/memory.model';
 import { GalleryItem } from '@core/models/gallery.model';
 import { MemoryComment, ReactionSummary } from '@core/models/interaction.model';
 import { MemoryService } from '@core/services/memory.service';
@@ -22,6 +22,7 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
 import { AudioPlayerComponent } from '@shared/components/audio-player/audio-player.component';
 import { NotificationStateService } from '@core/services/notification-state.service';
 import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
+import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
 
 @Component({
   selector: 'mv-memory-detail',
@@ -49,12 +50,14 @@ export class MemoryDetailComponent implements OnInit {
   private readonly notificationState = inject(NotificationStateService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
   readonly authService = inject(AuthService);
 
   readonly memory = signal<Memory | null>(null);
-  readonly relatedMemories = signal<Memory[]>([]);
+  readonly relatedMemories = signal<RelatedMomentBrief[]>([]);
   readonly activeMedia = signal<Media | null>(null);
   readonly isLoading = signal<boolean>(true);
+  readonly isDeletingMemory = signal<boolean>(false);
   readonly isUploadingMedia = signal<boolean>(false);
   readonly uploadProgress = signal<number>(0);
   readonly isSharing = signal<boolean>(false);
@@ -98,31 +101,23 @@ export class MemoryDetailComponent implements OnInit {
   }
 
   loadRelatedMemories(current: Memory): void {
-    if (current.journeyId) {
-      this.memoryService.getMemories({ journeyId: current.journeyId, size: 8 }).subscribe({
-        next: (res) => {
-          const list = (res.content || []).filter(m => m.id !== current.id);
-          this.relatedMemories.set(list);
-        },
-        error: () => this.relatedMemories.set([])
-      });
-    } else if (current.locationName) {
-      this.memoryService.getMemories({ search: current.locationName, size: 8 }).subscribe({
-        next: (res) => {
-          const list = (res.content || []).filter(m => m.id !== current.id);
-          this.relatedMemories.set(list);
-        },
-        error: () => this.relatedMemories.set([])
-      });
-    } else {
-      this.relatedMemories.set([]);
-    }
+    if (!current?.id) return;
+    this.memoryService.getRelatedMemories(current.id).subscribe({
+      next: (list) => {
+        this.relatedMemories.set(list || []);
+      },
+      error: (err) => {
+        console.warn('Failed to load related moments:', err);
+        this.relatedMemories.set([]);
+      }
+    });
   }
 
+
   getCoverUrl(m: Memory): string {
-    if (m?.coverImageUrl) return m.coverImageUrl;
+    if (m?.coverImageUrl) return optimizeCloudinaryUrl(m.coverImageUrl, 800);
     if (m?.mediaList && m.mediaList.length > 0) {
-      return m.mediaList[0].thumbnailUrl || m.mediaList[0].mediaUrl;
+      return optimizeCloudinaryUrl(m.mediaList[0].thumbnailUrl || m.mediaList[0].mediaUrl, 800);
     }
     return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=80';
   }
@@ -202,6 +197,48 @@ export class MemoryDetailComponent implements OnInit {
         }
         this.loadRelatedMemories(updated);
         this.notificationState.refresh();
+      }
+    });
+  }
+
+  confirmDeleteMemory(m: Memory, permanent: boolean = false): void {
+    const promptMsg = permanent
+      ? `Are you sure you want to permanently delete "${m.title}"? This cannot be undone.`
+      : `Move "${m.title}" to trash? You can restore it later from Trash.`;
+    if (!window.confirm(promptMsg)) return;
+
+    this.isDeletingMemory.set(true);
+    this.memoryService.deleteMemory(m.id, permanent).subscribe({
+      next: () => {
+        this.isDeletingMemory.set(false);
+        this.snackBar.open(permanent ? 'Memory permanently deleted.' : 'Memory moved to trash.', 'OK', { duration: 3000 });
+        this.router.navigate(['/memories']);
+      },
+      error: (err) => {
+        this.isDeletingMemory.set(false);
+        console.error('Failed to delete memory:', err);
+        this.snackBar.open('Failed to delete memory. Please try again.', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
+  deleteMedia(media: Media, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const mem = this.memory();
+    if (!mem || !media.id) return;
+
+    if (!window.confirm('Are you sure you want to remove this photo from this memory?')) return;
+
+    this.memoryService.deleteMedia(mem.id, media.id).subscribe({
+      next: () => {
+        this.snackBar.open('Photo deleted successfully.', 'OK', { duration: 3000 });
+        this.loadMemory(mem.id);
+      },
+      error: (err) => {
+        console.error('Failed to delete photo:', err);
+        this.snackBar.open('Failed to delete photo. Please try again.', 'Close', { duration: 4000 });
       }
     });
   }

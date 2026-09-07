@@ -10,6 +10,7 @@ import { Memory, MediaType } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { MemoryService } from '@core/services/memory.service';
 import { JourneyService } from '@core/services/journey.service';
+import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
 
 export interface MonthGroup {
   periodKey: string;
@@ -159,10 +160,10 @@ export class MemoryFeedComponent implements OnInit {
 
   getCoverUrl(memory?: Memory): string {
     if (!memory) return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
-    if (memory.coverImageUrl) return memory.coverImageUrl;
+    if (memory.coverImageUrl) return optimizeCloudinaryUrl(memory.coverImageUrl, 800);
     if (memory.mediaList && memory.mediaList.length > 0) {
       const media = memory.mediaList[0];
-      return media.thumbnailUrl || media.mediaUrl;
+      return optimizeCloudinaryUrl(media.thumbnailUrl || media.mediaUrl, 800);
     }
     return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
   }

@@ -10,10 +10,13 @@ import com.memoryverse.entity.User;
 import com.memoryverse.exception.BusinessValidationException;
 import com.memoryverse.exception.ResourceNotFoundException;
 import com.memoryverse.integration.storage.CloudinaryStorageService;
+import com.memoryverse.config.RedisConfig;
 import com.memoryverse.repository.UserRepository;
 import com.memoryverse.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
     public UserDto createUser(UserCreateRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(normalizedEmail)) {
@@ -79,7 +83,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = RedisConfig.CACHE_PEOPLE, key = "#userId")
+    public List<PersonSummaryDto> getPeopleDirectory(UUID userId) {
+        log.debug("Fetching people directory for user {} (cache miss)", userId);
+        return getPeopleDirectory();
+    }
+
+    @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
     public UserDto updateUser(UUID id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -98,6 +111,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
     public UserDto updateUserAvatar(UUID id, MultipartFile file) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));

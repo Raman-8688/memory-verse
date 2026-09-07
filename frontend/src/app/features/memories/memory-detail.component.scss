@@ -106,6 +106,15 @@
   &:hover { background-color: var(--mv-bg-subtle) !important; }
 }
 
+.delete-memory-btn {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #ef4444 !important;
+  &:hover {
+    background-color: #fef2f2 !important;
+    border-color: #ef4444 !important;
+  }
+}
+
 .add-photos-btn {
   background-color: var(--mv-primary-light);
   border: 1px solid var(--mv-primary);
@@ -326,6 +335,41 @@
     border-color: var(--mv-primary);
     box-shadow: 0 0 0 2px var(--mv-primary-light);
   }
+}
+
+.thumb-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 5;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--mv-transition-fast);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+  }
+
+  &:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+  }
+}
+
+.gallery-thumbnail-card:hover .thumb-delete-btn {
+  opacity: 1;
 }
 
 .thumb-media {
@@ -578,14 +622,46 @@
   text-overflow: ellipsis;
 }
 
-.related-loc-line {
-  font-size: 0.72rem;
-  color: var(--mv-text-muted);
+.related-reason-pill {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--mv-ai-accent, #d97706);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--mv-radius-full);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  max-width: 85%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 2;
+}
+
+.related-sub-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.related-media-count {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  mat-icon { font-size: 13px; width: 13px; height: 13px; color: var(--mv-primary); }
+  gap: 3px;
+  font-size: 0.7rem;
+  color: var(--mv-text-muted);
+
+  mat-icon {
+    font-size: 13px;
+    width: 13px;
+    height: 13px;
+    color: var(--mv-text-muted);
+  }
 }
+
 
 /* 6. Voice Memos & Audio Stories */
 .voice-memos-section {

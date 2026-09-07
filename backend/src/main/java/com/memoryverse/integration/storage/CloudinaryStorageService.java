@@ -178,4 +178,35 @@ public class CloudinaryStorageService implements StorageService {
             throw new BusinessValidationException("Failed to upload and store media file");
         }
     }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public void deleteFile(String publicId, MediaType mediaType) {
+        if (publicId == null || publicId.isBlank()) {
+            return;
+        }
+
+        try {
+            if (publicId.startsWith("local_")) {
+                String storedFileName = publicId.substring("local_".length());
+                Path filePath = Paths.get(LOCAL_UPLOAD_DIR).resolve(storedFileName);
+                if (Files.exists(filePath)) {
+                    Files.delete(filePath);
+                    log.info("Deleted local file: {}", filePath);
+                }
+                return;
+            }
+
+            if (cloudName != null && !cloudName.equals("placeholder-cloud-name") && !cloudName.isBlank()) {
+                boolean isVideoOrAudio = mediaType == MediaType.VIDEO || mediaType == MediaType.AUDIO;
+                Map params = ObjectUtils.asMap(
+                        "resource_type", isVideoOrAudio ? "video" : "image"
+                );
+                Map result = cloudinary.uploader().destroy(publicId, params);
+                log.info("Destroyed Cloudinary asset: publicId='{}', result={}", publicId, result);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to delete asset with publicId='{}': {}", publicId, ex.getMessage());
+        }
+    }
 }

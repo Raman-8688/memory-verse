@@ -140,6 +140,11 @@ import { MediaService } from '@core/services/media.service';
       padding: var(--space-4);
       background-color: var(--mv-bg-surface);
       max-width: 580px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .dialog-header {
@@ -149,6 +154,7 @@ import { MediaService } from '@core/services/media.service';
       padding-bottom: var(--space-2);
       border-bottom: 1px solid var(--mv-border);
       position: relative;
+      flex-shrink: 0;
     }
 
     .header-icon-wrap {
@@ -191,6 +197,10 @@ import { MediaService } from '@core/services/media.service';
       flex-direction: column;
       gap: var(--space-2);
       padding-top: var(--space-3);
+      flex: 1;
+      overflow-y: auto;
+      max-height: calc(85vh - 120px);
+      padding-right: 4px;
     }
 
     .form-row {
@@ -324,9 +334,14 @@ import { MediaService } from '@core/services/media.service';
       justify-content: flex-end;
       align-items: center;
       gap: 12px;
-      padding-top: var(--space-2);
+      padding-top: var(--space-3);
       border-top: 1px solid var(--mv-border);
-      margin-top: 4px;
+      margin-top: auto;
+      position: sticky;
+      bottom: 0;
+      background: var(--mv-bg-surface);
+      z-index: 10;
+      flex-shrink: 0;
     }
 
     .save-btn {

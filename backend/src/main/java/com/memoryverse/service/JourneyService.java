@@ -14,6 +14,8 @@ public interface JourneyService {
 
     List<JourneyResponseDto> getAllJourneys();
 
+    List<JourneyResponseDto> getAllJourneys(UUID userId);
+
     JourneyResponseDto getJourneyById(UUID id);
 
     JourneyResponseDto createJourney(JourneyCreateDto dto, UUID creatorId);

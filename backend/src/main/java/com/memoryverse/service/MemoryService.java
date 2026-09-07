@@ -23,6 +23,8 @@ public interface MemoryService {
 
     List<PlaceSummaryDto> getPlacesSummary();
 
+    List<PlaceSummaryDto> getPlacesSummary(UUID userId);
+
     MemoryResponseDto getMemoryById(UUID id);
 
     MemoryResponseDto toggleFavorite(UUID memoryId, UUID currentUserId);
@@ -30,4 +32,11 @@ public interface MemoryService {
     MemoryResponseDto updateMemory(UUID memoryId, MemoryUpdateDto dto, UUID currentUserId);
 
     MemoryResponseDto appendMedia(UUID memoryId, List<MultipartFile> files, UUID currentUserId);
+
+    void deleteMemory(UUID memoryId, boolean permanent, UUID currentUserId);
+
+    void deleteMedia(UUID memoryId, UUID mediaId, UUID currentUserId);
+
+    List<com.memoryverse.dto.response.RelatedMemoryResponseDto> getRelatedMemories(UUID id);
 }
+

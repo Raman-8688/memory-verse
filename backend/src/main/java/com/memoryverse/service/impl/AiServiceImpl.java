@@ -2,10 +2,13 @@ package com.memoryverse.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.memoryverse.dto.request.AiChatRequestDto;
+import com.memoryverse.dto.request.AiNarrativeRequestDto;
 import com.memoryverse.dto.request.MemorySearchCriteria;
 import com.memoryverse.dto.response.AiChatResponseDto;
 import com.memoryverse.dto.response.AiMemorySummaryDto;
 import com.memoryverse.dto.response.AiModelInfoDto;
+import com.memoryverse.dto.response.AiNarrativeResponseDto;
+
 import com.memoryverse.entity.AiConversation;
 import com.memoryverse.entity.AiMessage;
 import com.memoryverse.entity.AiMessageRole;
@@ -494,4 +497,66 @@ public class AiServiceImpl implements AiService {
     public List<AiModelInfoDto> getAvailableModels() {
         return aiModelProvider.getAvailableModels();
     }
+
+    @Override
+    public AiNarrativeResponseDto generateNarrative(UUID userId, AiNarrativeRequestDto request) {
+        String roughNotes = request.getRoughNotes() != null ? request.getRoughNotes().trim() : "";
+        if (roughNotes.isBlank()) {
+            return AiNarrativeResponseDto.builder()
+                    .narrative("")
+                    .modelUsed(aiModelProvider.getActiveModelName())
+                    .build();
+        }
+
+        String chosenModel = (request.getModel() != null && !request.getModel().isBlank())
+                ? request.getModel().trim()
+                : aiModelProvider.getActiveModelName();
+
+        String systemPrompt = """
+                You are an empathetic, poetic personal journal storytelling assistant for MemoryVerse.
+                Your task is to transform rough user notes into an emotional, nostalgic, editorial paragraph suitable for a personal memory album.
+                
+                Rules:
+                1. Length: Exactly 3 to 4 sentences.
+                2. Tone: Warm, reflective, personal, evocative. Sound like a heartfelt personal journal entry, NOT an AI assistant, marketing copy, or travel brochure.
+                3. Perspective: Write from a natural personal perspective (using "we" or "I").
+                4. Output: Output ONLY the polished narrative paragraph. Do NOT add titles, introductory greetings (e.g. "Here is your story:"), bullet points, or quotation marks.
+                """;
+
+        StringBuilder userPromptBuilder = new StringBuilder();
+        if (request.getMemoryTitle() != null && !request.getMemoryTitle().isBlank()) {
+            userPromptBuilder.append("Memory Title: ").append(request.getMemoryTitle().trim()).append("\n");
+        }
+        if (request.getLocationName() != null && !request.getLocationName().isBlank()) {
+            userPromptBuilder.append("Location: ").append(request.getLocationName().trim()).append("\n");
+        }
+        userPromptBuilder.append("Rough Notes: ").append(roughNotes);
+
+        String narrative;
+        try {
+            narrative = aiModelProvider.generateWithModel(chosenModel, systemPrompt, userPromptBuilder.toString());
+            if (narrative != null) {
+                narrative = narrative.trim();
+                // Strip any accidental leading/trailing quotes
+                if (narrative.startsWith("\"") && narrative.endsWith("\"") && narrative.length() > 2) {
+                    narrative = narrative.substring(1, narrative.length() - 1).trim();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to generate AI narrative via LLM provider, using editorial fallback: {}", e.getMessage());
+            narrative = null;
+        }
+
+        if (narrative == null || narrative.isBlank()) {
+            String cap = Character.toUpperCase(roughNotes.charAt(0)) + roughNotes.substring(1);
+            if (!cap.endsWith(".")) cap += ".";
+            narrative = cap + " A timeless memory etched with laughter and shared warmth that we will always treasure.";
+        }
+
+        return AiNarrativeResponseDto.builder()
+                .narrative(narrative)
+                .modelUsed(chosenModel)
+                .build();
+    }
 }
+

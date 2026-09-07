@@ -18,8 +18,19 @@ import { Journey } from '@core/models/journey.model';
 import { PagedResponse } from '@core/models/api-response.model';
 import { AddToCollectionDialogComponent } from '@shared/components/add-to-collection-dialog/add-to-collection-dialog.component';
 import { LightboxService } from '@core/services/lightbox.service';
+import { AiSearchService } from '@core/services/ai-search.service';
+import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
+
+export interface SmartFilterChip {
+  id: string;
+  type: 'person' | 'place' | 'year' | 'journey' | 'search';
+  label: string;
+  value: any;
+  icon: string;
+}
 
 export interface TimelineMonthGroup {
+
   monthKey: string;
   monthName: string;
   month: number;
@@ -59,6 +70,12 @@ export class TimelineComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly lightboxService = inject(LightboxService);
+  private readonly aiSearchService = inject(AiSearchService);
+
+  // Unified Smart Search & Filter Intent Signals
+  readonly smartSearchText = signal<string>('');
+  readonly isExtractingIntent = signal<boolean>(false);
+  readonly smartChips = signal<SmartFilterChip[]>([]);
 
   // State Signals
   readonly memories = signal<Memory[]>([]);
@@ -192,6 +209,19 @@ export class TimelineComponent implements OnInit, OnDestroy {
       const personParam = params['person'] || params['userId'] || null;
       const searchParam = params['search'] || '';
 
+      const isSameFilter =
+        this.selectedYear() === yearParam &&
+        this.selectedMonth() === monthParam &&
+        this.selectedJourneyId() === journeyParam &&
+        this.selectedSectionId() === sectionParam &&
+        this.selectedPlace() === placeParam &&
+        this.selectedPersonId() === personParam &&
+        this.searchInput() === searchParam;
+
+      if (isSameFilter && this.memories().length > 0) {
+        return;
+      }
+
       this.selectedYear.set(yearParam);
       this.selectedMonth.set(monthParam);
       this.selectedJourneyId.set(journeyParam);
@@ -200,8 +230,10 @@ export class TimelineComponent implements OnInit, OnDestroy {
       this.selectedPersonId.set(personParam);
       this.searchInput.set(searchParam);
 
+      this.syncChipsFromState();
       this.fetchTimeline(0, false);
     });
+
   }
 
   ngOnDestroy(): void {
@@ -312,6 +344,140 @@ export class TimelineComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Smart Filter Bar Actions
+  onSmartSearchSubmit(): void {
+    const text = this.smartSearchText().trim();
+    if (!text || this.isExtractingIntent()) return;
+
+    this.isExtractingIntent.set(true);
+
+    this.aiSearchService.getSearchSummary(text).subscribe({
+      next: (summary) => {
+        this.isExtractingIntent.set(false);
+        const filters = summary.activeFilters;
+        const urlParams: Record<string, any> = {};
+
+        // 1. Year / Relative date
+        if (filters.dateStart) {
+          const y = parseInt(filters.dateStart.split('-')[0], 10);
+          if (!isNaN(y)) {
+            this.selectedYear.set(y);
+            urlParams['year'] = y;
+          }
+        }
+
+        // 2. Location
+        if (filters.location) {
+          this.selectedPlace.set(filters.location);
+          urlParams['place'] = filters.location;
+        }
+
+        // 3. Person or Keywords
+        if (filters.personName) {
+          this.searchInput.set(filters.personName);
+          urlParams['search'] = filters.personName;
+        } else if (filters.keywords && filters.keywords.length > 0) {
+          const kw = filters.keywords.join(' ');
+          this.searchInput.set(kw);
+          urlParams['search'] = kw;
+        } else if (!filters.location && !filters.dateStart) {
+          this.searchInput.set(text);
+          urlParams['search'] = text;
+        }
+
+        this.smartSearchText.set('');
+        this.updateUrlParams(urlParams);
+      },
+      error: (err) => {
+        this.isExtractingIntent.set(false);
+        console.warn('Smart filter extraction error, applying literal search:', err);
+        this.searchInput.set(text);
+        this.smartSearchText.set('');
+        this.updateUrlParams({ search: text });
+      }
+    });
+  }
+
+  removeSmartChip(chip: SmartFilterChip): void {
+    const urlUpdates: Record<string, any> = {};
+
+    switch (chip.type) {
+      case 'year':
+        this.selectedYear.set(null);
+        this.selectedMonth.set(null);
+        urlUpdates['year'] = null;
+        urlUpdates['month'] = null;
+        break;
+      case 'place':
+        this.selectedPlace.set(null);
+        urlUpdates['place'] = null;
+        break;
+      case 'person':
+      case 'search':
+        this.searchInput.set('');
+        urlUpdates['search'] = null;
+        break;
+      case 'journey':
+        this.selectedJourneyId.set(null);
+        this.selectedSectionId.set(null);
+        urlUpdates['journey'] = null;
+        urlUpdates['section'] = null;
+        break;
+    }
+
+    this.updateUrlParams(urlUpdates);
+  }
+
+  private syncChipsFromState(): void {
+    const chips: SmartFilterChip[] = [];
+
+    const yr = this.selectedYear();
+    if (yr !== null) {
+      chips.push({
+        id: 'year',
+        type: 'year',
+        label: `Year: ${yr}`,
+        value: yr,
+        icon: 'calendar_today'
+      });
+    }
+
+    const pl = this.selectedPlace();
+    if (pl) {
+      chips.push({
+        id: 'place',
+        type: 'place',
+        label: `Location: ${pl}`,
+        value: pl,
+        icon: 'place'
+      });
+    }
+
+    const q = this.searchInput().trim();
+    if (q) {
+      chips.push({
+        id: 'search',
+        type: 'search',
+        label: `Filter: ${q}`,
+        value: q,
+        icon: 'person'
+      });
+    }
+
+    const jTitle = this.selectedJourneyTitle();
+    if (this.selectedJourneyId() && jTitle) {
+      chips.push({
+        id: 'journey',
+        type: 'journey',
+        label: `Journey: ${jTitle}`,
+        value: this.selectedJourneyId(),
+        icon: 'auto_stories'
+      });
+    }
+
+    this.smartChips.set(chips);
+  }
+
   onSearchSubmit(): void {
     this.updateUrlParams({
       search: this.searchInput().trim() || null
@@ -332,8 +498,18 @@ export class TimelineComponent implements OnInit, OnDestroy {
   }
 
   resetAllFilters(): void {
+    this.smartChips.set([]);
+    this.smartSearchText.set('');
+    this.searchInput.set('');
+    this.selectedYear.set(null);
+    this.selectedMonth.set(null);
+    this.selectedPlace.set(null);
+    this.selectedJourneyId.set(null);
+    this.selectedSectionId.set(null);
+    this.selectedPersonId.set(null);
     this.router.navigate(['/timeline']);
   }
+
 
   private updateUrlParams(newParams: Record<string, any>): void {
     this.router.navigate([], {
@@ -401,10 +577,10 @@ export class TimelineComponent implements OnInit, OnDestroy {
 
   getCoverUrl(memory?: Memory): string {
     if (!memory) return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
-    if (memory.coverImageUrl) return memory.coverImageUrl;
+    if (memory.coverImageUrl) return optimizeCloudinaryUrl(memory.coverImageUrl, 800);
     if (memory.mediaList && memory.mediaList.length > 0) {
       const media = memory.mediaList[0];
-      return media.thumbnailUrl || media.mediaUrl;
+      return optimizeCloudinaryUrl(media.thumbnailUrl || media.mediaUrl, 800);
     }
     return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
   }

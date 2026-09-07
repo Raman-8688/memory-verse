@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ApiResponse, PagedResponse } from '../models/api-response.model';
-import { Memory, MemoryCreateDto, MemoryUpdateDto, MemoryFilterParams } from '../models/memory.model';
+import { Memory, MemoryCreateDto, MemoryUpdateDto, MemoryFilterParams, RelatedMomentBrief } from '../models/memory.model';
+import { environment } from '@env/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ import { Memory, MemoryCreateDto, MemoryUpdateDto, MemoryFilterParams } from '..
 export class MemoryService {
   private readonly api = inject(ApiService);
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = environment.apiUrl;
 
   getMemories(params?: MemoryFilterParams): Observable<PagedResponse<Memory>> {
     return this.api.get<PagedResponse<Memory>>('/memories', params);
@@ -82,4 +83,17 @@ export class MemoryService {
       observe: 'events'
     });
   }
+
+  deleteMemory(id: string, permanent: boolean = false): Observable<void> {
+    return this.api.delete<void>(`/memories/${id}`, { permanent });
+  }
+
+  deleteMedia(memoryId: string, mediaId: string): Observable<void> {
+    return this.api.delete<void>(`/memories/${memoryId}/media/${mediaId}`);
+  }
+
+  getRelatedMemories(id: string): Observable<RelatedMomentBrief[]> {
+    return this.api.get<RelatedMomentBrief[]>(`/memories/${id}/related`);
+  }
 }
+

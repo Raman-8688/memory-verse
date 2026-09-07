@@ -8,6 +8,7 @@ import com.memoryverse.dto.response.ApiResponse;
 import com.memoryverse.dto.response.MemoryResponseDto;
 import com.memoryverse.dto.response.PagedResponse;
 import com.memoryverse.dto.response.PlaceSummaryDto;
+import com.memoryverse.dto.response.RelatedMemoryResponseDto;
 import com.memoryverse.security.SecurityUtils;
 import com.memoryverse.service.MemoryService;
 import jakarta.validation.Valid;
@@ -74,7 +75,8 @@ public class MemoryController {
 
     @GetMapping("/places")
     public ResponseEntity<ApiResponse<List<PlaceSummaryDto>>> getPlaces() {
-        return ResponseEntity.ok(ApiResponse.success(memoryService.getPlacesSummary()));
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(ApiResponse.success(memoryService.getPlacesSummary(currentUserId)));
     }
 
     @PostMapping("/{id}/favorite")
@@ -105,6 +107,13 @@ public class MemoryController {
         return ResponseEntity.ok(ApiResponse.success(memory));
     }
 
+    @GetMapping("/{id}/related")
+    public ResponseEntity<ApiResponse<List<RelatedMemoryResponseDto>>> getRelatedMemories(@PathVariable UUID id) {
+        List<RelatedMemoryResponseDto> related = memoryService.getRelatedMemories(id);
+        return ResponseEntity.ok(ApiResponse.success(related));
+    }
+
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<MemoryResponseDto>> updateMemory(
             @PathVariable UUID id,
@@ -121,5 +130,23 @@ public class MemoryController {
         UUID currentUserId = SecurityUtils.getCurrentUserId();
         MemoryResponseDto updated = memoryService.appendMedia(id, files, currentUserId);
         return ResponseEntity.ok(ApiResponse.success("Media appended successfully", updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteMemory(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "false") boolean permanent) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        memoryService.deleteMemory(id, permanent, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success(permanent ? "Memory permanently deleted" : "Memory moved to trash", null));
+    }
+
+    @DeleteMapping("/{id}/media/{mediaId}")
+    public ResponseEntity<ApiResponse<Void>> deleteMedia(
+            @PathVariable UUID id,
+            @PathVariable UUID mediaId) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        memoryService.deleteMedia(id, mediaId, currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Media deleted successfully", null));
     }
 }

@@ -25,9 +25,12 @@ import com.memoryverse.repository.UserRepository;
 import com.memoryverse.security.SecurityUtils;
 import com.memoryverse.service.MemoryService;
 import com.memoryverse.service.NotificationService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,8 +39,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import com.memoryverse.dto.response.RelatedMemoryResponseDto;
+import com.memoryverse.repository.specification.MemorySpecification;
 
 @Slf4j
 @Service
@@ -50,10 +57,11 @@ public class MemoryServiceImpl implements MemoryService {
     private final UserRepository userRepository;
     private final CloudinaryStorageService cloudinaryStorageService;
     private final NotificationService notificationService;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
-    @CacheEvict(value = {RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public MemoryResponseDto createMemory(MemoryCreateDto dto, List<MultipartFile> files, UUID creatorId) {
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", creatorId));
@@ -88,11 +96,17 @@ public class MemoryServiceImpl implements MemoryService {
             taggedUsers.forEach(memory::tagUser);
         }
 
-        // Upload Media Files
+        // Upload Media Files (with deduplication)
         int displayOrder = 1;
         if (files != null && !files.isEmpty()) {
+            java.util.Set<String> seenUploads = new java.util.HashSet<>();
             for (MultipartFile file : files) {
-                if (!file.isEmpty()) {
+                if (file != null && !file.isEmpty()) {
+                    String signature = (file.getOriginalFilename() != null ? file.getOriginalFilename() : "file") + "_" + file.getSize();
+                    if (!seenUploads.add(signature)) {
+                        log.info("Skipping duplicate media file during memory creation: {}", file.getOriginalFilename());
+                        continue;
+                    }
                     UploadedMediaResult uploaded = cloudinaryStorageService.uploadFile(file);
                     Media media = Media.builder()
                             .mediaUrl(uploaded.getMediaUrl())
@@ -211,12 +225,18 @@ public class MemoryServiceImpl implements MemoryService {
 
         if (search != null && !search.isBlank()) {
             String term = "%" + search.toLowerCase().trim() + "%";
-            spec = spec.and((root, query, cb) -> cb.or(
-                    cb.like(cb.lower(root.get("title")), term),
-                    cb.like(cb.lower(root.get("story")), term),
-                    cb.like(cb.lower(root.get("locationName")), term)
-            ));
+            spec = spec.and((root, query, cb) -> {
+                query.distinct(true);
+                return cb.or(
+                        cb.like(cb.lower(root.get("title")), term),
+                        cb.like(cb.lower(root.get("story")), term),
+                        cb.like(cb.lower(root.get("locationName")), term),
+                        cb.like(cb.lower(root.join("taggedUsers", jakarta.persistence.criteria.JoinType.LEFT).get("fullName")), term),
+                        cb.like(cb.lower(root.join("createdBy", jakarta.persistence.criteria.JoinType.LEFT).get("fullName")), term)
+                );
+            });
         }
+
 
         Page<Memory> page = memoryRepository.findAll(spec, pageable);
         return PagedResponse.<MemoryResponseDto>builder()
@@ -251,6 +271,14 @@ public class MemoryServiceImpl implements MemoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = RedisConfig.CACHE_PLACES, key = "#userId")
+    public List<PlaceSummaryDto> getPlacesSummary(UUID userId) {
+        log.debug("Fetching places summary for user {} (cache miss)", userId);
+        return getPlacesSummary();
+    }
+
+    @Override
     @Transactional
     public MemoryResponseDto toggleFavorite(UUID memoryId, UUID currentUserId) {
         Memory memory = memoryRepository.findById(memoryId)
@@ -273,7 +301,7 @@ public class MemoryServiceImpl implements MemoryService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public MemoryResponseDto updateMemory(UUID memoryId, MemoryUpdateDto dto, UUID currentUserId) {
         Memory memory = memoryRepository.findWithDetailsById(memoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
@@ -313,7 +341,7 @@ public class MemoryServiceImpl implements MemoryService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public MemoryResponseDto appendMedia(UUID memoryId, List<MultipartFile> files, UUID currentUserId) {
         Memory memory = memoryRepository.findWithDetailsById(memoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
@@ -333,9 +361,21 @@ public class MemoryServiceImpl implements MemoryService {
                 .max()
                 .orElse(0) + 1;
 
+        java.util.Set<String> existingSignatures = new java.util.HashSet<>();
+        for (Media existing : memory.getMediaList()) {
+            if (existing.getFileName() != null && existing.getFileSizeBytes() != null) {
+                existingSignatures.add(existing.getFileName() + "_" + existing.getFileSizeBytes());
+            }
+        }
+
         int addedCount = 0;
         for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
+            if (file != null && !file.isEmpty()) {
+                String signature = (file.getOriginalFilename() != null ? file.getOriginalFilename() : "file") + "_" + file.getSize();
+                if (!existingSignatures.add(signature)) {
+                    log.info("Skipping duplicate media file during appendMedia: {}", file.getOriginalFilename());
+                    continue;
+                }
                 UploadedMediaResult uploaded = cloudinaryStorageService.uploadFile(file);
                 Media media = Media.builder()
                         .mediaUrl(uploaded.getMediaUrl())
@@ -372,4 +412,185 @@ public class MemoryServiceImpl implements MemoryService {
 
         return MemoryResponseDto.fromEntity(updated);
     }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    public void deleteMemory(UUID memoryId, boolean permanent, UUID currentUserId) {
+        Memory memory = memoryRepository.findById(memoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
+
+        boolean isCreator = memory.getCreatedBy() != null && memory.getCreatedBy().getId().equals(currentUserId);
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        if (!isCreator && !isAdmin) {
+            throw new ForbiddenException("You do not have permission to delete this memory");
+        }
+
+        if (permanent) {
+            log.info("Permanently deleting memory id={} by user={}", memoryId, currentUserId);
+            for (Media media : memory.getMediaList()) {
+                if (media.getPublicId() != null) {
+                    cloudinaryStorageService.deleteFile(media.getPublicId(), media.getMediaType());
+                }
+            }
+            entityManager.createNativeQuery("DELETE FROM memory_comments WHERE memory_id = :id")
+                    .setParameter("id", memoryId).executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM memory_reactions WHERE memory_id = :id")
+                    .setParameter("id", memoryId).executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM memory_tagged_users WHERE memory_id = :id")
+                    .setParameter("id", memoryId).executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM media WHERE memory_id = :id")
+                    .setParameter("id", memoryId).executeUpdate();
+            entityManager.createNativeQuery("DELETE FROM memories WHERE id = :id")
+                    .setParameter("id", memoryId).executeUpdate();
+        } else {
+            log.info("Soft deleting (moving to trash) memory id={} by user={}", memoryId, currentUserId);
+            memoryRepository.delete(memory);
+        }
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    public void deleteMedia(UUID memoryId, UUID mediaId, UUID currentUserId) {
+        Memory memory = memoryRepository.findById(memoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", memoryId));
+
+        boolean isCreator = memory.getCreatedBy() != null && memory.getCreatedBy().getId().equals(currentUserId);
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+        if (!isCreator && !isAdmin) {
+            throw new ForbiddenException("You do not have permission to delete media from this memory");
+        }
+
+        Media toRemove = memory.getMediaList().stream()
+                .filter(m -> m.getId() != null && m.getId().equals(mediaId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Media", "id", mediaId));
+
+        if (toRemove.getPublicId() != null) {
+            cloudinaryStorageService.deleteFile(toRemove.getPublicId(), toRemove.getMediaType());
+        }
+
+        memory.removeMedia(toRemove);
+
+        if (memory.getCoverImageUrl() != null &&
+                (memory.getCoverImageUrl().equals(toRemove.getMediaUrl()) || memory.getCoverImageUrl().equals(toRemove.getThumbnailUrl()))) {
+            if (!memory.getMediaList().isEmpty()) {
+                Media nextCover = memory.getMediaList().get(0);
+                memory.setCoverImageUrl(nextCover.getThumbnailUrl() != null ? nextCover.getThumbnailUrl() : nextCover.getMediaUrl());
+            } else {
+                memory.setCoverImageUrl(null);
+            }
+        }
+
+        memoryRepository.save(memory);
+        log.info("Deleted media id={} from memory id={}", mediaId, memoryId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RelatedMemoryResponseDto> getRelatedMemories(UUID id) {
+        Memory target = memoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Memory", "id", id));
+
+        Specification<Memory> spec = MemorySpecification.relatedTo(target);
+
+        // Fetch up to 15 candidates sorted by memoryDate DESC
+        Page<Memory> candidatesPage = memoryRepository.findAll(
+                spec,
+                org.springframework.data.domain.PageRequest.of(0, 15, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "memoryDate"))
+        );
+
+        List<Memory> candidates = candidatesPage.getContent();
+        if (candidates.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Score and rank candidates by contextual closeness
+        record ScoredCandidate(Memory memory, int score, String reason) {}
+
+        List<ScoredCandidate> scored = new ArrayList<>();
+        for (Memory candidate : candidates) {
+            int score = 0;
+            String reason = null;
+
+            // Same location (+10)
+            if (target.getLocationName() != null && !target.getLocationName().isBlank()
+                    && candidate.getLocationName() != null
+                    && target.getLocationName().trim().equalsIgnoreCase(candidate.getLocationName().trim())) {
+                score += 10;
+                reason = "Same location: " + candidate.getLocationName();
+            }
+
+            // Shared tagged friends (+8)
+            if (target.getTaggedUsers() != null && candidate.getTaggedUsers() != null) {
+                for (User u : target.getTaggedUsers()) {
+                    if (candidate.getTaggedUsers().contains(u)) {
+                        score += 8;
+                        if (reason == null && u.getFullName() != null) {
+                            reason = "With " + u.getFullName().trim();
+                        }
+                    }
+                }
+            }
+
+            // Same section or journey (+6)
+            if (target.getSection() != null && candidate.getSection() != null
+                    && target.getSection().getId().equals(candidate.getSection().getId())) {
+                score += 6;
+                if (reason == null && candidate.getSection().getTitle() != null) {
+                    reason = "Same chapter: " + candidate.getSection().getTitle();
+                }
+            } else if (target.getJourney() != null && candidate.getJourney() != null
+                    && target.getJourney().getId().equals(candidate.getJourney().getId())) {
+                score += 4;
+                if (reason == null && candidate.getJourney().getTitle() != null) {
+                    reason = "From journey: " + candidate.getJourney().getTitle();
+                }
+            }
+
+            // Temporal closeness (+3)
+            if (target.getMemoryDate() != null && candidate.getMemoryDate() != null) {
+                long days = Math.abs(java.time.temporal.ChronoUnit.DAYS.between(target.getMemoryDate(), candidate.getMemoryDate()));
+                if (days <= 30) {
+                    score += 3;
+                    if (reason == null) {
+                        reason = days == 0 ? "On the same day" : "Around the same time";
+                    }
+                }
+            }
+
+            if (reason == null) {
+                reason = "Related moment";
+            }
+
+            scored.add(new ScoredCandidate(candidate, score, reason));
+        }
+
+        // Sort by score DESC and take top 5 (progressive disclosure rule: strictly lightweight DTOs)
+        return scored.stream()
+                .sorted((a, b) -> Integer.compare(b.score(), a.score()))
+                .limit(5)
+                .map(sc -> {
+                    Memory m = sc.memory();
+                    String coverUrl = m.getCoverImageUrl();
+                    if (coverUrl == null || coverUrl.isBlank()) {
+                        if (m.getMediaList() != null && !m.getMediaList().isEmpty()) {
+                            Media first = m.getMediaList().get(0);
+                            coverUrl = first.getThumbnailUrl() != null ? first.getThumbnailUrl() : first.getMediaUrl();
+                        }
+                    }
+                    return RelatedMemoryResponseDto.builder()
+                            .id(m.getId())
+                            .title(m.getTitle())
+                            .memoryDate(m.getMemoryDate())
+                            .locationName(m.getLocationName())
+                            .coverImageUrl(coverUrl)
+                            .relationReason(sc.reason())
+                            .mediaCount(m.getMediaList() != null ? m.getMediaList().size() : 0)
+                            .build();
+                })
+                .toList();
+    }
 }
+

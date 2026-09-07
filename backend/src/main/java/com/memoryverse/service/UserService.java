@@ -15,6 +15,8 @@ public interface UserService {
 
     List<PersonSummaryDto> getPeopleDirectory();
 
+    List<PersonSummaryDto> getPeopleDirectory(UUID userId);
+
     UserDto createUser(UserCreateRequest request);
 
     UserDto updateUser(UUID id, UserUpdateRequest request);

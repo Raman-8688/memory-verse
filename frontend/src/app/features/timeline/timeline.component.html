@@ -12,26 +12,71 @@
     <h1 class="timeline-title">Timeline</h1>
     <p class="timeline-subtitle">Every memory has a place in time. Relive your collective history chronologically.</p>
 
-    <!-- 2. Interactive Filter Bar -->
+    <!-- 2. Unified Smart Filter Bar -->
     <div class="timeline-filter-bar">
-      <!-- Search Box -->
-      <div class="timeline-search-box">
-        <mat-icon class="search-icon">search</mat-icon>
+      <!-- Smart Search Input Box with AI Intent Extraction -->
+      <div class="smart-search-box" [class.is-extracting]="isExtractingIntent()">
+        <div class="search-indicator-wrap">
+          @if (isExtractingIntent()) {
+            <mat-spinner diameter="18" class="smart-spinner"></mat-spinner>
+          } @else {
+            <mat-icon class="ai-sparkle-icon">auto_awesome</mat-icon>
+          }
+        </div>
+
         <input 
           type="text" 
-          [ngModel]="searchInput()" 
-          (ngModelChange)="searchInput.set($event)" 
-          (keyup.enter)="onSearchSubmit()"
-          placeholder="Filter moments by title, story, or place..." 
-          class="timeline-search-input"
-          aria-label="Filter timeline memories"
+          [ngModel]="smartSearchText()" 
+          (ngModelChange)="smartSearchText.set($event)" 
+          (keyup.enter)="onSmartSearchSubmit()"
+          placeholder="Smart Search: e.g. 'Ravi in Goa last year', 'Farewell 2024', 'Beach trip'..." 
+          class="smart-search-input"
+          [disabled]="isExtractingIntent()"
+          aria-label="Intelligent timeline smart search"
         />
-        @if (searchInput()) {
-          <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear search">
+
+        @if (smartSearchText()) {
+          <button type="button" class="clear-smart-btn" (click)="smartSearchText.set('')" aria-label="Clear smart search input">
             <mat-icon>close</mat-icon>
           </button>
         }
+
+        <button 
+          type="button" 
+          class="smart-action-btn" 
+          [disabled]="!smartSearchText().trim() || isExtractingIntent()"
+          (click)="onSmartSearchSubmit()"
+          aria-label="Apply smart filter">
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
       </div>
+
+      <!-- Active Visual UI Filter Chips Bar -->
+      @if (smartChips().length > 0) {
+        <div class="active-smart-chips-bar animate-fade-in">
+          <span class="chips-intro-label">
+            <mat-icon>tune</mat-icon>
+            <span>Active Filters:</span>
+          </span>
+
+          <div class="chips-wrap">
+            @for (chip of smartChips(); track chip.id) {
+              <div class="smart-filter-chip">
+                <mat-icon class="chip-type-icon">{{ chip.icon }}</mat-icon>
+                <span class="chip-text">{{ chip.label }}</span>
+                <button type="button" class="chip-remove-btn" (click)="removeSmartChip(chip)" title="Remove filter">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            }
+
+            <button type="button" class="clear-all-chips-btn" (click)="resetAllFilters()">
+              <mat-icon>clear_all</mat-icon>
+              <span>Clear All</span>
+            </button>
+          </div>
+        </div>
+      }
 
       <!-- Controls Row: Journey Selector & Reset -->
       <div class="filter-controls-row">
@@ -53,7 +98,7 @@
         @if (activeFilterCount() > 0) {
           <button type="button" class="reset-filters-btn" (click)="resetAllFilters()">
             <mat-icon>restart_alt</mat-icon>
-            <span>Reset Filters ({{ activeFilterCount() }})</span>
+            <span>Reset All ({{ activeFilterCount() }})</span>
           </button>
         }
       </div>

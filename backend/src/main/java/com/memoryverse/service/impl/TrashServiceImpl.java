@@ -1,12 +1,17 @@
 package com.memoryverse.service.impl;
 
 import com.memoryverse.dto.response.TrashItemDto;
+import com.memoryverse.entity.MediaType;
+import com.memoryverse.integration.storage.CloudinaryStorageService;
+import com.memoryverse.security.SecurityUtils;
 import com.memoryverse.service.TrashService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.memoryverse.config.RedisConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +28,7 @@ public class TrashServiceImpl implements TrashService {
 
     @PersistenceContext
     private final EntityManager entityManager;
+    private final CloudinaryStorageService cloudinaryStorageService;
 
     @Override
     @Transactional(readOnly = true)
@@ -92,6 +98,7 @@ public class TrashServiceImpl implements TrashService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public void restoreMemory(UUID memoryId, UUID userId) {
         log.info("Restoring memory id={} for user={}", memoryId, userId);
         Query query = entityManager.createNativeQuery(
@@ -103,6 +110,7 @@ public class TrashServiceImpl implements TrashService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
     public void restoreJourney(UUID journeyId, UUID userId) {
         log.info("Restoring journey id={} for user={}", journeyId, userId);
         Query query = entityManager.createNativeQuery(
@@ -114,9 +122,35 @@ public class TrashServiceImpl implements TrashService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
+    @SuppressWarnings("unchecked")
     public void hardDeleteMemory(UUID memoryId, UUID userId) {
         log.info("Hard deleting memory id={} for user={}", memoryId, userId);
-        // Delete child comments, reactions, media first if needed
+        boolean isAdmin = SecurityUtils.hasRole("ADMIN");
+
+        // 1. Destroy Cloudinary and local assets for this memory's media
+        try {
+            Query mediaQuery = entityManager.createNativeQuery("SELECT public_id, media_type FROM media WHERE memory_id = :id");
+            mediaQuery.setParameter("id", memoryId);
+            List<Object[]> mediaRows = mediaQuery.getResultList();
+            for (Object[] row : mediaRows) {
+                String publicId = (String) row[0];
+                String typeStr = (String) row[1];
+                if (publicId != null && !publicId.isBlank()) {
+                    MediaType mediaType = MediaType.IMAGE;
+                    try {
+                        if (typeStr != null) {
+                            mediaType = MediaType.valueOf(typeStr);
+                        }
+                    } catch (Exception ignored) {}
+                    cloudinaryStorageService.deleteFile(publicId, mediaType);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to cleanup Cloudinary assets for memory {}: {}", memoryId, e.getMessage());
+        }
+
+        // 2. Delete child records
         entityManager.createNativeQuery("DELETE FROM memory_comments WHERE memory_id = :id")
                 .setParameter("id", memoryId).executeUpdate();
         entityManager.createNativeQuery("DELETE FROM memory_reactions WHERE memory_id = :id")
@@ -125,12 +159,20 @@ public class TrashServiceImpl implements TrashService {
                 .setParameter("id", memoryId).executeUpdate();
         entityManager.createNativeQuery("DELETE FROM media WHERE memory_id = :id")
                 .setParameter("id", memoryId).executeUpdate();
-        entityManager.createNativeQuery("DELETE FROM memories WHERE id = :id AND created_by = :userId")
-                .setParameter("id", memoryId).setParameter("userId", userId).executeUpdate();
+
+        // 3. Delete memory record (admin can delete any, author deletes theirs)
+        if (isAdmin) {
+            entityManager.createNativeQuery("DELETE FROM memories WHERE id = :id")
+                    .setParameter("id", memoryId).executeUpdate();
+        } else {
+            entityManager.createNativeQuery("DELETE FROM memories WHERE id = :id AND created_by = :userId")
+                    .setParameter("id", memoryId).setParameter("userId", userId).executeUpdate();
+        }
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
     public void hardDeleteJourney(UUID journeyId, UUID userId) {
         log.info("Hard deleting journey id={} for user={}", journeyId, userId);
         entityManager.createNativeQuery("DELETE FROM journey_sections WHERE journey_id = :id")
@@ -141,6 +183,7 @@ public class TrashServiceImpl implements TrashService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PLACES, RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public void emptyTrash(UUID userId) {
         log.info("Emptying trash for user={}", userId);
         List<TrashItemDto> items = getTrashItems(userId);

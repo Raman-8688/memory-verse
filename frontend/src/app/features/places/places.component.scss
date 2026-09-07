@@ -45,39 +45,178 @@
   line-height: 1.5;
 }
 
-.location-search-wrap {
+.places-smart-search-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 320px;
+}
+
+.places-smart-search-box {
   position: relative;
   display: flex;
   align-items: center;
-  width: 290px;
-}
-
-.search-ico {
-  position: absolute;
-  left: 14px;
-  color: var(--mv-primary);
-  font-size: 18px;
-  width: 18px;
-  height: 18px;
-}
-
-.location-search-input {
-  width: 100%;
-  border: 1px solid var(--mv-border);
+  gap: 10px;
   background-color: var(--mv-bg-surface);
+  border: 1.5px solid var(--mv-border);
   border-radius: var(--mv-radius-full);
-  padding: 8px 16px 8px 38px;
-  font-size: 0.88rem;
-  color: var(--mv-text-primary);
-  outline: none;
+  padding: 4px 6px 4px 14px;
   min-height: 42px;
+  box-shadow: var(--mv-shadow-xs);
   transition: all var(--mv-transition-fast);
 
-  &:focus {
+  &:focus-within {
     border-color: var(--mv-primary);
-    box-shadow: 0 0 0 3px var(--mv-primary-light);
+    box-shadow: 0 4px 16px rgba(180, 83, 9, 0.12);
+  }
+
+  &.is-extracting {
+    border-color: var(--mv-ai-accent, #d97706);
+    background-color: var(--mv-bg-subtle);
   }
 }
+
+.search-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+
+  .search-ico {
+    color: var(--mv-primary);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.places-smart-input {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--mv-text-primary);
+  padding: 4px 0;
+
+  &::placeholder {
+    color: var(--mv-text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+.clear-input-btn {
+  background: transparent;
+  border: none;
+  color: var(--mv-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 50%;
+
+  &:hover {
+    color: var(--mv-text-primary);
+  }
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.places-search-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--mv-primary);
+  color: #fff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--mv-transition-fast);
+  flex-shrink: 0;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover:not(:disabled) {
+    background-color: var(--mv-primary-hover, #b45309);
+    transform: scale(1.05);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.places-active-chips-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.place-active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--mv-bg-surface);
+  border: 1px solid var(--mv-border);
+  color: var(--mv-text-primary);
+  padding: 3px 6px 3px 10px;
+  border-radius: var(--mv-radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: var(--mv-shadow-xs);
+
+  .chip-ico {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: var(--mv-primary);
+  }
+
+  .chip-del-btn {
+    background: transparent;
+    border: none;
+    color: var(--mv-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px;
+    border-radius: 50%;
+
+    &:hover {
+      color: #ef4444;
+      background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    mat-icon { font-size: 13px; width: 13px; height: 13px; }
+  }
+}
+
+.clear-all-places-chips-btn {
+  background: transparent;
+  border: 1px dashed var(--mv-border);
+  color: var(--mv-text-muted);
+  padding: 3px 8px;
+  border-radius: var(--mv-radius-full);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all var(--mv-transition-fast);
+
+  &:hover {
+    color: var(--mv-primary);
+    border-color: var(--mv-primary);
+  }
+}
+
 
 /* Places Grid */
 .places-grid {

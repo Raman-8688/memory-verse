@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GalleryItem } from '@core/models/gallery.model';
 import { DownloadService } from '@core/services/download.service';
+import { ImageFallbackDirective } from '../directives/image-fallback.directive';
 
 export interface MediaViewerData {
   items: GalleryItem[];
@@ -21,7 +22,8 @@ export interface MediaViewerData {
     MatDialogModule, 
     MatButtonModule, 
     MatIconModule, 
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ImageFallbackDirective
   ],
   templateUrl: './media-viewer-modal.component.html',
   styleUrl: './media-viewer-modal.component.scss'
@@ -61,6 +63,39 @@ export class MediaViewerModalComponent {
     } else if (event.key === 'Escape') {
       event.preventDefault();
       this.closeViewer();
+    }
+  }
+
+  // Native Mobile Touch Gestures (Swipe Left -> Next, Swipe Right -> Prev)
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchStartTime = 0;
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent): void {
+    if (event.touches.length === 1) {
+      this.touchStartX = event.touches[0].clientX;
+      this.touchStartY = event.touches[0].clientY;
+      this.touchStartTime = Date.now();
+    }
+  }
+
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(event: TouchEvent): void {
+    if (event.changedTouches.length === 1) {
+      const deltaX = event.changedTouches[0].clientX - this.touchStartX;
+      const deltaY = event.changedTouches[0].clientY - this.touchStartY;
+      const elapsedTime = Date.now() - this.touchStartTime;
+
+      // Filter: swipe must be dominantly horizontal and meet threshold to avoid vertical scroll conflict
+      const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * 1.3;
+      if (isHorizontal && Math.abs(deltaX) >= 45 && elapsedTime < 650) {
+        if (deltaX < 0) {
+          this.next();
+        } else {
+          this.prev();
+        }
+      }
     }
   }
 

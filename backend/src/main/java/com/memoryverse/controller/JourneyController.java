@@ -28,7 +28,8 @@ public class JourneyController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<JourneyResponseDto>>> getAllJourneys() {
-        List<JourneyResponseDto> journeys = journeyService.getAllJourneys();
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        List<JourneyResponseDto> journeys = journeyService.getAllJourneys(currentUserId);
         return ResponseEntity.ok(ApiResponse.success(journeys));
     }
 

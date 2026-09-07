@@ -13,6 +13,7 @@ import { LightboxService } from '@core/services/lightbox.service';
 import { Collection } from '@core/models/collection.model';
 import { Memory } from '@core/models/memory.model';
 import { PagedResponse } from '@core/models/api-response.model';
+import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
 
 @Component({
   selector: 'mv-collection-detail',
@@ -159,10 +160,10 @@ export class CollectionDetailComponent implements OnInit {
 
   getCoverUrl(memory?: Memory): string {
     if (!memory) return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
-    if (memory.coverImageUrl) return memory.coverImageUrl;
+    if (memory.coverImageUrl) return optimizeCloudinaryUrl(memory.coverImageUrl, 800);
     if (memory.mediaList && memory.mediaList.length > 0) {
       const m = memory.mediaList[0];
-      return m.thumbnailUrl || m.mediaUrl;
+      return optimizeCloudinaryUrl(m.thumbnailUrl || m.mediaUrl, 800);
     }
     return 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80';
   }

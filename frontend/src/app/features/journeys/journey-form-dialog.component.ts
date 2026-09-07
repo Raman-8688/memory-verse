@@ -170,6 +170,11 @@ import { MediaService } from '@core/services/media.service';
       max-width: 580px;
       width: 100%;
       background: var(--mv-bg-surface);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .dialog-header {
@@ -177,6 +182,7 @@ import { MediaService } from '@core/services/media.service';
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: var(--space-3);
+      flex-shrink: 0;
     }
 
     .dialog-subtitle {
@@ -193,9 +199,10 @@ import { MediaService } from '@core/services/media.service';
     }
 
     .dialog-content {
-      max-height: 70vh;
+      max-height: calc(85vh - 140px);
       overflow-y: auto;
-      padding: 0;
+      padding: 0 4px 0 0;
+      flex: 1;
     }
 
     .journey-form {
@@ -422,7 +429,12 @@ import { MediaService } from '@core/services/media.service';
       gap: 10px;
       padding-top: var(--space-3);
       border-top: 1px solid var(--mv-border);
-      margin-top: var(--space-3);
+      margin-top: auto;
+      position: sticky;
+      bottom: 0;
+      background: var(--mv-bg-surface);
+      z-index: 10;
+      flex-shrink: 0;
     }
 
     .save-btn {

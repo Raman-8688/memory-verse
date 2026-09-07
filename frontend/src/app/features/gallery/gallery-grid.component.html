@@ -92,7 +92,7 @@
             </div>
           } @else {
             <img 
-              [src]="item.thumbnailUrl || item.mediaUrl" 
+              [src]="(item.thumbnailUrl || item.mediaUrl) | cloudinaryOptimize:600" 
               [alt]="item.memoryTitle || item.fileName" 
               loading="lazy" 
               class="tile-img" 

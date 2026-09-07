@@ -80,3 +80,14 @@ export interface MemoryFilterParams {
   sortBy?: string;
   sortDirection?: 'ASC' | 'DESC';
 }
+
+export interface RelatedMomentBrief {
+  id: string;
+  title: string;
+  memoryDate: string;
+  locationName?: string;
+  coverImageUrl?: string;
+  relationReason?: string;
+  mediaCount?: number;
+}
+

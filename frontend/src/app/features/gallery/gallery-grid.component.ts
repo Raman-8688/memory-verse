@@ -12,6 +12,8 @@ import { GalleryService } from '@core/services/gallery.service';
 import { JourneyService } from '@core/services/journey.service';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 
+import { CloudinaryOptimizePipe } from '@shared/pipes/cloudinary-optimize.pipe';
+
 @Component({
   selector: 'mv-gallery-grid',
   standalone: true,
@@ -21,7 +23,8 @@ import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/m
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    CloudinaryOptimizePipe
   ],
   templateUrl: './gallery-grid.component.html',
   styleUrl: './gallery-grid.component.scss'

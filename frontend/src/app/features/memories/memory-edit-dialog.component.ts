@@ -16,6 +16,7 @@ import { Memory, MemoryUpdateDto, PrivacyLevel } from '@core/models/memory.model
 import { MemoryService } from '@core/services/memory.service';
 import { MediaService } from '@core/services/media.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
+import { AiAssistantService } from '@core/services/ai-assistant.service';
 
 interface EditPreviewItem {
   file: File;
@@ -133,14 +134,67 @@ interface EditPreviewItem {
             </mat-select>
           </mat-form-field>
 
-          <!-- Story Narrative -->
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>The Story & Notes *</mat-label>
-            <textarea matInput formControlName="story" rows="4" placeholder="Share what happened in this moment..."></textarea>
-            @if (editForm.get('story')?.hasError('required') && editForm.get('story')?.touched) {
-              <mat-error>The story narrative cannot be empty.</mat-error>
-            }
-          </mat-form-field>
+          <!-- Story Narrative with AI Magic Wand -->
+          <div class="story-field-wrapper" [class.ai-generating]="isGeneratingNarrative()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>The Story & Notes *</mat-label>
+              <textarea matInput formControlName="story" rows="4" placeholder="Share what happened in this moment..."></textarea>
+              @if (editForm.get('story')?.hasError('required') && editForm.get('story')?.touched) {
+                <mat-error>The story narrative cannot be empty.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="ai-story-toolbar">
+              <button 
+                type="button" 
+                mat-stroked-button 
+                class="ai-magic-btn" 
+                (click)="generateAiStory()" 
+                [disabled]="isSaving() || isGeneratingNarrative() || !editForm.get('story')?.value?.trim()"
+                title="Transform rough notes into a warm, polished journal narrative">
+                @if (isGeneratingNarrative()) {
+                  <mat-progress-spinner mode="indeterminate" diameter="14" class="ai-btn-spinner"></mat-progress-spinner>
+                  <span>Weaving Story with AI...</span>
+                } @else {
+                  <span class="wand-sparkle">✨</span>
+                  <span>Enhance with AI Wand</span>
+                }
+              </button>
+              <span class="ai-story-tip">Type notes & tap wand to polish</span>
+            </div>
+          </div>
+
+          <!-- Existing Attached Media Section -->
+          @if (existingMediaList().length > 0) {
+            <div class="media-upload-section">
+              <div class="upload-section-header">
+                <div>
+                  <span class="upload-title">Existing Photos & Media ({{ existingMediaList().length }})</span>
+                  <span class="upload-desc">Tap the trash icon to remove unwanted photos from this memory.</span>
+                </div>
+              </div>
+              <div class="new-media-previews">
+                @for (item of existingMediaList(); track item.id) {
+                  <div class="edit-preview-tile">
+                    @if (item.mediaType === 'VIDEO') {
+                      <video [src]="item.mediaUrl" class="preview-img"></video>
+                      <div class="video-indicator"><mat-icon>videocam</mat-icon></div>
+                    } @else if (item.mediaType === 'AUDIO') {
+                      <div class="preview-img audio-preview-box">
+                        <mat-icon>mic</mat-icon>
+                      </div>
+                      <div class="video-indicator"><mat-icon>mic</mat-icon></div>
+                    } @else {
+                      <img [src]="item.thumbnailUrl || item.mediaUrl" [alt]="item.fileName || 'Photo'" class="preview-img" />
+                    }
+                    <button type="button" class="remove-btn" (click)="deleteExistingMedia(item.id)" [disabled]="isSaving()" title="Delete photo from memory">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
 
           <!-- Upload & Append Photos Section -->
           <div class="media-upload-section">
@@ -525,6 +579,73 @@ interface EditPreviewItem {
       &:hover { background: #dc2626; }
     }
 
+    .story-field-wrapper {
+      position: relative;
+      margin-bottom: var(--mv-space-8);
+      border-radius: var(--mv-radius, 8px);
+      transition: all 0.3s ease;
+
+      &.ai-generating {
+        box-shadow: 0 0 0 2px #f59e0b, 0 0 16px rgba(245, 158, 11, 0.25);
+        border-radius: 8px;
+      }
+    }
+
+    .ai-story-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: -14px;
+      margin-bottom: var(--mv-space-12);
+      padding: 0 4px;
+      flex-wrap: wrap;
+    }
+
+    .ai-magic-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #92400e !important;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+      border: 1px solid #fcd34d !important;
+      border-radius: 9999px !important;
+      padding: 0 14px !important;
+      height: 32px !important;
+      line-height: 30px !important;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(180, 83, 9, 0.15);
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(180, 83, 9, 0.25);
+      }
+
+      &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+    }
+
+    .wand-sparkle {
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+
+    .ai-btn-spinner {
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .ai-story-tip {
+      font-size: 0.72rem;
+      color: var(--mv-text-muted);
+      font-style: italic;
+    }
+
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
@@ -565,15 +686,62 @@ export class MemoryEditDialogComponent implements OnInit, OnDestroy {
   private readonly mediaService = inject(MediaService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly aiAssistantService = inject(AiAssistantService);
 
   editForm!: FormGroup;
 
   readonly isSaving = signal<boolean>(false);
+  readonly isGeneratingNarrative = signal<boolean>(false);
   readonly savingStatus = signal<string>('Saving...');
   readonly coverPreviewUrl = signal<string | null>(this.memory.coverImageUrl || null);
   readonly selectedCoverFile = signal<File | null>(null);
+  readonly existingMediaList = signal<any[]>(this.memory.mediaList || []);
   readonly filePreviews = signal<{ file: File; url: string; isVideo: boolean; isAudio?: boolean }[]>([]);
   private selectedFiles: File[] = [];
+
+  generateAiStory(): void {
+    const roughNotes = this.editForm.get('story')?.value?.trim();
+    if (!roughNotes || this.isGeneratingNarrative()) {
+      return;
+    }
+
+    this.isGeneratingNarrative.set(true);
+    const title = this.editForm.get('title')?.value;
+    const location = this.editForm.get('locationName')?.value;
+
+    this.aiAssistantService.generateNarrative({
+      roughNotes,
+      memoryTitle: title,
+      locationName: location
+    }).subscribe({
+      next: (res) => {
+        this.isGeneratingNarrative.set(false);
+        if (res && res.narrative) {
+          this.editForm.patchValue({ story: res.narrative });
+          this.snackBar.open('✨ Story enhanced with AI narrative intelligence!', 'Close', { duration: 3500 });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to generate narrative:', err);
+        this.isGeneratingNarrative.set(false);
+        this.snackBar.open('Could not polish story at this time. Please try again.', 'Close', { duration: 3500 });
+      }
+    });
+  }
+
+  deleteExistingMedia(mediaId: string): void {
+    if (!window.confirm('Are you sure you want to remove this photo from this memory?')) return;
+    this.memoryService.deleteMedia(this.memory.id, mediaId).subscribe({
+      next: () => {
+        this.existingMediaList.update(list => list.filter(m => m.id !== mediaId));
+        this.snackBar.open('Photo deleted successfully.', 'OK', { duration: 2500 });
+      },
+      error: (err) => {
+        console.error('Failed to delete media:', err);
+        this.snackBar.open('Failed to delete photo.', 'Close', { duration: 3000 });
+      }
+    });
+  }
 
   ngOnInit(): void {
     const memDate = this.memory.memoryDate 

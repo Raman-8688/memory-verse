@@ -158,6 +158,41 @@ export class JourneyStorybookComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Native Mobile Touch Gestures (Swipe Left -> Next Page, Swipe Right -> Prev Page)
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchStartTime = 0;
+
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(event: TouchEvent): void {
+    if (this.isLoading() || this.hasError()) return;
+    if (event.touches.length === 1) {
+      this.touchStartX = event.touches[0].clientX;
+      this.touchStartY = event.touches[0].clientY;
+      this.touchStartTime = Date.now();
+    }
+  }
+
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(event: TouchEvent): void {
+    if (this.isLoading() || this.hasError()) return;
+    if (event.changedTouches.length === 1) {
+      const deltaX = event.changedTouches[0].clientX - this.touchStartX;
+      const deltaY = event.changedTouches[0].clientY - this.touchStartY;
+      const elapsedTime = Date.now() - this.touchStartTime;
+
+      // Filter: swipe must be dominantly horizontal and meet threshold
+      const isHorizontal = Math.abs(deltaX) > Math.abs(deltaY) * 1.3;
+      if (isHorizontal && Math.abs(deltaX) >= 45 && elapsedTime < 650) {
+        if (deltaX < 0) {
+          this.nextPage();
+        } else {
+          this.prevPage();
+        }
+      }
+    }
+  }
+
   nextPage(): void {
     if (this.currentPage() < this.totalPages() - 1) {
       this.currentPage.update(p => p + 1);

@@ -35,6 +35,8 @@ public class RedisConfig implements CachingConfigurer {
     public static final String CACHE_JOURNEYS = "journeys";
     public static final String CACHE_GALLERY = "gallery";
     public static final String CACHE_UNREAD_COUNT = "unread_notifications_count";
+    public static final String CACHE_PLACES = "places";
+    public static final String CACHE_PEOPLE = "people";
 
     @Override
     public CacheErrorHandler errorHandler() {
@@ -105,7 +107,9 @@ public class RedisConfig implements CachingConfigurer {
                     CACHE_DASHBOARD,
                     CACHE_JOURNEYS,
                     CACHE_GALLERY,
-                    CACHE_UNREAD_COUNT
+                    CACHE_UNREAD_COUNT,
+                    CACHE_PLACES,
+                    CACHE_PEOPLE
             );
         }
     }
@@ -132,6 +136,8 @@ public class RedisConfig implements CachingConfigurer {
         cacheConfigurations.put(CACHE_JOURNEYS, defaultConfig.entryTtl(Duration.ofMinutes(30)));
         cacheConfigurations.put(CACHE_GALLERY, defaultConfig.entryTtl(Duration.ofMinutes(15)));
         cacheConfigurations.put(CACHE_UNREAD_COUNT, defaultConfig.entryTtl(Duration.ofMinutes(2)));
+        cacheConfigurations.put(CACHE_PLACES, defaultConfig.entryTtl(Duration.ofMinutes(15)));
+        cacheConfigurations.put(CACHE_PEOPLE, defaultConfig.entryTtl(Duration.ofMinutes(15)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)

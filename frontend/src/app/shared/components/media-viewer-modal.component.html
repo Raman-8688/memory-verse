@@ -56,7 +56,7 @@
         @if (item.mediaType === 'VIDEO') {
           <video [src]="item.mediaUrl" controls autoplay class="fullscreen-media video-player"></video>
         } @else {
-          <img [src]="item.mediaUrl" [alt]="item.memoryTitle || 'Photograph'" class="fullscreen-media img-player" />
+          <img [src]="item.mediaUrl" [alt]="item.memoryTitle || 'Photograph'" mvFallback [disableLazy]="true" loading="eager" class="fullscreen-media img-player" />
         }
       </div>
     }
@@ -82,6 +82,7 @@
           <img 
             [src]="uploader.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
             [alt]="uploader.fullName" 
+            mvFallback
             class="uploader-avatar-mini" 
           />
           <div class="uploader-meta-block">

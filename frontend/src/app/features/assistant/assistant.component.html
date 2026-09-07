@@ -124,6 +124,43 @@
               {{ msg.content }}
             </div>
 
+            <!-- Progressive Action Chips (Tier 1 Metadata Actions) -->
+            @if (msg.actionChips && msg.actionChips.length > 0) {
+              <div class="action-chips-bar">
+                @for (chip of msg.actionChips; track chip.label) {
+                  <button 
+                    type="button" 
+                    class="action-chip-pill"
+                    [class.active]="(chip.action === 'VIEW_PHOTOS' && msg.activeRecordView === 'MEDIA') || (chip.action === 'VIEW_MEMORIES' && msg.activeRecordView === 'MEMORIES')"
+                    (click)="triggerActionChip(chip, msg)"
+                    [disabled]="msg.isLoadingRecords">
+                    @if (chip.action === 'VIEW_PHOTOS') {
+                      <mat-icon class="chip-ico">photo_library</mat-icon>
+                    } @else if (chip.action === 'VIEW_VIDEOS') {
+                      <mat-icon class="chip-ico">videocam</mat-icon>
+                    } @else if (chip.action === 'VIEW_MEMORIES') {
+                      <mat-icon class="chip-ico">auto_stories</mat-icon>
+                    } @else if (chip.action === 'FILTER_PERSON') {
+                      <mat-icon class="chip-ico">person</mat-icon>
+                    } @else if (chip.action === 'FILTER_LOCATION') {
+                      <mat-icon class="chip-ico">place</mat-icon>
+                    } @else {
+                      <mat-icon class="chip-ico">filter_list</mat-icon>
+                    }
+                    <span class="chip-lbl">{{ chip.label }}</span>
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Tier 2 On-Demand Loading State -->
+            @if (msg.isLoadingRecords) {
+              <div class="records-loading-bar">
+                <mat-spinner diameter="16"></mat-spinner>
+                <span>Loading on-demand archive records...</span>
+              </div>
+            }
+
             <!-- Zero-Hallucination Friendly State if empty result -->
             @if (msg.role === 'assistant' && msg.content.includes('No memories found')) {
               <div class="grounded-fallback-card">
@@ -135,8 +172,8 @@
               </div>
             }
 
-            <!-- Rich Memory Citation Cards -->
-            @if (msg.relatedMemories && msg.relatedMemories.length > 0) {
+            <!-- Rich Memory Citation Cards (Loaded On-Demand or via AI Chat) -->
+            @if (msg.relatedMemories && msg.relatedMemories.length > 0 && (!msg.searchToken || msg.activeRecordView === 'MEMORIES')) {
               <div class="citations-container">
                 <div class="citations-heading">
                   <mat-icon>collections_bookmark</mat-icon>
@@ -199,8 +236,8 @@
               </div>
             }
 
-            <!-- Related Media Grid -->
-            @if (msg.relatedMedia && msg.relatedMedia.length > 0) {
+            <!-- Related Media Grid (Loaded On-Demand or via AI Chat) -->
+            @if (msg.relatedMedia && msg.relatedMedia.length > 0 && (!msg.searchToken || msg.activeRecordView === 'MEDIA')) {
               <div class="media-citations-wrapper">
                 <div class="citations-heading">
                   <mat-icon>photo_library</mat-icon>

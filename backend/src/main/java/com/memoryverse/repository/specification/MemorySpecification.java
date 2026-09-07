@@ -108,4 +108,55 @@ public final class MemorySpecification {
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
+
+    /**
+     * Builds a specification to discover related memories based on location,
+     * journey, tagged users, and temporal proximity.
+     */
+    public static Specification<Memory> relatedTo(Memory target) {
+        return (root, query, cb) -> {
+            query.distinct(true);
+
+            // Never include the target memory itself
+            Predicate notSelf = cb.notEqual(root.get("id"), target.getId());
+
+            List<Predicate> orPredicates = new ArrayList<>();
+
+            // 1. Same location (case-insensitive)
+            if (target.getLocationName() != null && !target.getLocationName().isBlank()) {
+                orPredicates.add(cb.equal(cb.lower(root.get("locationName")), target.getLocationName().trim().toLowerCase()));
+            }
+
+            // 2. Same journey
+            if (target.getJourney() != null) {
+                orPredicates.add(cb.equal(root.get("journey").get("id"), target.getJourney().getId()));
+            }
+
+            // 3. Same section
+            if (target.getSection() != null) {
+                orPredicates.add(cb.equal(root.get("section").get("id"), target.getSection().getId()));
+            }
+
+            // 4. Same tagged friends
+            if (target.getTaggedUsers() != null && !target.getTaggedUsers().isEmpty()) {
+                List<java.util.UUID> userIds = target.getTaggedUsers().stream().map(User::getId).toList();
+                Join<Memory, User> taggedJoin = root.join("taggedUsers", JoinType.INNER);
+                orPredicates.add(taggedJoin.get("id").in(userIds));
+            }
+
+            // 5. Adjacent dates (+/- 45 days)
+            if (target.getMemoryDate() != null) {
+                java.time.LocalDate start = target.getMemoryDate().minusDays(45);
+                java.time.LocalDate end = target.getMemoryDate().plusDays(45);
+                orPredicates.add(cb.between(root.get("memoryDate"), start, end));
+            }
+
+            if (orPredicates.isEmpty()) {
+                return notSelf;
+            }
+
+            return cb.and(notSelf, cb.or(orPredicates.toArray(new Predicate[0])));
+        };
+    }
 }
+

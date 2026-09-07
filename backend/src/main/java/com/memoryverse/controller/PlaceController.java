@@ -20,6 +20,7 @@ public class PlaceController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PlaceSummaryDto>>> getAllPlaces() {
-        return ResponseEntity.ok(ApiResponse.success(memoryService.getPlacesSummary()));
+        java.util.UUID currentUserId = com.memoryverse.security.SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(ApiResponse.success(memoryService.getPlacesSummary(currentUserId)));
     }
 }

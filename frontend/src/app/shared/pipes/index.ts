@@ -1,2 +1,1 @@
-// Shared pipes
-export {};
+export * from './cloudinary-optimize.pipe';

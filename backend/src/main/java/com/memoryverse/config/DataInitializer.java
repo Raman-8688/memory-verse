@@ -90,6 +90,20 @@ public class DataInitializer implements CommandLineRunner {
 
         String defaultPass = passwordEncoder.encode("password123");
 
+        try {
+            // Clean up any legacy /raw/ avatar paths in database to stop 404s
+            jdbcTemplate.execute("UPDATE users SET avatar_url = NULL WHERE avatar_url LIKE '%/raw/%';");
+            // Clean up any legacy /raw/ section image paths to valid curated Unsplash themes
+            jdbcTemplate.execute("UPDATE journey_sections SET image_url = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80' WHERE image_url LIKE '%/raw/%' AND display_order = 1;");
+            jdbcTemplate.execute("UPDATE journey_sections SET image_url = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80' WHERE image_url LIKE '%/raw/%' AND display_order = 2;");
+            jdbcTemplate.execute("UPDATE journey_sections SET image_url = 'https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?auto=format&fit=crop&w=1200&q=80' WHERE image_url LIKE '%/raw/%' AND display_order = 3;");
+            jdbcTemplate.execute("UPDATE journey_sections SET image_url = 'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=1200&q=80' WHERE image_url LIKE '%/raw/%' AND display_order = 4;");
+            jdbcTemplate.execute("UPDATE journeys SET cover_image_url = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80' WHERE cover_image_url LIKE '%/raw/%';");
+            log.info("Cleaned up legacy /raw/ paths from users, journeys, and sections.");
+        } catch (Exception ex) {
+            log.warn("Could not clean up legacy /raw/ paths: {}", ex.getMessage());
+        }
+
         // 1. Migrate old dummy "ravi@memoryverse.com" to "ramesh@memoryverse.com" if needed
         Optional<User> raviOpt = userRepository.findByEmail("ravi@memoryverse.com");
         Optional<User> rameshOpt = userRepository.findByEmail("ramesh@memoryverse.com");
@@ -99,7 +113,7 @@ public class DataInitializer implements CommandLineRunner {
             ravi.setEmail("ramesh@memoryverse.com");
             ravi.setFullName("Ramesh");
             ravi.setRole(Role.ADMIN);
-            ravi.setAvatarUrl("/api/media/raw/users_details/ramesh.jpg");
+            ravi.setAvatarUrl(null);
             ravi.setPassword(defaultPass);
             userRepository.save(ravi);
             log.info("Migrated existing user ravi@memoryverse.com -> ramesh@memoryverse.com (Admin 2)");
@@ -111,30 +125,30 @@ public class DataInitializer implements CommandLineRunner {
 
         // 2. Seed or Update Admin 1: Raman (admin@memoryverse.com)
         User raman = seedOrUpdateUser("admin@memoryverse.com", "Raman", Role.ADMIN,
-                "/api/media/raw/users_details/raman.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Raman&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         // 3. Seed or Update Admin 2: Ramesh (ramesh@memoryverse.com)
         User ramesh = seedOrUpdateUser("ramesh@memoryverse.com", "Ramesh", Role.ADMIN,
-                "/api/media/raw/users_details/ramesh.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Ramesh&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         // 4. Seed or Update Standard Members
         seedOrUpdateUser("govardhan@memoryverse.com", "Govardhan", Role.MEMBER,
-                "/api/media/raw/users_details/govardhan.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Govardhan&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         seedOrUpdateUser("shayam@memoryverse.com", "Shayam", Role.MEMBER,
-                "/api/media/raw/users_details/shayam.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Shayam&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         seedOrUpdateUser("narasimha@memoryverse.com", "Narasimha", Role.MEMBER,
-                "/api/media/raw/users_details/narasimha.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Narasimha&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         seedOrUpdateUser("raju@memoryverse.com", "Raju", Role.MEMBER,
-                "/api/media/raw/users_details/raju.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Raju&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         seedOrUpdateUser("yugandar@memoryverse.com", "Yugandar", Role.MEMBER,
-                "/api/media/raw/users_details/yugandar.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Yugandar&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         seedOrUpdateUser("hemanth@memoryverse.com", "Hemanth", Role.MEMBER,
-                "/api/media/raw/users_details/hemanth.jpg", defaultPass);
+                "https://ui-avatars.com/api/?name=Hemanth&background=f4ede4&color=92400e&font-size=0.4&bold=true", defaultPass);
 
         // 5. If Journeys do not exist, seed initial B.Tech Journey
         if (journeyRepository.count() == 0) {
@@ -143,7 +157,7 @@ public class DataInitializer implements CommandLineRunner {
                     .title("B.Tech College Days")
                     .slug("btech-college-days")
                     .description("Four unforgettable years of friendships, late night coding, mess food debates, exam panics, and countless memories.")
-                    .coverImageUrl("/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg")
+                    .coverImageUrl("https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80")
                     .startDate(LocalDate.of(2020, 8, 1))
                     .endDate(LocalDate.of(2024, 5, 31))
                     .displayOrder(1)
@@ -157,7 +171,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(1)
                     .startDate(LocalDate.of(2020, 8, 1))
                     .endDate(LocalDate.of(2021, 5, 31))
-                    .imageUrl("/api/media/raw/images/btech-2024/first_year/Screenshot_20210301_165025.jpg")
+                    .imageUrl("https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80")
                     .build();
 
             JourneySection sec2 = JourneySection.builder()
@@ -166,7 +180,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(2)
                     .startDate(LocalDate.of(2021, 8, 1))
                     .endDate(LocalDate.of(2022, 5, 31))
-                    .imageUrl("/api/media/raw/images/btech-2024/second_year/IMG-20211231-WA0003.jpg")
+                    .imageUrl("https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80")
                     .build();
 
             JourneySection sec3 = JourneySection.builder()
@@ -175,7 +189,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(3)
                     .startDate(LocalDate.of(2022, 8, 1))
                     .endDate(LocalDate.of(2023, 5, 31))
-                    .imageUrl("/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg")
+                    .imageUrl("https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?auto=format&fit=crop&w=1200&q=80")
                     .build();
 
             JourneySection sec4 = JourneySection.builder()
@@ -184,7 +198,7 @@ public class DataInitializer implements CommandLineRunner {
                     .displayOrder(4)
                     .startDate(LocalDate.of(2023, 8, 1))
                     .endDate(LocalDate.of(2024, 5, 31))
-                    .imageUrl("/api/media/raw/images/btech-2024/final_year/IMG_20240523_155906.jpg")
+                    .imageUrl("https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=1200&q=80")
                     .build();
 
             btechJourney.addSection(sec1);
@@ -195,22 +209,22 @@ public class DataInitializer implements CommandLineRunner {
             journeyRepository.save(btechJourney);
             log.info("Seeded B.Tech journey with 4 chapters.");
         } else {
-            // Update section images for existing sections if missing
+            // Update section images for existing sections if missing or legacy /raw/
             journeyRepository.findAll().forEach(j -> {
                 boolean updated = false;
                 for (JourneySection sec : j.getSections()) {
-                    if (sec.getImageUrl() == null || sec.getImageUrl().isBlank()) {
+                    if (sec.getImageUrl() == null || sec.getImageUrl().isBlank() || sec.getImageUrl().contains("/raw/")) {
                         if (sec.getTitle().contains("First Year")) {
-                            sec.setImageUrl("/api/media/raw/images/btech-2024/first_year/Screenshot_20210301_165025.jpg");
+                            sec.setImageUrl("https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80");
                             updated = true;
                         } else if (sec.getTitle().contains("Second Year")) {
-                            sec.setImageUrl("/api/media/raw/images/btech-2024/second_year/IMG-20211231-WA0003.jpg");
+                            sec.setImageUrl("https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80");
                             updated = true;
                         } else if (sec.getTitle().contains("Third Year")) {
-                            sec.setImageUrl("/api/media/raw/images/btech-2024/third_year/IMG20220620104600.jpg");
+                            sec.setImageUrl("https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?auto=format&fit=crop&w=1200&q=80");
                             updated = true;
                         } else if (sec.getTitle().contains("Final Year")) {
-                            sec.setImageUrl("/api/media/raw/images/btech-2024/final_year/IMG_20240523_155906.jpg");
+                            sec.setImageUrl("https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=1200&q=80");
                             updated = true;
                         }
                     }

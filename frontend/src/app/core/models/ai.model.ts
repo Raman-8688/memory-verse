@@ -1,3 +1,5 @@
+import { AiSearchSummaryResponse, SearchActionChip } from './ai-search.model';
+
 export interface AiChatRequest {
   message: string;
   conversationId?: string;
@@ -55,4 +57,23 @@ export interface ChatMessage {
   relatedMedia?: RelatedMedia[];
   suggestedQuestions?: string[];
   modelUsed?: string;
+  searchToken?: string;
+  searchSummary?: AiSearchSummaryResponse;
+  actionChips?: SearchActionChip[];
+  isLoadingRecords?: boolean;
+  activeRecordView?: 'MEDIA' | 'MEMORIES' | null;
 }
+
+export interface AiNarrativeRequest {
+  roughNotes: string;
+  memoryTitle?: string;
+  locationName?: string;
+  model?: string;
+}
+
+export interface AiNarrativeResponse {
+  narrative: string;
+  modelUsed?: string;
+}
+
+

@@ -49,11 +49,18 @@ public class JourneyServiceImpl implements JourneyService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = RedisConfig.CACHE_JOURNEYS, key = "'all'")
     public List<JourneyResponseDto> getAllJourneys() {
         return journeyRepository.findAllByOrderByDisplayOrderAscCreatedAtDesc().stream()
                 .map(JourneyResponseDto::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(value = RedisConfig.CACHE_JOURNEYS, key = "#userId")
+    public List<JourneyResponseDto> getAllJourneys(UUID userId) {
+        log.debug("Fetching all journeys for user {} (cache miss)", userId);
+        return getAllJourneys();
     }
 
     @Override

@@ -10,11 +10,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Journey, JourneySection } from '@core/models/journey.model';
 import { User } from '@core/models/user.model';
 import { JourneyService } from '@core/services/journey.service';
 import { UserService } from '@core/services/user.service';
 import { MemoryService } from '@core/services/memory.service';
+import { AiAssistantService } from '@core/services/ai-assistant.service';
 import { MemoryCreateDto } from '@core/models/memory.model';
 
 interface PreviewMedia {
@@ -40,7 +42,8 @@ interface PreviewMedia {
     MatIconModule,
     MatSelectModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatSnackBarModule
   ],
   template: `
     <div class="stepper-page">
@@ -97,14 +100,36 @@ interface PreviewMedia {
                   </mat-form-field>
                 </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>The Full Story & Narrative</mat-label>
-                  <textarea matInput formControlName="story" rows="4" placeholder="Write the memory as you remember it. What made this moment unforgettable?"></textarea>
-                  <mat-icon matPrefix class="field-icon">auto_stories</mat-icon>
-                  @if (storyForm.get('story')?.hasError('required') && storyForm.get('story')?.touched) {
-                    <mat-error>Please write at least a brief story or description</mat-error>
-                  }
-                </mat-form-field>
+                <!-- Story Narrative with AI Magic Wand -->
+                <div class="story-field-wrapper" [class.ai-generating]="isGeneratingNarrative()">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>The Full Story & Narrative</mat-label>
+                    <textarea matInput formControlName="story" rows="4" placeholder="Write rough notes or keywords (e.g. 'sunset at hostel terrace, chai with ravi, unforgettable banter')..."></textarea>
+                    <mat-icon matPrefix class="field-icon">auto_stories</mat-icon>
+                    @if (storyForm.get('story')?.hasError('required') && storyForm.get('story')?.touched) {
+                      <mat-error>Please write at least a brief story or description</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <div class="ai-story-toolbar">
+                    <button 
+                      type="button" 
+                      mat-stroked-button 
+                      class="ai-magic-btn" 
+                      (click)="generateAiStory()" 
+                      [disabled]="isPublishing() || isGeneratingNarrative() || !storyForm.get('story')?.value?.trim()"
+                      title="Transform rough notes into a warm, polished journal story">
+                      @if (isGeneratingNarrative()) {
+                        <mat-progress-spinner mode="indeterminate" diameter="14" class="ai-btn-spinner"></mat-progress-spinner>
+                        <span>Weaving Story with AI...</span>
+                      } @else {
+                        <span class="wand-sparkle">✨</span>
+                        <span>Enhance with AI Wand</span>
+                      }
+                    </button>
+                    <span class="ai-story-tip">Type rough notes & tap wand to polish</span>
+                  </div>
+                </div>
 
                 <div class="stepper-nav-buttons">
                   <div></div>
@@ -480,6 +505,73 @@ interface PreviewMedia {
     .field-icon {
       color: var(--mv-text-muted);
       margin-right: 8px;
+    }
+
+    .story-field-wrapper {
+      position: relative;
+      margin-bottom: var(--space-2);
+      border-radius: var(--radius-md);
+      transition: all 0.3s ease;
+
+      &.ai-generating {
+        box-shadow: 0 0 0 2px #f59e0b, 0 0 16px rgba(245, 158, 11, 0.25);
+        border-radius: 8px;
+      }
+    }
+
+    .ai-story-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: -14px;
+      margin-bottom: var(--space-3);
+      padding: 0 4px;
+      flex-wrap: wrap;
+    }
+
+    .ai-magic-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #92400e !important;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+      border: 1px solid #fcd34d !important;
+      border-radius: 9999px !important;
+      padding: 0 14px !important;
+      height: 32px !important;
+      line-height: 30px !important;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(180, 83, 9, 0.15);
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(180, 83, 9, 0.25);
+      }
+
+      &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+    }
+
+    .wand-sparkle {
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+
+    .ai-btn-spinner {
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .ai-story-tip {
+      font-size: 0.72rem;
+      color: var(--mv-text-muted);
+      font-style: italic;
     }
 
     .stepper-nav-buttons {
@@ -878,7 +970,9 @@ export class MemoryStepperCreateComponent implements OnInit {
   private readonly journeyService = inject(JourneyService);
   private readonly userService = inject(UserService);
   private readonly memoryService = inject(MemoryService);
+  private readonly aiAssistantService = inject(AiAssistantService);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly journeys = signal<Journey[]>([]);
   readonly users = signal<User[]>([]);
@@ -887,6 +981,37 @@ export class MemoryStepperCreateComponent implements OnInit {
   readonly taggedUserIds = signal<string[]>([]);
   readonly mediaErrorMessage = signal<string | null>(null);
   readonly isPublishing = signal<boolean>(false);
+  readonly isGeneratingNarrative = signal<boolean>(false);
+
+  generateAiStory(): void {
+    const roughNotes = this.storyForm.get('story')?.value?.trim();
+    if (!roughNotes || this.isGeneratingNarrative()) {
+      return;
+    }
+
+    this.isGeneratingNarrative.set(true);
+    const title = this.storyForm.get('title')?.value;
+    const location = this.storyForm.get('locationName')?.value;
+
+    this.aiAssistantService.generateNarrative({
+      roughNotes,
+      memoryTitle: title,
+      locationName: location
+    }).subscribe({
+      next: (res) => {
+        this.isGeneratingNarrative.set(false);
+        if (res && res.narrative) {
+          this.storyForm.patchValue({ story: res.narrative });
+          this.snackBar.open('✨ Story enhanced with AI narrative intelligence!', 'Close', { duration: 3500 });
+        }
+      },
+      error: (err) => {
+        console.error('Failed to generate narrative:', err);
+        this.isGeneratingNarrative.set(false);
+        this.snackBar.open('Could not polish story at this time. Please try again.', 'Close', { duration: 3500 });
+      }
+    });
+  }
 
   readonly storyForm: FormGroup = this.fb.group({
     title: ['', [Validators.required, Validators.minLength(2)]],
@@ -961,8 +1086,17 @@ export class MemoryStepperCreateComponent implements OnInit {
   private handleFiles(files: File[]): void {
     this.mediaErrorMessage.set(null);
     const updated = [...this.selectedMedia()];
+    const seenSignatures = new Set(updated.map(m => m.file ? `${m.file.name}_${m.file.size}_${m.file.lastModified}` : m.name));
+    let duplicateCount = 0;
 
     for (const file of files) {
+      const signature = `${file.name}_${file.size}_${file.lastModified}`;
+      if (seenSignatures.has(signature)) {
+        duplicateCount++;
+        continue;
+      }
+      seenSignatures.add(signature);
+
       const isVideo = file.type.startsWith('video') || file.name.toLowerCase().endsWith('.mp4');
       const isAudio = file.type.startsWith('audio') || !!file.name.toLowerCase().match(/\.(mp3|wav|m4a|aac|ogg|weba)$/);
 
@@ -990,6 +1124,10 @@ export class MemoryStepperCreateComponent implements OnInit {
         isVideo,
         isAudio
       });
+    }
+
+    if (duplicateCount > 0) {
+      this.snackBar.open(`Skipped ${duplicateCount} duplicate file${duplicateCount > 1 ? 's' : ''}. Only unique media was kept.`, 'OK', { duration: 3500 });
     }
 
     this.selectedMedia.set(updated);

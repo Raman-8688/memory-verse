@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
 
 /**
  * High-resolution warm editorial fallback SVG placeholder.
@@ -11,12 +11,20 @@ const EDITORIAL_FALLBACK_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w
   selector: 'img[mvFallback]',
   standalone: true
 })
-export class ImageFallbackDirective {
+export class ImageFallbackDirective implements OnInit {
   @Input() mvFallback?: string;
+  @Input() disableLazy = false;
 
   private hasFailed = false;
 
   constructor(private el: ElementRef<HTMLImageElement>) {}
+
+  ngOnInit(): void {
+    // Automatically apply native lazy loading to memory and journey media unless explicitly disabled
+    if (!this.disableLazy && !this.el.nativeElement.getAttribute('loading')) {
+      this.el.nativeElement.setAttribute('loading', 'lazy');
+    }
+  }
 
   @HostListener('error')
   onError(): void {

@@ -20,6 +20,7 @@ public class PersonController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PersonSummaryDto>>> getPeopleDirectory() {
-        return ResponseEntity.ok(ApiResponse.success(userService.getPeopleDirectory()));
+        java.util.UUID currentUserId = com.memoryverse.security.SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(ApiResponse.success(userService.getPeopleDirectory(currentUserId)));
     }
 }
