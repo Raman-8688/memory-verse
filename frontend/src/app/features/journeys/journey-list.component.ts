@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { Journey } from '@core/models/journey.model';
 import { JourneyService } from '@core/services/journey.service';
 import { AuthService } from '@core/auth/auth.service';
@@ -21,7 +22,8 @@ import { JourneyFormDialogComponent } from './journey-form-dialog.component';
     MatIconModule,
     MatDialogModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './journey-list.component.html',
   styleUrl: './journey-list.component.scss'

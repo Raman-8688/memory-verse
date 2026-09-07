@@ -33,3 +33,6 @@ logging:
   level:
     com.memoryverse: INFO
     org.springframework.security: WARN
+
+app:
+  public-base-url: ${APP_PUBLIC_BASE_URL:https://memoryverse-backend-mkap.onrender.com}

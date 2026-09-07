@@ -28,6 +28,9 @@ interface PreviewMedia {
   isAudio?: boolean;
 }
 
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+
 @Component({
   selector: 'mv-memory-stepper-create',
   standalone: true,
@@ -43,7 +46,9 @@ interface PreviewMedia {
     MatSelectModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   template: `
     <div class="stepper-page">
@@ -295,8 +300,9 @@ interface PreviewMedia {
                   <div class="friend-chip" 
                        [class.selected]="isUserTagged(user.id)"
                        (click)="toggleTagUser(user)">
-                    <img [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
+                    <img [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                          [alt]="user.fullName" 
+                         mvFallback
                          class="friend-avatar">
                     <span class="friend-name">{{ user.fullName }}</span>
                     <mat-icon class="check-icon">

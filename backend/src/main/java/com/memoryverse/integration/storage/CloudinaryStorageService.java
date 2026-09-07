@@ -30,6 +30,9 @@ public class CloudinaryStorageService implements StorageService {
     @Value("${app.cloudinary.cloud-name:placeholder-cloud-name}")
     private String cloudName;
 
+    @Value("${app.public-base-url:http://localhost:8080}")
+    private String publicBaseUrl;
+
     private static final long MAX_VIDEO_SIZE_BYTES = 50L * 1024 * 1024; // 50MB
     private static final String LOCAL_UPLOAD_DIR = "uploads/media";
 
@@ -140,7 +143,10 @@ public class CloudinaryStorageService implements StorageService {
             Path destination = uploadPath.resolve(storedFileName);
             Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
 
-            String localUrl = "/api/media/files/" + storedFileName;
+            String baseUrl = (publicBaseUrl != null && !publicBaseUrl.isBlank())
+                    ? publicBaseUrl.replaceAll("/+$", "")
+                    : "http://localhost:8080";
+            String localUrl = baseUrl + "/api/media/files/" + storedFileName;
             boolean isVideo = mediaType == MediaType.VIDEO;
             boolean isAudio = mediaType == MediaType.AUDIO;
 

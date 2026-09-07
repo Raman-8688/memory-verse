@@ -68,7 +68,7 @@
             <div class="shared-by-banner">
               @if (data.sharedBy) {
                 <img 
-                  [src]="data.sharedBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [src]="(data.sharedBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                   [alt]="data.sharedBy.fullName" 
                   class="sharer-avatar" 
                 />
@@ -106,7 +106,7 @@
           <!-- Hero Image Cover -->
           @if (getCoverMedia(m); as cover) {
             <div class="hero-cover-frame" (click)="openLightbox(m.mediaList, 0)">
-              <img [src]="cover.mediaUrl" [alt]="m.title" mvFallback class="hero-cover-img" />
+              <img [src]="cover.mediaUrl | resolveMediaUrl" [alt]="m.title" mvFallback class="hero-cover-img" />
               <div class="cover-lens-badge">
                 <mat-icon>fullscreen</mat-icon>
                 <span>View Fullscreen</span>
@@ -129,7 +129,7 @@
                 <span>Voice Memo Record</span>
               </div>
               <mv-audio-player 
-                [audioUrl]="audio.mediaUrl" 
+                [audioUrl]="audio.mediaUrl | resolveMediaUrl" 
                 [title]="audio.fileName || 'Spoken Note'">
               </mv-audio-player>
             </div>
@@ -146,7 +146,7 @@
                 @for (media of getVisualMedia(m.mediaList); track (media.id || '') + '-' + idx; let idx = $index) {
                   <div class="photo-card" (click)="openLightbox(m.mediaList, idx)">
                     <img 
-                      [src]="media.thumbnailUrl || media.mediaUrl" 
+                      [src]="(media.thumbnailUrl || media.mediaUrl) | resolveMediaUrl" 
                       [alt]="media.fileName || 'Memory photo'" 
                       mvFallback 
                       class="gallery-thumb" 
@@ -169,7 +169,7 @@
                 @for (user of m.taggedUsers; track user.id) {
                   <div class="companion-tag-chip">
                     <img 
-                      [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                       [alt]="user.fullName" 
                       class="chip-avatar" 
                     />
@@ -195,7 +195,7 @@
 
           @if (j.coverImageUrl) {
             <div class="hero-cover-frame">
-              <img [src]="j.coverImageUrl" [alt]="j.title" mvFallback class="hero-cover-img" />
+              <img [src]="j.coverImageUrl | resolveMediaUrl" [alt]="j.title" mvFallback class="hero-cover-img" />
             </div>
           }
 
@@ -208,7 +208,7 @@
                   <p class="chapter-text">{{ sec.description }}</p>
                 </div>
                 @if (sec.imageUrl) {
-                  <img [src]="sec.imageUrl" [alt]="sec.title" mvFallback class="chapter-thumb" />
+                  <img [src]="sec.imageUrl | resolveMediaUrl" [alt]="sec.title" mvFallback class="chapter-thumb" />
                 }
               </div>
             }

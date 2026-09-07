@@ -82,9 +82,9 @@
     @if (currentItem(); as item) {
       <div class="stage-media-wrapper" (click)="$event.stopPropagation()">
         @if (item.mediaType === 'VIDEO') {
-          <video [src]="item.mediaUrl" controls autoplay class="fullscreen-media video-player"></video>
+          <video [src]="item.mediaUrl | resolveMediaUrl" controls autoplay class="fullscreen-media video-player"></video>
         } @else {
-          <img [src]="item.mediaUrl" [alt]="item.memoryTitle || 'Photograph'" mvFallback [disableLazy]="true" loading="eager" class="fullscreen-media img-player" />
+          <img [src]="item.mediaUrl | resolveMediaUrl" [alt]="item.memoryTitle || 'Photograph'" mvFallback [disableLazy]="true" loading="eager" class="fullscreen-media img-player" />
         }
       </div>
     }
@@ -108,7 +108,7 @@
       <div class="drawer-left">
         @if (item.uploader; as uploader) {
           <img 
-            [src]="uploader.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+            [src]="(uploader.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
             [alt]="uploader.fullName" 
             mvFallback
             class="uploader-avatar-mini" 

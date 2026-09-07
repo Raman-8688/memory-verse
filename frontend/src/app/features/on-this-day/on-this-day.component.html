@@ -81,7 +81,7 @@
                     <div class="card-footer">
                       @if (m.createdBy; as author) {
                         <div class="author-chip">
-                          <img [src]="author.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=60&q=80'" [alt]="author.fullName" mvFallback class="author-avatar">
+                          <img [src]="(author.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=60&q=80'" [alt]="author.fullName" mvFallback class="author-avatar">
                           <span class="author-name">{{ author.fullName }}</span>
                         </div>
                       }

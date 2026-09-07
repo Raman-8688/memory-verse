@@ -11,6 +11,7 @@ import { UserService } from '@core/services/user.service';
 import { MemoryService } from '@core/services/memory.service';
 import { Memory, PrivacyLevel } from '@core/models/memory.model';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
 @Component({
   selector: 'mv-profile',
@@ -22,7 +23,8 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   template: `
     <div class="profile-page">
@@ -30,7 +32,7 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
       @if (auth.currentUser(); as user) {
         <section class="profile-hero">
           <div class="profile-avatar-wrap">
-            <img [src]="user.avatarUrl || defaultAvatar" [alt]="user.fullName" mvFallback class="profile-avatar" />
+            <img [src]="(user.avatarUrl | resolveMediaUrl) || defaultAvatar" [alt]="user.fullName" mvFallback class="profile-avatar" />
 
             <!-- Single Avatar Image File Input -->
             <input 
@@ -125,11 +127,11 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
                     @if (memory.mediaList && memory.mediaList.length > 0) {
                       @if (memory.mediaList[0].mediaType === 'VIDEO') {
                         <div class="video-preview-wrapper">
-                          <video [src]="memory.mediaList[0].mediaUrl" preload="metadata"></video>
+                          <video [src]="memory.mediaList[0].mediaUrl | resolveMediaUrl" preload="metadata"></video>
                           <div class="play-badge"><mat-icon>play_arrow</mat-icon></div>
                         </div>
                       } @else {
-                        <img [src]="memory.mediaList[0].thumbnailUrl || memory.mediaList[0].mediaUrl" 
+                        <img [src]="(memory.mediaList[0].thumbnailUrl || memory.mediaList[0].mediaUrl) | resolveMediaUrl" 
                              [alt]="memory.title" 
                              mvFallback />
                       }

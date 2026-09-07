@@ -34,7 +34,7 @@
               <div class="collection-info">
                 <div class="collection-avatar">
                   @if (c.coverImageUrl) {
-                    <img [src]="c.coverImageUrl" [alt]="c.title" mvFallback class="collection-thumb" />
+                    <img [src]="c.coverImageUrl | resolveMediaUrl" [alt]="c.title" mvFallback class="collection-thumb" />
                   } @else {
                     <mat-icon class="folder-icon">folder_special</mat-icon>
                   }

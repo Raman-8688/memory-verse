@@ -10,6 +10,7 @@ import { CollectionService } from '@core/services/collection.service';
 import { Collection } from '@core/models/collection.model';
 import { Memory } from '@core/models/memory.model';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
 export interface AddToCollectionData {
   memory: Memory;
@@ -26,7 +27,8 @@ export interface AddToCollectionData {
     MatIconModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './add-to-collection-dialog.component.html',
   styleUrl: './add-to-collection-dialog.component.scss'

@@ -10,6 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { MemoryService } from '@core/services/memory.service';
 import { JourneyService } from '@core/services/journey.service';
 import { MediaCaptureService } from '@core/services/media-capture.service';
@@ -56,7 +57,8 @@ export interface TimelineYearGroup {
     MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './timeline.component.html',
   styleUrl: './timeline.component.scss'

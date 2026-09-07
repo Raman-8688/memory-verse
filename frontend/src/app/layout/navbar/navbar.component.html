@@ -78,8 +78,9 @@
     <!-- User Profile Dropdown (Always visible) -->
     @if (authService.currentUser(); as user) {
       <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn" aria-label="User profile menu">
-        <img [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+        <img [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
              [alt]="user.fullName" 
+             mvFallback
              class="user-avatar">
         <span class="user-name">{{ user.fullName }}</span>
         <mat-icon class="dropdown-icon">expand_more</mat-icon>

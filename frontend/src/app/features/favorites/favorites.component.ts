@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { MemoryService } from '@core/services/memory.service';
 import { Memory, MemoryFilterParams } from '@core/models/memory.model';
 import { PagedResponse } from '@core/models/api-response.model';
@@ -29,7 +30,8 @@ import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
     MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './favorites.component.html',
   styleUrl: './favorites.component.scss'

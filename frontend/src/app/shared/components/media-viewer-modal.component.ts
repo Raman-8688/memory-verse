@@ -12,6 +12,7 @@ import { DownloadService } from '@core/services/download.service';
 import { MemoryService } from '@core/services/memory.service';
 import { AuthService } from '@core/auth/auth.service';
 import { ImageFallbackDirective } from '../directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '../pipes/resolve-media-url.pipe';
 
 export interface MediaViewerData {
   items: GalleryItem[];
@@ -29,7 +30,8 @@ export interface MediaViewerData {
     MatIconModule, 
     MatMenuModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './media-viewer-modal.component.html',
   styleUrl: './media-viewer-modal.component.scss'

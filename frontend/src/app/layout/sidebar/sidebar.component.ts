@@ -24,10 +24,20 @@ export interface NavSection {
   items: NavItem[];
 }
 
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+
 @Component({
   selector: 'mv-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule, MatTooltipModule],
+  imports: [
+    CommonModule, 
+    RouterModule, 
+    MatIconModule, 
+    MatTooltipModule,
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
+  ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })

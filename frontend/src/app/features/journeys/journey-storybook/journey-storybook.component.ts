@@ -6,6 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+import { resolveMediaUrl } from '@shared/utils/media-url.util';
 import { AudioPlayerComponent } from '@shared/components/audio-player/audio-player.component';
 import { JourneyService } from '@core/services/journey.service';
 import { MemoryService } from '@core/services/memory.service';
@@ -24,6 +26,7 @@ import { Memory, Media } from '@core/models/memory.model';
     MatProgressSpinnerModule,
     MatTooltipModule,
     ImageFallbackDirective,
+    ResolveMediaUrlPipe,
     AudioPlayerComponent
   ],
   templateUrl: './journey-storybook.component.html',
@@ -267,6 +270,6 @@ export class JourneyStorybookComponent implements OnInit, OnDestroy {
   }
 
   getHeroImage(j: Journey): string {
-    return j.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80';
+    return resolveMediaUrl(j.coverImageUrl) || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80';
   }
 }

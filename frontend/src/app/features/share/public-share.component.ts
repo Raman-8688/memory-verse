@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { AudioPlayerComponent } from '@shared/components/audio-player/audio-player.component';
 import { LightboxService } from '@core/services/lightbox.service';
 import { ShareService, PublicSharedData } from '@core/services/share.service';
@@ -24,6 +25,7 @@ import { Memory, Media } from '@core/models/memory.model';
     MatSnackBarModule,
     MatTooltipModule,
     ImageFallbackDirective,
+    ResolveMediaUrlPipe,
     AudioPlayerComponent
   ],
   templateUrl: './public-share.component.html',

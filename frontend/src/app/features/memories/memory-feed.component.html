@@ -189,7 +189,7 @@
                     <div class="card-author-footer">
                       <div class="author-cell">
                         <img 
-                          [src]="memory.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                          [src]="(memory.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                           [alt]="memory.createdBy.fullName" 
                           mvFallback 
                           class="author-mini-avatar"

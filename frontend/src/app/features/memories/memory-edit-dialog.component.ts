@@ -24,6 +24,8 @@ interface EditPreviewItem {
   isVideo: boolean;
 }
 
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+
 @Component({
   selector: 'mv-memory-edit-dialog',
   standalone: true,
@@ -38,7 +40,8 @@ interface EditPreviewItem {
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ResolveMediaUrlPipe
   ],
   template: `
     <div class="edit-dialog-container">
@@ -177,7 +180,7 @@ interface EditPreviewItem {
                 @for (item of existingMediaList(); track item.id) {
                   <div class="edit-preview-tile">
                     @if (item.mediaType === 'VIDEO') {
-                      <video [src]="item.mediaUrl" class="preview-img"></video>
+                      <video [src]="item.mediaUrl | resolveMediaUrl" class="preview-img"></video>
                       <div class="video-indicator"><mat-icon>videocam</mat-icon></div>
                     } @else if (item.mediaType === 'AUDIO') {
                       <div class="preview-img audio-preview-box">
@@ -185,7 +188,7 @@ interface EditPreviewItem {
                       </div>
                       <div class="video-indicator"><mat-icon>mic</mat-icon></div>
                     } @else {
-                      <img [src]="item.thumbnailUrl || item.mediaUrl" [alt]="item.fileName || 'Photo'" class="preview-img" />
+                      <img [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl" [alt]="item.fileName || 'Photo'" class="preview-img" />
                     }
                     <button type="button" class="remove-btn" (click)="deleteExistingMedia(item.id)" [disabled]="isSaving()" title="Delete photo from memory">
                       <mat-icon>delete</mat-icon>

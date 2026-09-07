@@ -378,8 +378,9 @@
 
                           <div class="card-author">
                             <img 
-                              [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                              [src]="(mem.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                               [alt]="mem.createdBy.fullName || 'Author'" 
+                              mvFallback
                               class="author-avatar"
                             />
                             <span class="author-name">{{ mem.createdBy.fullName || 'Friend' }}</span>

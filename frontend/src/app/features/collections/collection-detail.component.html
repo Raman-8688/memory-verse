@@ -12,7 +12,7 @@
     <header class="collection-hero-banner">
       <div class="banner-cover-pane">
         <img 
-          [src]="col.coverImageUrl || 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80'" 
+          [src]="(col.coverImageUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80'" 
           [alt]="col.title" 
           mvFallback 
           class="banner-img"
@@ -142,8 +142,9 @@
 
               <div class="author-info">
                 <img 
-                  [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [src]="(mem.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                   [alt]="mem.createdBy.fullName || 'Author'" 
+                  mvFallback
                   class="author-avatar"
                 />
                 <span class="author-name">{{ mem.createdBy.fullName || 'Friend' }}</span>

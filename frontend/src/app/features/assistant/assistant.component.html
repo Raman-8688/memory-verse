@@ -185,7 +185,7 @@
                     <div class="citation-card" (click)="goToMemory(mem.id)">
                       <div class="citation-cover-wrap">
                         <img 
-                          [src]="mem.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=400&q=80'" 
+                          [src]="(mem.coverImageUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=400&q=80'" 
                           [alt]="mem.title" 
                           mvFallback
                           class="citation-cover-img"
@@ -248,7 +248,7 @@
                   @for (media of msg.relatedMedia; track (media.id || '') + '-' + idx; let idx = $index) {
                     <div class="media-thumbnail-card" (click)="openLightbox(msg.relatedMedia, idx)">
                       <img 
-                        [src]="media.thumbnailUrl || media.mediaUrl" 
+                        [src]="(media.thumbnailUrl || media.mediaUrl) | resolveMediaUrl" 
                         [alt]="media.fileName || 'Memory photo'" 
                         mvFallback
                         class="media-thumb-img" 

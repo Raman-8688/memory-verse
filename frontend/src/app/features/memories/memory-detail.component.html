@@ -157,9 +157,9 @@
         <header class="hero-showcase" (click)="openLightbox(getActiveMediaIndex())" title="Click to view fullscreen">
           <div class="hero-media-wrapper">
             @if (hero.mediaType === 'VIDEO') {
-              <video [src]="hero.mediaUrl" controls class="hero-media-element" autoplay [muted]="true"></video>
+              <video [src]="hero.mediaUrl | resolveMediaUrl" controls class="hero-media-element" autoplay [muted]="true"></video>
             } @else {
-              <img [src]="hero.mediaUrl" [alt]="m.title" mvFallback class="hero-media-element" />
+              <img [src]="hero.mediaUrl | resolveMediaUrl" [alt]="m.title" mvFallback class="hero-media-element" />
             }
             <div class="hero-gradient-overlay"></div>
 
@@ -214,7 +214,7 @@
         <div class="author-attribution-bar">
           <div class="author-profile">
             <img 
-              [src]="m.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+              [src]="(m.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
               [alt]="m.createdBy.fullName" 
               mvFallback 
               class="author-avatar"
@@ -245,7 +245,7 @@
               </div>
               @for (audio of getAudioMedia(m); track (audio.id || '') + '-' + $index) {
                 <mv-audio-player 
-                  [audioUrl]="audio.mediaUrl" 
+                  [audioUrl]="audio.mediaUrl | resolveMediaUrl" 
                   [title]="audio.fileName || 'Voice Memo'"
                   [transcript]="audio.transcript"
                   [mediaId]="audio.id"
@@ -318,7 +318,7 @@
                       </mat-menu>
                     }
                     @if (media.mediaType === 'VIDEO') {
-                      <video [src]="media.mediaUrl" class="thumb-media"></video>
+                      <video [src]="media.mediaUrl | resolveMediaUrl" class="thumb-media"></video>
                       <div class="play-overlay">
                         <mat-icon>play_circle</mat-icon>
                       </div>
@@ -328,7 +328,7 @@
                         <span>Audio</span>
                       </div>
                     } @else {
-                      <img [src]="media.thumbnailUrl || media.mediaUrl" [alt]="media.fileName || m.title" mvFallback class="thumb-media" loading="lazy" />
+                      <img [src]="(media.thumbnailUrl || media.mediaUrl) | resolveMediaUrl" [alt]="media.fileName || m.title" mvFallback class="thumb-media" loading="lazy" />
                     }
                   </div>
                 }
@@ -349,7 +349,7 @@
             <!-- Add Note Card -->
             <div class="add-note-card">
               <img 
-                [src]="authService.currentUser()?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                [src]="(authService.currentUser()?.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                 [alt]="authService.currentUser()?.fullName || 'You'" 
                 mvFallback 
                 class="current-user-avatar" 
@@ -398,7 +398,7 @@
                 @for (comment of comments(); track comment.id) {
                   <article class="note-bubble">
                     <img 
-                      [src]="comment.user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [src]="(comment.user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                       [alt]="comment.user.fullName" 
                       mvFallback 
                       class="commenter-avatar" 
@@ -466,7 +466,7 @@
                 @for (friend of m.taggedUsers; track friend.id) {
                   <div class="tagged-friend-chip">
                     <img 
-                      [src]="friend.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [src]="(friend.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                       [alt]="friend.fullName" 
                       mvFallback 
                       class="friend-avatar"

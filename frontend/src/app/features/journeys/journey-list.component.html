@@ -43,7 +43,7 @@
           <!-- Cover Media Frame -->
           <div class="card-cover-media">
             <img 
-              [src]="journey.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80'" 
+              [src]="(journey.coverImageUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80'" 
               [alt]="journey.title" 
               loading="lazy" 
               mvFallback 
@@ -58,8 +58,8 @@
                 {{ formatDateRange(journey.startDate, journey.endDate) }}
               </span>
               <span class="chapters-count-badge">
-                <mat-icon>bookmark_border</mat-icon>
-                {{ journey.sections.length }} {{ journey.sections.length === 1 ? 'Chapter' : 'Chapters' }}
+                <mat-icon>menu_book</mat-icon>
+                {{ journey.sections ? journey.sections.length : 0 }} Chapters
               </span>
             </div>
 
@@ -80,7 +80,7 @@
             <div class="card-footer-bar">
               <div class="creator-chip">
                 <img 
-                  [src]="journey.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                  [src]="(journey.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                   [alt]="journey.createdBy.fullName || 'Member'" 
                   mvFallback 
                   class="creator-img" 

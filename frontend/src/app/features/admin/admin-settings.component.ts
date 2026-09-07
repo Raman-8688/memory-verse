@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { User } from '@core/models/user.model';
 import { UserService } from '@core/services/user.service';
 import { UserEditDialogComponent } from './user-edit-dialog.component';
@@ -22,7 +23,8 @@ import { UserEditDialogComponent } from './user-edit-dialog.component';
     MatMenuModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './admin-settings.component.html',
   styleUrl: './admin-settings.component.scss'

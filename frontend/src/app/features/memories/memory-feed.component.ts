@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { Memory, MediaType } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 import { MemoryService } from '@core/services/memory.service';
@@ -28,7 +29,8 @@ export interface MonthGroup {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './memory-feed.component.html',
   styleUrl: './memory-feed.component.scss'

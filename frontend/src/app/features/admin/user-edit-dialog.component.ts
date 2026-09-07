@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { User } from '@core/models/user.model';
 import { UserService } from '@core/services/user.service';
 import { switchMap, of } from 'rxjs';
+import { resolveMediaUrl } from '@shared/utils/media-url.util';
 
 @Component({
   selector: 'mv-user-edit-dialog',
@@ -371,7 +372,7 @@ export class UserEditDialogComponent {
   });
 
   previewImage(): string {
-    return this.localPreviewUrl() || this.data.avatarUrl || this.defaultAvatar;
+    return this.localPreviewUrl() || resolveMediaUrl(this.data.avatarUrl) || this.defaultAvatar;
   }
 
   onFileSelected(event: Event): void {

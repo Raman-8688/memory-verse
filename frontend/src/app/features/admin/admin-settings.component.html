@@ -76,7 +76,7 @@
             <!-- Avatar & Profile Details -->
             <div class="member-profile-cell">
               <img 
-                [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+                [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
                 [alt]="user.fullName" 
                 mvFallback 
                 class="member-avatar-img" 

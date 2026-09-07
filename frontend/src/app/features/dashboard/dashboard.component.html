@@ -148,8 +148,9 @@
               <div class="spotlight-footer-row">
                 <div class="spotlight-author-info">
                   <img 
-                    [src]="otd.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
+                    [src]="(otd.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80'" 
                     [alt]="otd.createdBy.fullName" 
+                    mvFallback
                     class="author-avatar-circle"
                   />
                   <div class="author-text-col">
@@ -208,8 +209,9 @@
 
                   <div class="card-author-line">
                     <img 
-                      [src]="mem.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                      [src]="(mem.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
                       [alt]="mem.createdBy.fullName" 
+                      mvFallback
                       class="author-mini-avatar"
                     />
                     <span class="author-mini-name">{{ mem.createdBy.fullName }}</span>

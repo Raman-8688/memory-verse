@@ -11,6 +11,7 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
 import { CollectionService } from '@core/services/collection.service';
 import { MediaService } from '@core/services/media.service';
 import { Collection } from '@core/models/collection.model';
+import { resolveMediaUrl } from '@shared/utils/media-url.util';
 
 @Component({
   selector: 'mv-collections-list',
@@ -176,6 +177,6 @@ export class CollectionsListComponent implements OnInit {
   }
 
   getHeroImage(collection: Collection): string {
-    return collection.coverImageUrl || 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80';
+    return resolveMediaUrl(collection.coverImageUrl) || 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80';
   }
 }

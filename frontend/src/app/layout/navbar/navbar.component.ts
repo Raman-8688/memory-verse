@@ -12,6 +12,9 @@ import { MediaCaptureService } from '@core/services/media-capture.service';
 import { CommandPaletteService } from '@core/services/command-palette.service';
 import { SidebarService } from '@core/services/sidebar.service';
 
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+
 @Component({
   selector: 'mv-navbar',
   standalone: true,
@@ -22,7 +25,9 @@ import { SidebarService } from '@core/services/sidebar.service';
     MatIconModule, 
     MatMenuModule, 
     MatBottomSheetModule,
-    MatTooltipModule
+    MatTooltipModule,
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'

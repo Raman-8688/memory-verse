@@ -93,7 +93,7 @@
               </div>
               @if (j.createdBy; as creator) {
                 <div class="info-badge creator-badge">
-                  <img [src]="creator.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="creator.fullName" mvFallback class="creator-mini-avatar" />
+                  <img [src]="(creator.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="creator.fullName" mvFallback class="creator-mini-avatar" />
                   <span>Curated by {{ creator.fullName }}</span>
                 </div>
               }
@@ -119,9 +119,9 @@
             <div class="visual-frame" (click)="openLightboxForCurrent()" title="Click to view in Lightbox">
               @if (currentMedia(); as media) {
                 @if (media.mediaType === 'VIDEO') {
-                  <video [src]="media.mediaUrl" controls autoplay class="story-media video-player"></video>
+                  <video [src]="media.mediaUrl | resolveMediaUrl" controls autoplay class="story-media video-player"></video>
                 } @else {
-                  <img [src]="media.mediaUrl" [alt]="mem.title" mvFallback class="story-media" />
+                  <img [src]="media.mediaUrl | resolveMediaUrl" [alt]="mem.title" mvFallback class="story-media" />
                 }
               } @else {
                 <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1200&q=80" [alt]="mem.title" class="story-media" />
@@ -142,7 +142,7 @@
                     class="thumb-btn" 
                     [class.active]="activeMediaIndex() === idx" 
                     (click)="selectMedia(idx)">
-                    <img [src]="m.thumbnailUrl || m.mediaUrl" [alt]="'Photo ' + (idx + 1)" mvFallback class="thumb-img" />
+                    <img [src]="(m.thumbnailUrl || m.mediaUrl) | resolveMediaUrl" [alt]="'Photo ' + (idx + 1)" mvFallback class="thumb-img" />
                   </button>
                 }
               </div>
@@ -181,7 +181,7 @@
                 <div class="storybook-audio-pane">
                   @for (audio of audioList; track audio.id) {
                     <mv-audio-player 
-                      [audioUrl]="audio.mediaUrl" 
+                      [audioUrl]="audio.mediaUrl | resolveMediaUrl" 
                       [title]="audio.fileName || 'Voice Note'"
                       [authorName]="mem.createdBy.fullName">
                     </mv-audio-player>
@@ -194,7 +194,7 @@
             <div class="story-footnote">
               @if (mem.createdBy; as author) {
                 <div class="author-block">
-                  <img [src]="author.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="author.fullName" mvFallback class="author-avatar" />
+                  <img [src]="(author.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="author.fullName" mvFallback class="author-avatar" />
                   <span class="author-text">Captured by <strong>{{ author.fullName }}</strong></span>
                 </div>
               }
@@ -204,7 +204,7 @@
                   <span class="with-label">With:</span>
                   <div class="friends-avatars">
                     @for (friend of mem.taggedUsers; track friend.id) {
-                      <img [src]="friend.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="friend.fullName" [title]="friend.fullName" mvFallback class="friend-mini-avatar" />
+                      <img [src]="(friend.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" [alt]="friend.fullName" [title]="friend.fullName" mvFallback class="friend-mini-avatar" />
                     }
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
 import { AiAssistantService } from '../../core/services/ai-assistant.service';
 import { AiSearchService } from '../../core/services/ai-search.service';
@@ -30,7 +31,8 @@ import { GalleryItem } from '../../core/models/gallery.model';
     MatDialogModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './assistant.component.html',
   styleUrl: './assistant.component.scss'

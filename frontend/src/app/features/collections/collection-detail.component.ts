@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { CollectionService } from '@core/services/collection.service';
 import { MemoryService } from '@core/services/memory.service';
 import { LightboxService } from '@core/services/lightbox.service';
@@ -26,7 +27,8 @@ import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatSnackBarModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './collection-detail.component.html',
   styleUrl: './collection-detail.component.scss'

@@ -13,6 +13,7 @@ import { JourneyService } from '@core/services/journey.service';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 
 import { CloudinaryOptimizePipe } from '@shared/pipes/cloudinary-optimize.pipe';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
 @Component({
   selector: 'mv-gallery-grid',
@@ -24,7 +25,8 @@ import { CloudinaryOptimizePipe } from '@shared/pipes/cloudinary-optimize.pipe';
     MatIconModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    CloudinaryOptimizePipe
+    CloudinaryOptimizePipe,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './gallery-grid.component.html',
   styleUrl: './gallery-grid.component.scss'

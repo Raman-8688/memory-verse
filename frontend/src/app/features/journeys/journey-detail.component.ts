@@ -21,6 +21,8 @@ import { ShareService } from '@core/services/share.service';
 import { AuthService } from '@core/auth/auth.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
 
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+
 @Component({
   selector: 'mv-journey-detail',
   standalone: true,
@@ -35,7 +37,8 @@ import { NotificationStateService } from '@core/services/notification-state.serv
     MatMenuModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   template: `
     @if (isLoading()) {
@@ -54,7 +57,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 
           <!-- Hero Editorial Banner -->
           <div class="hero-banner">
-            <img [src]="j.coverImageUrl || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80'" 
+            <img [src]="(j.coverImageUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80'" 
                  [alt]="j.title" 
                  mvFallback
                  (click)="viewCoverFullscreen(j)"
@@ -77,7 +80,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
               <!-- Bottom Meta Row: Author, Chapters, and Edit / View Actions at the Bottom -->
               <div class="meta-row">
                 <div class="creator-badge">
-                  <img [src]="j.createdBy.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+                  <img [src]="(j.createdBy.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
                        [alt]="j.createdBy.fullName || 'Creator'" 
                        mvFallback
                        class="creator-avatar">
@@ -253,7 +256,7 @@ import { NotificationStateService } from '@core/services/notification-state.serv
                       <!-- Chapter Cover Image Thumbnail -->
                       @if (section.imageUrl) {
                         <div class="chapter-thumbnail-wrap" (click)="viewChapterFullscreen(section)" title="Click to view chapter photo">
-                          <img [src]="section.imageUrl" 
+                          <img [src]="section.imageUrl | resolveMediaUrl" 
                                [alt]="section.title" 
                                mvFallback 
                                class="chapter-thumbnail-img">

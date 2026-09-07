@@ -86,7 +86,7 @@
           
           <!-- Media Thumbnail -->
           @if (item.mediaType === 'VIDEO') {
-            <video [src]="item.mediaUrl" class="tile-img"></video>
+            <video [src]="item.mediaUrl | resolveMediaUrl" class="tile-img"></video>
             <div class="video-play-indicator">
               <mat-icon>play_circle</mat-icon>
             </div>

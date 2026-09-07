@@ -11,6 +11,7 @@ import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/auth/auth.service';
 import { PersonSummary } from '@core/models/person.model';
 import { AddPersonDialogComponent } from './add-person-dialog.component';
+import { resolveMediaUrl } from '@shared/utils/media-url.util';
 
 @Component({
   selector: 'mv-people',
@@ -93,7 +94,7 @@ export class PeopleComponent implements OnInit {
 
   getAvatarUrl(person: PersonSummary): string {
     if (person.avatarUrl && person.avatarUrl.trim()) {
-      return person.avatarUrl;
+      return resolveMediaUrl(person.avatarUrl);
     }
     const name = encodeURIComponent(person.fullName || 'User');
     return `https://ui-avatars.com/api/?name=${name}&background=f4ede4&color=92400e&font-size=0.4&bold=true`;

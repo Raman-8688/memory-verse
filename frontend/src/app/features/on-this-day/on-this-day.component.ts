@@ -9,6 +9,8 @@ import { Memory, Media } from '@core/models/memory.model';
 import { MemoryService } from '@core/services/memory.service';
 import { LightboxService } from '@core/services/lightbox.service';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+import { resolveMediaUrl } from '@shared/utils/media-url.util';
 
 export interface YearAnniversaryGroup {
   year: number;
@@ -26,7 +28,8 @@ export interface YearAnniversaryGroup {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './on-this-day.component.html',
   styleUrl: './on-this-day.component.scss'
@@ -140,7 +143,7 @@ export class OnThisDayComponent implements OnInit {
   getHeroImage(mem: Memory): string {
     if (mem.mediaList && mem.mediaList.length > 0) {
       const first = mem.mediaList[0];
-      return first.thumbnailUrl || first.mediaUrl;
+      return resolveMediaUrl(first.thumbnailUrl || first.mediaUrl);
     }
     return 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80';
   }

@@ -18,6 +18,7 @@ import { ShareService } from '@core/services/share.service';
 import { AuthService } from '@core/auth/auth.service';
 import { DownloadService } from '@core/services/download.service';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
 import { AudioPlayerComponent } from '@shared/components/audio-player/audio-player.component';
@@ -38,6 +39,7 @@ import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
     MatProgressSpinnerModule,
     MatDialogModule,
     ImageFallbackDirective,
+    ResolveMediaUrlPipe,
     AudioPlayerComponent
   ],
   templateUrl: './memory-detail.component.html',

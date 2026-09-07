@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 import { AuthService } from '@core/auth/auth.service';
 import { DashboardService } from '@core/services/dashboard.service';
 import { MediaCaptureService } from '@core/services/media-capture.service';
@@ -23,7 +24,8 @@ import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    ImageFallbackDirective
+    ImageFallbackDirective,
+    ResolveMediaUrlPipe
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
