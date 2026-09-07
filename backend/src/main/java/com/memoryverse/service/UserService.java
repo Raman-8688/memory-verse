@@ -22,5 +22,7 @@ public interface UserService {
     UserDto updateUser(UUID id, UserUpdateRequest request);
 
     UserDto updateUserAvatar(UUID id, MultipartFile file);
+
+    void deleteUser(UUID id);
 }
 

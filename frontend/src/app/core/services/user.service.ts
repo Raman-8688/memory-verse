@@ -31,4 +31,12 @@ export class UserService {
     formData.append('file', file);
     return this.api.post<User>(`/users/${id}/avatar`, formData);
   }
+
+  exportFullArchive(): Observable<Blob> {
+    return this.api.getBlob('/export/archive');
+  }
+
+  deleteMyAccount(): Observable<void> {
+    return this.api.delete<void>('/users/me');
+  }
 }

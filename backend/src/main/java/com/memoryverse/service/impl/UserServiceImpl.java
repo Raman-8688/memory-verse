@@ -122,4 +122,27 @@ public class UserServiceImpl implements UserService {
         log.info("Uploaded avatar for user {}: {}", id, result.getMediaUrl());
         return UserDto.fromEntity(updatedUser);
     }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
+    public void deleteUser(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        log.warn("Account deletion requested for user: id={}, email={}", id, user.getEmail());
+
+        try {
+            userRepository.delete(user);
+            userRepository.flush();
+            log.info("User {} successfully deleted from database", id);
+        } catch (Exception e) {
+            log.warn("User {} has linked memories/journals; applying GDPR privacy anonymization instead: {}", id, e.getMessage());
+            user.setEmail("deleted_" + id.toString().substring(0, 8) + "@memoryverse.local");
+            user.setFullName("Former Member");
+            user.setAvatarUrl(null);
+            user.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
+            userRepository.save(user);
+            log.info("User {} successfully anonymized and scrubbed", id);
+        }
+    }
 }

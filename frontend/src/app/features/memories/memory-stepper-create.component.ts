@@ -1169,6 +1169,7 @@ export class MemoryStepperCreateComponent implements OnInit {
       locationName: this.storyForm.value.locationName,
       journeyId: this.orgForm.value.journeyId,
       sectionId: this.orgForm.value.sectionId || undefined,
+      privacyLevel: (localStorage.getItem('mv_default_privacy_level') as any) || 'CIRCLE_COMPANIONS',
       taggedUserIds: this.taggedUserIds(),
       isFeatured: false
     };

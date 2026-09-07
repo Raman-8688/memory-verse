@@ -61,4 +61,11 @@ public class UserController {
         UserDto updated = userService.updateUserAvatar(id, file);
         return ResponseEntity.ok(ApiResponse.success("Avatar uploaded successfully", updated));
     }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteMyAccount() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        userService.deleteUser(currentUserId);
+        return ResponseEntity.ok(ApiResponse.success("Account deleted successfully", null));
+    }
 }

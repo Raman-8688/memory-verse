@@ -1,5 +1,6 @@
 package com.memoryverse.controller;
 
+import com.memoryverse.security.SecurityUtils;
 import com.memoryverse.service.ExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,16 @@ import java.util.UUID;
 public class ExportController {
 
     private final ExportService exportService;
+
+    @GetMapping(value = "/archive", produces = "application/zip")
+    public ResponseEntity<byte[]> exportUserFullArchive() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        byte[] zipData = exportService.exportUserArchiveZip(currentUserId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"memoryverse-archive.zip\"")
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .body(zipData);
+    }
 
     @GetMapping(value = "/memory/{id}/zip", produces = "application/zip")
     public ResponseEntity<byte[]> exportMemoryZip(@PathVariable UUID id) {

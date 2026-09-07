@@ -11,4 +11,6 @@ public interface ExportService {
     String generateMemoryKeepsakeHtml(UUID memoryId);
 
     String generateJourneyKeepsakeHtml(UUID journeyId);
+
+    byte[] exportUserArchiveZip(UUID userId);
 }

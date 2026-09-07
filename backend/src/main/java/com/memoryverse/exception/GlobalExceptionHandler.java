@@ -120,6 +120,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ApiError> handleRateLimitExceededException(RateLimitExceededException ex, HttpServletRequest request) {
+        log.warn("Rate limit exceeded at path {}: {}", request.getRequestURI(), ex.getMessage());
+        ApiError error = ApiError.builder()
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .error("Too Many Requests")
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", "60")
+                .body(error);
+    }
+
     @ExceptionHandler(AiServiceException.class)
     public ResponseEntity<ApiError> handleAiServiceException(AiServiceException ex, HttpServletRequest request) {
         log.error("AI Assistant service error at {}: {}", request.getRequestURI(), ex.getMessage());

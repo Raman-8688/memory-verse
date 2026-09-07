@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -8,7 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '@core/auth/auth.service';
 import { UserService } from '@core/services/user.service';
 import { MemoryService } from '@core/services/memory.service';
-import { Memory } from '@core/models/memory.model';
+import { Memory, PrivacyLevel } from '@core/models/memory.model';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 
 @Component({
@@ -17,6 +18,7 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
   imports: [
     CommonModule,
     RouterModule,
+    FormsModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -67,70 +69,242 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
         </section>
       }
 
-      <!-- Tagged Memories Section -->
-      <section class="tagged-section">
-        <div class="section-header">
-          <div>
-            <h2 class="editorial-title section-title">Memories Tagged In</h2>
-            <p class="section-subtitle">Moments captured by friends that feature you.</p>
-          </div>
-          <span class="count-badge">{{ taggedMemories().length }} memories</span>
-        </div>
+      <!-- Profile Section Tabs -->
+      <div class="profile-tabs-nav">
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'memories'" 
+          (click)="activeTab.set('memories')">
+          <mat-icon>photo_library</mat-icon>
+          <span>Tagged Moments ({{ taggedMemories().length }})</span>
+        </button>
+        <button 
+          type="button" 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'security'" 
+          (click)="activeTab.set('security')">
+          <mat-icon>security</mat-icon>
+          <span>Security & Data Privacy</span>
+        </button>
+      </div>
 
-        @if (isLoading()) {
-          <div class="loading-state">
-            <mat-spinner diameter="36"></mat-spinner>
-            <span>Loading your tagged moments...</span>
+      <!-- TAB 1: Tagged Memories -->
+      @if (activeTab() === 'memories') {
+        <section class="tagged-section">
+          <div class="section-header">
+            <div>
+              <h2 class="editorial-title section-title">Memories Tagged In</h2>
+              <p class="section-subtitle">Moments captured by friends that feature you.</p>
+            </div>
+            <span class="count-badge">{{ taggedMemories().length }} memories</span>
           </div>
-        } @else if (taggedMemories().length === 0) {
-          <div class="empty-state">
-            <mat-icon class="empty-icon">photo_library</mat-icon>
-            <h3 class="editorial-title">No Tagged Memories Yet</h3>
-            <p>When friends tag you in memories or campus road trips, they will appear here.</p>
-            <a mat-flat-button color="primary" routerLink="/memories/new">
-              <ng-container>
-                <mat-icon>add_photo_alternate</mat-icon>
-                <span>Create a Memory</span>
-              </ng-container>
-            </a>
-          </div>
-        } @else {
-          <div class="memories-grid">
-            @for (memory of taggedMemories(); track memory.id) {
-              <a class="memory-card" [routerLink]="['/memories', memory.id]">
-                <div class="card-thumb">
-                  @if (memory.mediaList && memory.mediaList.length > 0) {
-                    @if (memory.mediaList[0].mediaType === 'VIDEO') {
-                      <div class="video-preview-wrapper">
-                        <video [src]="memory.mediaList[0].mediaUrl" preload="metadata"></video>
-                        <div class="play-badge"><mat-icon>play_arrow</mat-icon></div>
-                      </div>
-                    } @else {
-                      <img [src]="memory.mediaList[0].thumbnailUrl || memory.mediaList[0].mediaUrl" 
-                           [alt]="memory.title" 
-                           mvFallback />
-                    }
-                  } @else {
-                    <div class="no-thumb"><mat-icon>image</mat-icon></div>
-                  }
-                  <span class="card-date">{{ memory.memoryDate | date:'mediumDate' }}</span>
-                </div>
 
-                <div class="card-info">
-                  <h3 class="memory-title">{{ memory.title }}</h3>
-                  @if (memory.locationName) {
-                    <span class="location-tag">
-                      <mat-icon>place</mat-icon>
-                      {{ memory.locationName }}
-                    </span>
-                  }
-                  <p class="memory-snippet">{{ memory.story }}</p>
-                </div>
+          @if (isLoading()) {
+            <div class="loading-state">
+              <mat-spinner diameter="36"></mat-spinner>
+              <span>Loading your tagged moments...</span>
+            </div>
+          } @else if (taggedMemories().length === 0) {
+            <div class="empty-state">
+              <mat-icon class="empty-icon">photo_library</mat-icon>
+              <h3 class="editorial-title">No Tagged Memories Yet</h3>
+              <p>When friends tag you in memories or campus road trips, they will appear here.</p>
+              <a mat-flat-button color="primary" routerLink="/memories/new">
+                <ng-container>
+                  <mat-icon>add_photo_alternate</mat-icon>
+                  <span>Create a Memory</span>
+                </ng-container>
               </a>
-            }
+            </div>
+          } @else {
+            <div class="memories-grid">
+              @for (memory of taggedMemories(); track memory.id) {
+                <a class="memory-card" [routerLink]="['/memories', memory.id]">
+                  <div class="card-thumb">
+                    @if (memory.mediaList && memory.mediaList.length > 0) {
+                      @if (memory.mediaList[0].mediaType === 'VIDEO') {
+                        <div class="video-preview-wrapper">
+                          <video [src]="memory.mediaList[0].mediaUrl" preload="metadata"></video>
+                          <div class="play-badge"><mat-icon>play_arrow</mat-icon></div>
+                        </div>
+                      } @else {
+                        <img [src]="memory.mediaList[0].thumbnailUrl || memory.mediaList[0].mediaUrl" 
+                             [alt]="memory.title" 
+                             mvFallback />
+                      }
+                    } @else {
+                      <div class="no-thumb"><mat-icon>image</mat-icon></div>
+                    }
+                    <span class="card-date">{{ memory.memoryDate | date:'mediumDate' }}</span>
+                  </div>
+
+                  <div class="card-info">
+                    <h3 class="memory-title">{{ memory.title }}</h3>
+                    @if (memory.locationName) {
+                      <span class="location-tag">
+                        <mat-icon>place</mat-icon>
+                        {{ memory.locationName }}
+                      </span>
+                    }
+                    <p class="memory-snippet">{{ memory.story }}</p>
+                  </div>
+                </a>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      <!-- TAB 2: Security & Data Privacy -->
+      @if (activeTab() === 'security') {
+        <section class="security-section">
+          <!-- Card 1: Default Privacy Setting -->
+          <div class="settings-card">
+            <div class="card-header-row">
+              <div class="card-icon-bubble primary">
+                <mat-icon>lock</mat-icon>
+              </div>
+              <div>
+                <h2 class="card-title">Default Memory Privacy</h2>
+                <p class="card-subtitle">Set the default visibility level applied when creating new memories or rapid captures.</p>
+              </div>
+            </div>
+
+            <div class="privacy-options-grid">
+              <!-- Option A: Private -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultPrivacy() === 'PRIVATE_TO_ME'"
+                   (click)="setDefaultPrivacy('PRIVATE_TO_ME')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">lock_outline</mat-icon>
+                  <span class="radio-circle" [class.checked]="defaultPrivacy() === 'PRIVATE_TO_ME'"></span>
+                </div>
+                <h4 class="option-title">Private to Me</h4>
+                <p class="option-desc">Only visible to your personal account. Stored securely and excluded from circles.</p>
+              </div>
+
+              <!-- Option B: Circle Companions -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultPrivacy() === 'CIRCLE_COMPANIONS'"
+                   (click)="setDefaultPrivacy('CIRCLE_COMPANIONS')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">group</mat-icon>
+                  <span class="badge-recommended">Recommended</span>
+                  <span class="radio-circle" [class.checked]="defaultPrivacy() === 'CIRCLE_COMPANIONS'"></span>
+                </div>
+                <h4 class="option-title">Circle Companions</h4>
+                <p class="option-desc">Shared with all registered circle members to view, react, and contribute comments.</p>
+              </div>
+
+              <!-- Option C: Public Archive -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultPrivacy() === 'PUBLIC_ARCHIVE'"
+                   (click)="setDefaultPrivacy('PUBLIC_ARCHIVE')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">public</mat-icon>
+                  <span class="radio-circle" [class.checked]="defaultPrivacy() === 'PUBLIC_ARCHIVE'"></span>
+                </div>
+                <h4 class="option-title">Public Archive</h4>
+                <p class="option-desc">Discoverable via public links and read-only keepsake storybooks.</p>
+              </div>
+            </div>
           </div>
-        }
-      </section>
+
+          <!-- Card 2: Data Portability & Archive -->
+          <div class="settings-card">
+            <div class="card-header-row">
+              <div class="card-icon-bubble amber">
+                <mat-icon>archive</mat-icon>
+              </div>
+              <div class="header-text-flex">
+                <div>
+                  <h2 class="card-title">Data Portability</h2>
+                  <p class="card-subtitle">Exports all your authored memories, comments, reactions, and media metadata into a structured portable bundle.</p>
+                </div>
+                <button 
+                  mat-flat-button 
+                  color="primary" 
+                  class="download-btn"
+                  (click)="downloadFullArchive()"
+                  [disabled]="isExportingArchive()">
+                  @if (isExportingArchive()) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                    <span>Generating ZIP...</span>
+                  } @else {
+                    <ng-container>
+                      <mat-icon>download</mat-icon>
+                      <span>Download My Full Archive (ZIP)</span>
+                    </ng-container>
+                  }
+                </button>
+              </div>
+            </div>
+            <div class="archive-info-callout">
+              <mat-icon>info</mat-icon>
+              <span>The portable archive contains JSON payloads, a human-readable markdown summary (archive-summary.md), and an indexed media asset manifest.</span>
+            </div>
+          </div>
+
+          <!-- Card 3: Danger Zone / Account Deletion -->
+          <div class="settings-card danger-card">
+            <div class="card-header-row">
+              <div class="card-icon-bubble red">
+                <mat-icon>warning</mat-icon>
+              </div>
+              <div>
+                <h2 class="card-title danger-title">Danger Zone</h2>
+                <p class="card-subtitle">Irreversible actions regarding your account and identity.</p>
+              </div>
+            </div>
+
+            <div class="danger-body">
+              <div class="danger-explanation">
+                <p><strong>Permanently Delete Account:</strong> This will permanently delete your account, remove you from circles, and revoke access to shared journeys. This action cannot be undone.</p>
+              </div>
+
+              @if (!showDeleteModal()) {
+                <button 
+                  type="button" 
+                  class="btn-danger-outline" 
+                  (click)="showDeleteModal.set(true)">
+                  <mat-icon>delete_forever</mat-icon>
+                  <span>Delete Account</span>
+                </button>
+              } @else {
+                <div class="delete-confirmation-box">
+                  <p class="confirm-prompt">To proceed with deletion, type <strong>DELETE</strong> in the box below:</p>
+                  <div class="confirm-input-row">
+                    <input 
+                      type="text" 
+                      class="confirm-input" 
+                      placeholder="DELETE" 
+                      [ngModel]="deleteConfirmationInput()" 
+                      (ngModelChange)="deleteConfirmationInput.set($event)" />
+                    <button 
+                      type="button" 
+                      class="btn-danger-solid" 
+                      [disabled]="deleteConfirmationInput().trim().toUpperCase() !== 'DELETE' || isDeletingAccount()"
+                      (click)="confirmDeleteAccount()">
+                      @if (isDeletingAccount()) {
+                        <mat-spinner diameter="16"></mat-spinner>
+                      } @else {
+                        <span>Confirm Deletion</span>
+                      }
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-secondary" 
+                      (click)="showDeleteModal.set(false)">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
     </div>
   `,
   styles: [`
@@ -261,6 +435,48 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
       width: 16px;
       height: 16px;
       color: var(--mv-text-muted);
+    }
+
+    /* Tab switcher */
+    .profile-tabs-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 2px solid var(--mv-border);
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: none;
+      border: none;
+      padding: 10px 18px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--mv-text-secondary);
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--mv-text-primary);
+      background-color: var(--mv-bg-subtle);
+    }
+
+    .tab-btn.active {
+      color: var(--mv-primary);
+      border-bottom: 3px solid var(--mv-primary);
+      margin-bottom: -2px;
+    }
+
+    .tab-btn mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
     }
 
     /* Tagged Section */
@@ -438,21 +654,398 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
       height: 48px;
       color: var(--mv-text-muted);
     }
+
+    /* Security & Privacy Section */
+    .security-section {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    .settings-card {
+      background-color: var(--mv-bg-surface);
+      border: 1px solid var(--mv-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    .card-header-row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .card-icon-bubble {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-icon-bubble.primary {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    .card-icon-bubble.amber {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .card-icon-bubble.red {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: var(--mv-text-primary);
+    }
+
+    .card-subtitle {
+      font-size: 0.88rem;
+      color: var(--mv-text-secondary);
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .header-text-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex: 1;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      height: 42px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .archive-info-callout {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--mv-bg-subtle);
+      border: 1px solid var(--mv-border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      color: var(--mv-text-secondary);
+    }
+
+    .archive-info-callout mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--mv-text-muted);
+    }
+
+    /* Privacy options cards */
+    .privacy-options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .privacy-option-box {
+      border: 2px solid var(--mv-border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      background: var(--mv-bg-surface);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .privacy-option-box:hover {
+      border-color: var(--mv-primary);
+      background: #fdfaf6;
+    }
+
+    .privacy-option-box.selected {
+      border-color: var(--mv-primary);
+      background: #fffbeb;
+      box-shadow: 0 0 0 1px var(--mv-primary);
+    }
+
+    .option-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .option-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      color: var(--mv-primary);
+    }
+
+    .badge-recommended {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .radio-circle {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--mv-border);
+      display: inline-block;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .radio-circle.checked {
+      border-color: var(--mv-primary);
+      background-color: var(--mv-primary);
+    }
+
+    .radio-circle.checked::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+
+    .option-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--mv-text-primary);
+    }
+
+    .option-desc {
+      font-size: 0.82rem;
+      color: var(--mv-text-secondary);
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* Danger Card */
+    .danger-card {
+      border-color: #fca5a5;
+      background-color: #fffafa;
+    }
+
+    .danger-title {
+      color: #b91c1c;
+    }
+
+    .danger-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .danger-explanation p {
+      margin: 0;
+      font-size: 0.88rem;
+      color: #7f1d1d;
+      line-height: 1.5;
+    }
+
+    .btn-danger-outline {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      color: #dc2626;
+      border: 1px solid #dc2626;
+      padding: 8px 18px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger-outline:hover {
+      background: #dc2626;
+      color: #ffffff;
+    }
+
+    .delete-confirmation-box {
+      background: #ffffff;
+      border: 1px solid #f87171;
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 540px;
+    }
+
+    .confirm-prompt {
+      font-size: 0.88rem;
+      color: #991b1b;
+      margin: 0;
+    }
+
+    .confirm-input-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .confirm-input {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      outline: none;
+      width: 140px;
+    }
+
+    .confirm-input:focus {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+    }
+
+    .btn-danger-solid {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 140px;
+    }
+
+    .btn-danger-solid:disabled {
+      background: #fca5a5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #d1d5db;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+    }
   `]
 })
 export class ProfileComponent implements OnInit {
   readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly memoryService = inject(MemoryService);
   private readonly userService = inject(UserService);
   private readonly snackBar = inject(MatSnackBar);
 
+  readonly activeTab = signal<'memories' | 'security'>('memories');
   readonly taggedMemories = signal<Memory[]>([]);
   readonly isLoading = signal<boolean>(false);
   readonly isUploadingAvatar = signal<boolean>(false);
+  readonly isExportingArchive = signal<boolean>(false);
+  readonly isDeletingAccount = signal<boolean>(false);
+  readonly showDeleteModal = signal<boolean>(false);
+  readonly deleteConfirmationInput = signal<string>('');
+  readonly defaultPrivacy = signal<PrivacyLevel>(
+    (localStorage.getItem('mv_default_privacy_level') as PrivacyLevel) || 'CIRCLE_COMPANIONS'
+  );
+
   readonly defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
 
   ngOnInit(): void {
     this.loadTaggedMemories();
+  }
+
+  setDefaultPrivacy(level: PrivacyLevel): void {
+    this.defaultPrivacy.set(level);
+    localStorage.setItem('mv_default_privacy_level', level);
+    const friendlyName = level === 'PRIVATE_TO_ME' ? 'Private to Me' :
+                         level === 'CIRCLE_COMPANIONS' ? 'Circle Companions' : 'Public Archive';
+    this.snackBar.open(`Default privacy saved: ${friendlyName}`, 'OK', { duration: 3000 });
+  }
+
+  downloadFullArchive(): void {
+    this.isExportingArchive.set(true);
+    this.userService.exportFullArchive().subscribe({
+      next: (blob) => {
+        this.isExportingArchive.set(false);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `memoryverse-archive-${new Date().toISOString().slice(0, 10)}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('Archive downloaded successfully!', 'OK', { duration: 4000 });
+      },
+      error: (err) => {
+        this.isExportingArchive.set(false);
+        console.error('Failed to export archive:', err);
+        this.snackBar.open('Failed to generate archive. Please try again.', 'Close', { duration: 4500 });
+      }
+    });
+  }
+
+  confirmDeleteAccount(): void {
+    if (this.deleteConfirmationInput().trim().toUpperCase() !== 'DELETE') {
+      return;
+    }
+    this.isDeletingAccount.set(true);
+    this.userService.deleteMyAccount().subscribe({
+      next: () => {
+        this.isDeletingAccount.set(false);
+        this.snackBar.open('Your account has been deleted. We are sorry to see you go.', 'Close', { duration: 5000 });
+        this.auth.logout();
+        this.router.navigate(['/auth/login']);
+      },
+      error: (err) => {
+        this.isDeletingAccount.set(false);
+        console.error('Failed to delete account:', err);
+        this.snackBar.open('Failed to delete account. Please try again later.', 'Close', { duration: 4500 });
+      }
+    });
   }
 
   onAvatarFileSelected(event: Event, userId: string): void {

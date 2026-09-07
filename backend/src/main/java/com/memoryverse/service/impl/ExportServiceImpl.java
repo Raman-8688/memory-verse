@@ -7,13 +7,16 @@ import com.memoryverse.dto.response.JourneyResponseDto;
 import com.memoryverse.dto.response.MemoryResponseDto;
 import com.memoryverse.entity.Media;
 import com.memoryverse.entity.Memory;
+import com.memoryverse.entity.User;
 import com.memoryverse.exception.ResourceNotFoundException;
 import com.memoryverse.repository.MemoryRepository;
+import com.memoryverse.repository.UserRepository;
 import com.memoryverse.service.ExportService;
 import com.memoryverse.service.JourneyService;
 import com.memoryverse.service.MemoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -33,6 +37,7 @@ public class ExportServiceImpl implements ExportService {
     private final MemoryService memoryService;
     private final JourneyService journeyService;
     private final MemoryRepository memoryRepository;
+    private final UserRepository userRepository;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -231,6 +236,67 @@ public class ExportServiceImpl implements ExportService {
                 "**Journey:** " + (m.getJourneyTitle() != null ? m.getJourneyTitle() : "N/A") + "\n\n" +
                 "## Story\n\n" +
                 (m.getStory() != null ? m.getStory() : "No story text recorded.") + "\n";
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] exportUserArchiveZip(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        List<Memory> authoredMemories = memoryRepository.findByCreatedByIdOrderByMemoryDateDesc(
+                userId, PageRequest.of(0, 1000)).getContent();
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+            // 1. User profile snapshot
+            String profileJson = OBJECT_MAPPER.writeValueAsString(user);
+            addZipEntry(zos, "profile.json", profileJson.getBytes(StandardCharsets.UTF_8));
+
+            // 2. Authored memories JSON
+            List<MemoryResponseDto> memoryDtos = authoredMemories.stream()
+                    .map(m -> memoryService.getMemoryById(m.getId()))
+                    .toList();
+            String memoriesJson = OBJECT_MAPPER.writeValueAsString(memoryDtos);
+            addZipEntry(zos, "memories.json", memoriesJson.getBytes(StandardCharsets.UTF_8));
+
+            // 3. Human-readable archive summary Markdown
+            StringBuilder summaryMd = new StringBuilder();
+            summaryMd.append("# MemoryVerse Archive Export\n\n");
+            summaryMd.append("**User:** ").append(user.getFullName()).append(" (").append(user.getEmail()).append(")\n");
+            summaryMd.append("**Export Timestamp:** ").append(java.time.Instant.now()).append("\n");
+            summaryMd.append("**Total Memories Exported:** ").append(memoryDtos.size()).append("\n\n");
+            summaryMd.append("## Authored Moments\n\n");
+            for (MemoryResponseDto m : memoryDtos) {
+                summaryMd.append("- **").append(m.getTitle()).append("** (")
+                        .append(m.getMemoryDate() != null ? m.getMemoryDate().toString() : "Timeless")
+                        .append(") - ").append(m.getLocationName() != null ? m.getLocationName() : "No location")
+                        .append("\n");
+            }
+            addZipEntry(zos, "archive-summary.md", summaryMd.toString().getBytes(StandardCharsets.UTF_8));
+
+            // 4. Media manifest
+            StringBuilder manifest = new StringBuilder("# Media Assets Manifest\n\n");
+            for (Memory m : authoredMemories) {
+                if (m.getMediaList() != null && !m.getMediaList().isEmpty()) {
+                    manifest.append("### Memory: ").append(m.getTitle()).append("\n");
+                    for (Media med : m.getMediaList()) {
+                        manifest.append("- [").append(med.getMediaType()).append("] ")
+                                .append(med.getFileName() != null ? med.getFileName() : "media")
+                                .append(" : ").append(med.getMediaUrl()).append("\n");
+                    }
+                    manifest.append("\n");
+                }
+            }
+            addZipEntry(zos, "media-manifest.txt", manifest.toString().getBytes(StandardCharsets.UTF_8));
+
+            zos.finish();
+            return baos.toByteArray();
+        } catch (IOException e) {
+            log.error("Failed to package user archive ZIP: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate archive package", e);
+        }
     }
 
     private void addZipEntry(ZipOutputStream zos, String filename, byte[] content) throws IOException {

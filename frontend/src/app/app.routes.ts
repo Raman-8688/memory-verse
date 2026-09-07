@@ -110,6 +110,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },
       {
+        path: 'settings',
+        redirectTo: 'profile',
+        pathMatch: 'full'
+      },
+      {
         path: 'admin/group',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/admin-settings.component').then(m => m.AdminSettingsComponent)

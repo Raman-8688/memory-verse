@@ -46,6 +46,10 @@ export class ApiService {
     );
   }
 
+  getBlob(endpoint: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}${endpoint}`, { responseType: 'blob' });
+  }
+
   private buildParams(params?: Record<string, any>): HttpParams {
     let httpParams = new HttpParams();
     if (!params) return httpParams;

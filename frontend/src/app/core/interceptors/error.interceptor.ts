@@ -31,6 +31,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         errorMessage = error.error?.message || 'The requested resource was not found.';
       } else if (error.status === 400 || error.status === 422) {
         errorMessage = error.error?.message || 'Invalid data provided. Please check your inputs.';
+      } else if (error.status === 429) {
+        errorMessage = error.error?.message || 'Too many requests. Please wait a moment before trying again.';
       } else if (error.status >= 500) {
         errorMessage = 'Server error occurred. Please try again later.';
       }
