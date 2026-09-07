@@ -448,3 +448,42 @@
     font-size: 1.05rem;
   }
 }
+
+@media (max-width: 640px) {
+  .on-this-day-page {
+    padding: var(--mv-space-20) var(--mv-space-16);
+    gap: var(--mv-space-24);
+  }
+
+  .otd-title {
+    font-size: 1.75rem;
+  }
+
+  .memories-grid {
+    grid-template-columns: 1fr;
+    gap: var(--mv-space-16);
+  }
+
+  .card-media-wrap {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 480px) {
+  .otd-title {
+    font-size: 1.5rem;
+  }
+
+  .year-group-header {
+    gap: 8px;
+  }
+
+  .year-pill {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+  }
+
+  .empty-otd-box {
+    padding: 40px 16px;
+  }
+}

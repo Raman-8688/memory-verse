@@ -970,6 +970,52 @@ import { ImageFallbackDirective } from '@shared/directives/image-fallback.direct
     .btn-secondary:hover {
       background: #e5e7eb;
     }
+
+    @media (max-width: 640px) {
+      .profile-page {
+        gap: var(--space-4);
+      }
+      .profile-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: var(--space-4);
+        gap: var(--space-3);
+      }
+      .editorial-title {
+        font-size: 1.8rem;
+      }
+      .contact-chips {
+        justify-content: center;
+      }
+      .profile-tabs-nav {
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 4px;
+        .tab-btn {
+          padding: 8px 12px;
+          font-size: 0.85rem;
+        }
+      }
+      .header-text-flex {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .download-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .delete-confirmation-box {
+        padding: 14px;
+      }
+      .confirm-input-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .confirm-input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+    }
   `]
 })
 export class ProfileComponent implements OnInit {

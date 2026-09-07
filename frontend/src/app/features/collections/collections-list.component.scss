@@ -652,3 +652,26 @@
     border-radius: var(--mv-radius-xl);
   }
 }
+
+@media (max-width: 640px) {
+  .collections-bookshelf-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .collections-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--mv-space-12);
+  }
+  .btn-new-collection {
+    width: 100%;
+    justify-content: center;
+  }
+  .modal-backdrop {
+    padding: 12px;
+  }
+  .modal-panel {
+    border-radius: var(--mv-radius-lg);
+  }
+}
+

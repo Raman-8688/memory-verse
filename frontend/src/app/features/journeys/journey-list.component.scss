@@ -269,7 +269,21 @@
 }
 
 @media (max-width: 640px) {
+  .journeys-page-container {
+    gap: var(--mv-space-20);
+  }
+  .journeys-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--mv-space-12);
+  }
+  .new-journey-btn {
+    width: 100%;
+    justify-content: center;
+  }
   .journeys-shelf-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
+

@@ -396,7 +396,14 @@
 }
 
 @media (max-width: 640px) {
+  .favorites-container {
+    gap: var(--mv-space-20);
+  }
   .favorites-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .search-box {
+    max-width: 100%;
   }
 }

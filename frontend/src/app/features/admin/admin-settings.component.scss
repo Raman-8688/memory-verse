@@ -310,6 +310,13 @@
 }
 
 @media (max-width: 640px) {
+  .stats-ribbon {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .invite-banner-card {
+    padding: var(--mv-space-16);
+  }
   .member-roster-row {
     flex-direction: column;
     align-items: flex-start;

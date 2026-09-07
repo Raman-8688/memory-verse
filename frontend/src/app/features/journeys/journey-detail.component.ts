@@ -91,51 +91,54 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 
                 <div class="meta-spacer"></div>
 
-                <!-- Play Storybook Presentation Mode -->
-                <button mat-flat-button class="storybook-hero-btn" (click)="openStorybook(j)" title="Play full-screen storybook">
-                  <mat-icon>auto_stories</mat-icon>
-                  <span>Play Storybook</span>
-                </button>
+                <!-- Action buttons group with responsive wrapping -->
+                <div class="journey-actions-group">
+                  <!-- Play Storybook Presentation Mode -->
+                  <button mat-flat-button class="storybook-hero-btn" (click)="openStorybook(j)" title="Play full-screen storybook">
+                    <mat-icon>auto_stories</mat-icon>
+                    <span>Play Storybook</span>
+                  </button>
 
-                <!-- View Full Photo Button -->
-                <button mat-stroked-button class="view-cover-btn" (click)="viewCoverFullscreen(j)">
-                  <mat-icon>fullscreen</mat-icon>
-                  <span>View Photo</span>
-                </button>
+                  <!-- View Full Photo Button -->
+                  <button mat-stroked-button class="view-cover-btn" (click)="viewCoverFullscreen(j)">
+                    <mat-icon>fullscreen</mat-icon>
+                    <span>View Photo</span>
+                  </button>
 
-                <!-- Share Public Link -->
-                <button mat-stroked-button class="view-cover-btn" (click)="shareJourney(j)" [disabled]="isSharing()" title="Generate public link">
-                  @if (isSharing()) {
-                    <mat-spinner diameter="14" class="white-spinner"></mat-spinner>
-                  } @else {
-                    <mat-icon>share</mat-icon>
+                  <!-- Share Public Link -->
+                  <button mat-stroked-button class="view-cover-btn" (click)="shareJourney(j)" [disabled]="isSharing()" title="Generate public link">
+                    @if (isSharing()) {
+                      <mat-spinner diameter="14" class="white-spinner"></mat-spinner>
+                    } @else {
+                      <mat-icon>share</mat-icon>
+                    }
+                    <span>Share</span>
+                  </button>
+
+                  <!-- Export Keepsake Book -->
+                  <button mat-stroked-button class="view-cover-btn" [matMenuTriggerFor]="journeyExportMenu" title="Export keepsake">
+                    <mat-icon>menu_book</mat-icon>
+                    <span>Keepsake</span>
+                  </button>
+                  <mat-menu #journeyExportMenu="matMenu">
+                    <button mat-menu-item (click)="exportJourneyBook(j)">
+                      <mat-icon>print</mat-icon>
+                      <span>Print Anthology Book (PDF)</span>
+                    </button>
+                    <button mat-menu-item (click)="downloadJourneyZip(j)">
+                      <mat-icon>inventory_2</mat-icon>
+                      <span>Download Full Archive (ZIP)</span>
+                    </button>
+                  </mat-menu>
+
+                  <!-- Edit Journey (Neatly positioned at the bottom side) -->
+                  @if (canEdit()) {
+                    <button mat-flat-button class="edit-hero-btn-bottom" (click)="openEditDialog(j)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit Journey</span>
+                    </button>
                   }
-                  <span>Share</span>
-                </button>
-
-                <!-- Export Keepsake Book -->
-                <button mat-stroked-button class="view-cover-btn" [matMenuTriggerFor]="journeyExportMenu" title="Export keepsake">
-                  <mat-icon>menu_book</mat-icon>
-                  <span>Keepsake</span>
-                </button>
-                <mat-menu #journeyExportMenu="matMenu">
-                  <button mat-menu-item (click)="exportJourneyBook(j)">
-                    <mat-icon>print</mat-icon>
-                    <span>Print Anthology Book (PDF)</span>
-                  </button>
-                  <button mat-menu-item (click)="downloadJourneyZip(j)">
-                    <mat-icon>inventory_2</mat-icon>
-                    <span>Download Full Archive (ZIP)</span>
-                  </button>
-                </mat-menu>
-
-                <!-- Edit Journey (Neatly positioned at the bottom side) -->
-                @if (canEdit()) {
-                  <button mat-flat-button class="edit-hero-btn-bottom" (click)="openEditDialog(j)">
-                    <mat-icon>edit</mat-icon>
-                    <span>Edit Journey</span>
-                  </button>
-                }
+                </div>
               </div>
             </div>
           </div>
@@ -476,6 +479,13 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 
     .meta-spacer {
       flex: 1;
+    }
+
+    .journey-actions-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
     }
 
     .storybook-hero-btn {
@@ -979,15 +989,26 @@ import { NotificationStateService } from '@core/services/notification-state.serv
     }
 
     @media (max-width: 768px) {
+      .hero-banner {
+        min-height: 320px;
+        padding: var(--space-4);
+      }
       .hero-title {
         font-size: 2.2rem;
       }
       .meta-row {
         flex-direction: column;
         align-items: flex-start;
+        gap: var(--space-3);
       }
       .meta-spacer {
         display: none;
+      }
+      .journey-actions-group {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .step-card-layout {
         flex-direction: column;
@@ -1002,6 +1023,27 @@ import { NotificationStateService } from '@core/services/notification-state.serv
       }
       .form-row {
         flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-banner {
+        min-height: 280px;
+        padding: var(--space-3);
+      }
+      .hero-title {
+        font-size: 1.8rem;
+      }
+      .hero-desc {
+        font-size: 0.95rem;
+      }
+      .journey-actions-group {
+        gap: 6px;
+      }
+      .storybook-hero-btn, .view-cover-btn, .edit-hero-btn-bottom {
+        font-size: 0.76rem;
+        height: 34px;
+        padding: 0 10px !important;
       }
     }
   `]

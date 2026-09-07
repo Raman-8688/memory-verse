@@ -17,22 +17,24 @@
   </div>
 
   <div class="navbar-actions">
+    <!-- Universal Search (Always visible) -->
     <button mat-button class="navbar-search-btn" (click)="paletteService.open()" title="Universal Search (Cmd+K / Ctrl+K)">
       <mat-icon>search</mat-icon>
       <span class="search-label">Search archive...</span>
       <kbd class="shortcut-cap">⌘K</kbd>
     </button>
 
-    <button mat-stroked-button class="quick-capture-btn" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
+    <!-- Desktop & Tablet Action Icons (hidden on narrow screens < 540px) -->
+    <button mat-stroked-button class="quick-capture-btn desktop-only-action" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
       <mat-icon>add_a_photo</mat-icon>
       <span class="btn-text">Capture</span>
     </button>
 
-    <button mat-icon-button class="assistant-btn" routerLink="/assistant" aria-label="Memory Assistant" title="Memory Assistant">
+    <button mat-icon-button class="assistant-btn desktop-only-action" routerLink="/assistant" aria-label="Memory Assistant" title="Memory Assistant">
       <mat-icon>auto_awesome</mat-icon>
     </button>
 
-    <button mat-icon-button class="notification-btn" routerLink="/notifications" aria-label="Notifications">
+    <button mat-icon-button class="notification-btn desktop-only-action" routerLink="/notifications" aria-label="Notifications">
       <div class="bell-wrapper">
         <mat-icon>{{ notificationState.unreadCount() > 0 ? 'notifications' : 'notifications_none' }}</mat-icon>
         @if (notificationState.unreadCount() > 0) {
@@ -43,8 +45,39 @@
       </div>
     </button>
 
+    <!-- Mobile Overflow Kebab Button (Visible on screens < 540px to ensure nothing is lost) -->
+    <button mat-icon-button class="mobile-overflow-btn" [matMenuTriggerFor]="mobileOverflowMenu" aria-label="More actions" title="More actions">
+      <div class="bell-wrapper">
+        <mat-icon>more_vert</mat-icon>
+        @if (notificationState.unreadCount() > 0) {
+          <span class="unread-dot"></span>
+        }
+      </div>
+    </button>
+
+    <mat-menu #mobileOverflowMenu="matMenu" xPosition="before" class="editorial-menu">
+      <button mat-menu-item (click)="captureService.openCaptureFlow()">
+        <mat-icon>add_a_photo</mat-icon>
+        <span>Quick Capture</span>
+      </button>
+      <a mat-menu-item routerLink="/assistant">
+        <mat-icon>auto_awesome</mat-icon>
+        <span>Memory Assistant</span>
+      </a>
+      <a mat-menu-item routerLink="/notifications">
+        <mat-icon>{{ notificationState.unreadCount() > 0 ? 'notifications' : 'notifications_none' }}</mat-icon>
+        <span>Notifications</span>
+        @if (notificationState.unreadCount() > 0) {
+          <span class="menu-unread-pill">
+            {{ notificationState.unreadCount() > 99 ? '99+' : notificationState.unreadCount() }}
+          </span>
+        }
+      </a>
+    </mat-menu>
+
+    <!-- User Profile Dropdown (Always visible) -->
     @if (authService.currentUser(); as user) {
-      <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn">
+      <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn" aria-label="User profile menu">
         <img [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
              [alt]="user.fullName" 
              class="user-avatar">

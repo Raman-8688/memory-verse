@@ -308,7 +308,37 @@
 }
 
 @media (max-width: 640px) {
-  .people-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-  .people-search-wrap { width: 100%; }
-  .avatar-wrapper { width: 76px; height: 76px; }
+  .people-page-container {
+    padding: 0 16px var(--mv-space-48);
+    gap: var(--mv-space-24);
+  }
+  .header-actions-wrap {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .people-search-wrap {
+    width: 100%;
+  }
+  .add-companion-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .people-grid {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: var(--mv-space-16);
+  }
+  .person-card {
+    padding: var(--mv-space-20) var(--mv-space-12) var(--mv-space-16);
+  }
+  .avatar-wrapper {
+    width: 76px;
+    height: 76px;
+  }
+}
+
+@media (max-width: 380px) {
+  .people-grid {
+    grid-template-columns: 1fr;
+  }
 }

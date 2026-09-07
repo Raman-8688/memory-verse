@@ -82,32 +82,65 @@
             </button>
           </mat-menu>
 
-          @if (canEdit()) {
-            <button mat-stroked-button class="action-btn edit-btn" (click)="openEditDialog(m)">
-              <mat-icon>edit</mat-icon>
-              <span>Edit Story</span>
+          <!-- Desktop Action Buttons (Responsive wrapping) -->
+          <div class="desktop-actions-group">
+            @if (canEdit()) {
+              <button mat-stroked-button class="action-btn edit-btn" (click)="openEditDialog(m)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit Story</span>
+              </button>
+              <button mat-stroked-button class="action-btn delete-memory-btn" (click)="confirmDeleteMemory(m)" [disabled]="isDeletingMemory()" title="Delete Memory">
+                @if (isDeletingMemory()) {
+                  <mat-spinner diameter="14" class="red-spinner"></mat-spinner>
+                } @else {
+                  <mat-icon>delete_outline</mat-icon>
+                }
+                <span>Delete</span>
+              </button>
+            }
+            <label class="add-photos-btn action-btn">
+              <mat-icon>add_photo_alternate</mat-icon>
+              <span>Add Photos</span>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*,video/*,audio/*" 
+                (change)="onFilesSelected($event)" 
+                [disabled]="isUploadingMedia()" 
+                hidden 
+              />
+            </label>
+          </div>
+
+          <!-- Mobile Overflow Kebab (Visible on narrow mobile screens < 640px to ensure delete/photos/edit are never lost) -->
+          <button mat-icon-button class="mobile-memory-more-btn" [matMenuTriggerFor]="mobileMemoryActionsMenu" aria-label="More memory actions">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          <mat-menu #mobileMemoryActionsMenu="matMenu">
+            @if (canEdit()) {
+              <button mat-menu-item (click)="openEditDialog(m)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit Story</span>
+              </button>
+              <button mat-menu-item (click)="confirmDeleteMemory(m)" [disabled]="isDeletingMemory()">
+                <mat-icon color="warn">delete_outline</mat-icon>
+                <span>Delete Memory</span>
+              </button>
+            }
+            <button mat-menu-item (click)="mobileFileInput.click()">
+              <mat-icon>add_photo_alternate</mat-icon>
+              <span>Add Photos</span>
             </button>
-            <button mat-stroked-button class="action-btn delete-memory-btn" (click)="confirmDeleteMemory(m)" [disabled]="isDeletingMemory()" title="Delete Memory">
-              @if (isDeletingMemory()) {
-                <mat-spinner diameter="14" class="red-spinner"></mat-spinner>
-              } @else {
-                <mat-icon>delete_outline</mat-icon>
-              }
-              <span>Delete</span>
-            </button>
-          }
-          <label class="add-photos-btn action-btn">
-            <mat-icon>add_photo_alternate</mat-icon>
-            <span>Add Photos</span>
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*,video/*,audio/*" 
-              (change)="onFilesSelected($event)" 
-              [disabled]="isUploadingMedia()" 
-              hidden 
-            />
-          </label>
+          </mat-menu>
+          <input 
+            #mobileFileInput
+            type="file" 
+            multiple 
+            accept="image/*,video/*,audio/*" 
+            (change)="onFilesSelected($event)" 
+            [disabled]="isUploadingMedia()" 
+            hidden 
+          />
         </div>
       </nav>
 

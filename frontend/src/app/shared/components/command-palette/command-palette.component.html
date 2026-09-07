@@ -58,6 +58,14 @@
                     <mat-icon>people</mat-icon>
                     <span>People</span>
                   </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/favorites')">
+                    <mat-icon>favorite_border</mat-icon>
+                    <span>Favorites</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/collections')">
+                    <mat-icon>collections_bookmark</mat-icon>
+                    <span>Collections</span>
+                  </button>
                   <button type="button" class="quick-chip" (click)="quickNavigate('/assistant')">
                     <mat-icon>auto_awesome</mat-icon>
                     <span>Ask AI</span>

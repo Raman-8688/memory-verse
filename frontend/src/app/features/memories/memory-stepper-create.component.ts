@@ -959,6 +959,14 @@ interface PreviewMedia {
           width: 100%;
         }
       }
+      .stepper-nav-buttons {
+        gap: 8px;
+        flex-wrap: wrap;
+        button {
+          flex: 1;
+          min-width: 120px;
+        }
+      }
       .editorial-title {
         font-size: 1.8rem;
       }

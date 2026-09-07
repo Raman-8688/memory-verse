@@ -506,7 +506,30 @@
 .skeleton-card { height: 240px; border-radius: var(--mv-radius-lg); }
 
 @media (max-width: 640px) {
+  .timeline-feed-page {
+    gap: var(--mv-space-20);
+  }
+  .feed-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--mv-space-12);
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--mv-space-8);
+  }
+  .add-memory-btn {
+    flex: 1;
+    justify-content: center;
+  }
   .period-sticky-header { top: 60px; }
   .editorial-cards-stack { grid-template-columns: 1fr; }
-  .compact-gallery-grid { grid-template-columns: repeat(2, 1fr); }
+  .compact-gallery-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
 }
+
+@media (max-width: 380px) {
+  .compact-gallery-grid { grid-template-columns: 1fr; }
+  .view-mode-toggle .toggle-text { display: none; }
+}
+

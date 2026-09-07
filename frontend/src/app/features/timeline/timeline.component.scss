@@ -1002,3 +1002,30 @@
     margin-left: 8px;
   }
 }
+
+@media (max-width: 480px) {
+  .timeline-container {
+    gap: var(--mv-space-20);
+  }
+  .timeline-header {
+    gap: var(--mv-space-12);
+  }
+  .smart-search-box {
+    padding: 4px 8px 4px 12px;
+    gap: 8px;
+  }
+  .smart-search-input {
+    font-size: 0.88rem;
+  }
+  .card-narrative-pane {
+    padding: 14px 16px;
+  }
+  .card-title {
+    font-size: 1.15rem;
+  }
+  .year-marker-badge {
+    font-size: 1.2rem;
+    padding: 3px 14px;
+  }
+}
+

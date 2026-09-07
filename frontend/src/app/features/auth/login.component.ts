@@ -342,6 +342,32 @@ import { AuthService } from '@core/auth/auth.service';
       }
       .login-form-pane {
         padding: var(--space-2);
+        width: 100%;
+      }
+      .form-card {
+        padding: var(--space-4);
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .form-card {
+        padding: var(--space-3);
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+      .editorial-title {
+        font-size: 1.7rem;
+      }
+      .demo-buttons {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .demo-chip {
+        min-height: 40px;
+        width: 100%;
       }
     }
   `]

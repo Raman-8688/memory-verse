@@ -877,10 +877,63 @@
 }
 
 @media (max-width: 640px) {
+  .dashboard-container {
+    gap: var(--mv-space-24);
+  }
   .explore-portals-grid {
     grid-template-columns: 1fr;
   }
   .hero-greeting {
     font-size: 2rem;
   }
+  .primary-actions-row {
+    flex-direction: column;
+    gap: 8px;
+    .quick-action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  .spotlight-narrative-pane {
+    padding: 18px 20px;
+  }
+  .spotlight-title {
+    font-size: 1.45rem;
+  }
+  .search-bar-shell {
+    padding: 6px 8px 6px 14px;
+    gap: 8px;
+  }
+  .search-submit-btn {
+    padding: 0 12px !important;
+  }
+  .journeys-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
+
+@media (max-width: 480px) {
+  .hero-greeting {
+    font-size: 1.75rem;
+  }
+  .search-submit-btn span {
+    display: none;
+  }
+  .search-submit-btn {
+    padding: 0 !important;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    justify-content: center;
+  }
+  .spotlight-footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    .relive-action-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
