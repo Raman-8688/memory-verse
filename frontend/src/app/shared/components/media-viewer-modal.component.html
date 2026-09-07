@@ -3,9 +3,9 @@
   <!-- Top Action & Navigation Bar -->
   <header class="lightbox-top-bar" (click)="$event.stopPropagation()">
     <div class="counter-badge">
-      <span class="curr-idx">{{ currentIndex() + 1 }}</span>
+      <span class="curr-idx">{{ items().length > 0 ? currentIndex() + 1 : 0 }}</span>
       <span class="sep">/</span>
-      <span class="total-len">{{ data.items.length }}</span>
+      <span class="total-len">{{ items().length }}</span>
     </div>
 
     <div class="top-controls">
@@ -14,7 +14,7 @@
         mat-icon-button 
         class="lightbox-btn" 
         (click)="downloadCurrentMedia()" 
-        [disabled]="isDownloadingCurrent()" 
+        [disabled]="isDownloadingCurrent() || !currentItem()" 
         title="Download high-resolution file" 
         aria-label="Download media">
         @if (isDownloadingCurrent()) {
@@ -23,6 +23,34 @@
           <mat-icon>download</mat-icon>
         }
       </button>
+
+      <!-- More Options (Three Dots) Menu -->
+      @if (canDelete() && currentItem()) {
+        <button 
+          mat-icon-button 
+          class="lightbox-btn more-options-btn" 
+          [matMenuTriggerFor]="lightboxMoreMenu" 
+          [disabled]="isDeletingCurrent()"
+          title="More options" 
+          aria-label="More options">
+          @if (isDeletingCurrent()) {
+            <mat-spinner diameter="18" class="white-spinner"></mat-spinner>
+          } @else {
+            <mat-icon>more_vert</mat-icon>
+          }
+        </button>
+        <mat-menu #lightboxMoreMenu="matMenu" class="editorial-menu media-options-menu">
+          <button mat-menu-item (click)="downloadCurrentMedia()">
+            <mat-icon>download</mat-icon>
+            <span>Download Photo</span>
+          </button>
+          <div class="menu-divider"></div>
+          <button mat-menu-item class="danger-menu-item" (click)="removeCurrentMedia()">
+            <mat-icon class="danger-icon">delete_outline</mat-icon>
+            <span>Remove from Memory</span>
+          </button>
+        </mat-menu>
+      }
 
       <!-- Close Lightbox -->
       <button 
@@ -66,7 +94,7 @@
       mat-icon-button 
       class="stage-nav-arrow arrow-next" 
       (click)="next(); $event.stopPropagation()" 
-      [disabled]="currentIndex() >= data.items.length - 1" 
+      [disabled]="currentIndex() >= items().length - 1" 
       title="Next (Right Arrow)"
       aria-label="Next media">
       <mat-icon>chevron_right</mat-icon>

@@ -21,11 +21,17 @@ export class NotificationStateService {
   private consecutiveErrors = 0;
 
   constructor() {
-    // Automatically load unread count when user is authenticated
-    if (this.auth.isAuthenticated()) {
-      this.loadUnreadCount();
-      this.startPolling();
-    }
+    // Automatically manage polling and unread count based on authentication state
+    this.auth.currentUser$.subscribe((user) => {
+      if (user) {
+        this.loadUnreadCount();
+        this.startPolling();
+      } else {
+        this.stopPolling();
+        this.unreadCount.set(0);
+        this.notifications.set([]);
+      }
+    });
 
     // Also refresh on window focus / tab visibility change (with 30s debounce)
     if (typeof window !== 'undefined') {
@@ -65,12 +71,18 @@ export class NotificationStateService {
     if (!this.auth.isAuthenticated() || this.isFetchingUnread) return;
 
     this.isFetchingUnread = true;
-    this.api.get<{ unreadCount: number }>('/notifications/unread-count').subscribe({
+    this.api.get<any>('/notifications/unread-count').subscribe({
       next: (res) => {
         this.isFetchingUnread = false;
         this.lastFetchTime = Date.now();
         this.consecutiveErrors = 0;
-        this.unreadCount.set(res?.unreadCount ?? 0);
+        let count = 0;
+        if (typeof res === 'number') {
+          count = res;
+        } else if (res && typeof res === 'object') {
+          count = Number(res.unreadCount ?? res.count ?? 0);
+        }
+        this.unreadCount.set(isNaN(count) ? 0 : Math.max(0, count));
       },
       error: (err) => {
         this.isFetchingUnread = false;

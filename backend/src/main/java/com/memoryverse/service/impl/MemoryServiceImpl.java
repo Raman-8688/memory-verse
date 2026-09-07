@@ -322,6 +322,10 @@ public class MemoryServiceImpl implements MemoryService {
         if (dto.getPrivacyLevel() != null) {
             memory.setPrivacyLevel(dto.getPrivacyLevel());
         }
+        if (dto.getTaggedUserIds() != null && !dto.getTaggedUserIds().isEmpty()) {
+            List<User> newTaggedUsers = userRepository.findAllById(dto.getTaggedUserIds());
+            memory.setTaggedUsers(new java.util.HashSet<>(newTaggedUsers));
+        }
 
         Memory updated = memoryRepository.save(memory);
         log.info("Memory updated: id={}, title='{}'", updated.getId(), updated.getTitle());
@@ -335,6 +339,16 @@ public class MemoryServiceImpl implements MemoryService {
                 NotificationType.MEMORY_UPDATED,
                 updated.getId()
         );
+
+        if (updated.getTaggedUsers() != null) {
+            for (User taggedUser : updated.getTaggedUsers()) {
+                if (updater == null || !taggedUser.getId().equals(updater.getId())) {
+                    String notificationMsg = String.format("%s tagged you in the memory: '%s'",
+                            updaterName, updated.getTitle());
+                    notificationService.createNotification(taggedUser, notificationMsg, NotificationType.NEW_TAG, updated.getId());
+                }
+            }
+        }
 
         return MemoryResponseDto.fromEntity(updated);
     }

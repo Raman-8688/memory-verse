@@ -4,14 +4,19 @@ import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { GalleryItem } from '@core/models/gallery.model';
 import { DownloadService } from '@core/services/download.service';
+import { MemoryService } from '@core/services/memory.service';
+import { AuthService } from '@core/auth/auth.service';
 import { ImageFallbackDirective } from '../directives/image-fallback.directive';
 
 export interface MediaViewerData {
   items: GalleryItem[];
   startIndex: number;
+  canEdit?: boolean;
 }
 
 @Component({
@@ -22,6 +27,7 @@ export interface MediaViewerData {
     MatDialogModule, 
     MatButtonModule, 
     MatIconModule, 
+    MatMenuModule,
     MatProgressSpinnerModule,
     ImageFallbackDirective
   ],
@@ -31,25 +37,43 @@ export interface MediaViewerData {
 export class MediaViewerModalComponent {
   private readonly router = inject(Router);
   private readonly downloadService = inject(DownloadService);
+  private readonly memoryService = inject(MemoryService);
+  private readonly authService = inject(AuthService);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly dialogRef = inject(MatDialogRef<MediaViewerModalComponent>);
 
+  readonly items = signal<GalleryItem[]>([]);
   readonly currentIndex = signal<number>(0);
   readonly isDownloadingCurrent = signal<boolean>(false);
+  readonly isDeletingCurrent = signal<boolean>(false);
+  readonly hasMediaModified = signal<boolean>(false);
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: MediaViewerData) {
-    if (data && data.startIndex >= 0 && data.startIndex < data.items.length) {
+    const initialItems = data?.items ? [...data.items] : [];
+    this.items.set(initialItems);
+    if (data && data.startIndex >= 0 && data.startIndex < initialItems.length) {
       this.currentIndex.set(data.startIndex);
     }
   }
 
   readonly currentItem = computed<GalleryItem | null>(() => {
-    const items = this.data?.items;
+    const list = this.items();
     const idx = this.currentIndex();
-    if (items && idx >= 0 && idx < items.length) {
-      return items[idx];
+    if (list && idx >= 0 && idx < list.length) {
+      return list[idx];
     }
     return null;
   });
+
+  canDelete(): boolean {
+    if (this.data?.canEdit !== undefined) {
+      return this.data.canEdit;
+    }
+    const item = this.currentItem();
+    const user = this.authService.currentUser();
+    if (!item || !user) return false;
+    return this.authService.isAdmin() || (item.uploader?.id !== undefined && user.id === item.uploader.id);
+  }
 
   // Keyboard Navigation: ArrowLeft, ArrowRight, Escape
   @HostListener('window:keydown', ['$event'])
@@ -106,7 +130,7 @@ export class MediaViewerModalComponent {
   }
 
   next(): void {
-    if (this.currentIndex() < this.data.items.length - 1) {
+    if (this.currentIndex() < this.items().length - 1) {
       this.currentIndex.update(idx => idx + 1);
     }
   }
@@ -125,18 +149,52 @@ export class MediaViewerModalComponent {
     }
   }
 
+  removeCurrentMedia(): void {
+    const item = this.currentItem();
+    if (!item || !item.memoryId || !item.id) return;
+
+    if (!window.confirm('Are you sure you want to remove this photo from this memory?')) {
+      return;
+    }
+
+    this.isDeletingCurrent.set(true);
+    this.memoryService.deleteMedia(item.memoryId, item.id).subscribe({
+      next: () => {
+        this.isDeletingCurrent.set(false);
+        this.hasMediaModified.set(true);
+        this.snackBar.open('Photo removed from memory.', 'OK', { duration: 3000 });
+
+        const updated = this.items().filter(m => m.id !== item.id);
+        this.items.set(updated);
+
+        if (updated.length === 0) {
+          this.dialogRef.close({ deleted: true, memoryId: item.memoryId });
+        } else {
+          if (this.currentIndex() >= updated.length) {
+            this.currentIndex.set(updated.length - 1);
+          }
+        }
+      },
+      error: (err) => {
+        this.isDeletingCurrent.set(false);
+        console.error('Failed to remove photo:', err);
+        this.snackBar.open('Failed to remove photo. Please try again.', 'Close', { duration: 4000 });
+      }
+    });
+  }
+
   navigateToMemory(memoryId: string): void {
-    this.dialogRef.close();
+    this.dialogRef.close({ deleted: this.hasMediaModified(), memoryId });
     this.router.navigate(['/memories', memoryId]);
   }
 
   onStageClick(event: MouseEvent): void {
-    // Clicking backdrop outside of controls closes viewer
     this.closeViewer();
   }
 
   closeViewer(): void {
-    this.dialogRef.close();
+    const item = this.currentItem();
+    this.dialogRef.close({ deleted: this.hasMediaModified(), memoryId: item?.memoryId });
   }
 
   formatDate(dateStr?: string): string {

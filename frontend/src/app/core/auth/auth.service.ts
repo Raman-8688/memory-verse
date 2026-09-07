@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../models/user.model';
 import { TimelineRouteReuseStrategy } from '../routing/timeline-route-reuse-strategy';
@@ -18,6 +18,10 @@ export class AuthService {
   // State Signals
   readonly currentUser = signal<User | null>(this.loadUserFromStorage());
   readonly token = signal<string | null>(this.loadTokenFromStorage());
+
+  // Reactive Subject & Observable for standard RxJS streams and global subscription
+  private readonly currentUserSubject = new BehaviorSubject<User | null>(this.loadUserFromStorage());
+  readonly currentUser$ = this.currentUserSubject.asObservable();
 
   // Derived Computed Signals
   readonly isAuthenticated = computed(() => !!this.token() && !!this.currentUser());
@@ -44,6 +48,7 @@ export class AuthService {
     }
     this.token.set(null);
     this.currentUser.set(null);
+    this.currentUserSubject.next(null);
     this.router.navigate(['/auth/login']);
   }
 
@@ -54,6 +59,7 @@ export class AuthService {
     }
     this.token.set(authResult.token);
     this.currentUser.set(authResult.user);
+    this.currentUserSubject.next(authResult.user);
   }
 
   updateCurrentUser(user: User): void {
@@ -61,6 +67,7 @@ export class AuthService {
       localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     }
     this.currentUser.set(user);
+    this.currentUserSubject.next(user);
   }
 
   private loadTokenFromStorage(): string | null {

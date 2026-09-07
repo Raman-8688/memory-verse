@@ -16,6 +16,7 @@ import { MemoryService } from '@core/services/memory.service';
 import { InteractionService } from '@core/services/interaction.service';
 import { ShareService } from '@core/services/share.service';
 import { AuthService } from '@core/auth/auth.service';
+import { DownloadService } from '@core/services/download.service';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { MemoryEditDialogComponent } from './memory-edit-dialog.component';
 import { MediaViewerModalComponent, MediaViewerData } from '@shared/components/media-viewer-modal.component';
@@ -47,6 +48,7 @@ export class MemoryDetailComponent implements OnInit {
   private readonly memoryService = inject(MemoryService);
   private readonly interactionService = inject(InteractionService);
   private readonly shareService = inject(ShareService);
+  private readonly downloadService = inject(DownloadService);
   private readonly notificationState = inject(NotificationStateService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -126,6 +128,14 @@ export class MemoryDetailComponent implements OnInit {
     this.activeMedia.set(media);
   }
 
+  getActiveMediaIndex(): number {
+    const mem = this.memory();
+    const active = this.activeMedia();
+    if (!mem || !mem.mediaList || !active) return 0;
+    const idx = mem.mediaList.findIndex(m => m.id === active.id);
+    return idx >= 0 ? idx : 0;
+  }
+
   openLightbox(startIndex: number = 0): void {
     const mem = this.memory();
     if (!mem || !mem.mediaList || mem.mediaList.length === 0) return;
@@ -151,14 +161,20 @@ export class MemoryDetailComponent implements OnInit {
       createdAt: m.createdAt
     }));
 
-    this.dialog.open(MediaViewerModalComponent, {
-      data: { items: galleryItems, startIndex },
+    const ref = this.dialog.open(MediaViewerModalComponent, {
+      data: { items: galleryItems, startIndex, canEdit: this.canEdit() },
       panelClass: 'fullscreen-dialog-panel',
       maxWidth: '100vw',
       maxHeight: '100vh',
       width: '100vw',
       height: '100vh',
       hasBackdrop: false
+    });
+
+    ref.afterClosed().subscribe((res) => {
+      if (res?.deleted && mem.id) {
+        this.loadMemory(mem.id);
+      }
     });
   }
 
@@ -222,7 +238,15 @@ export class MemoryDetailComponent implements OnInit {
     });
   }
 
-  deleteMedia(media: Media, event?: Event): void {
+  downloadMedia(media: Media, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!media?.mediaUrl) return;
+    this.downloadService.downloadMedia(media.mediaUrl, media.fileName || 'memory-photo');
+  }
+
+  confirmDeleteMedia(media: Media, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
@@ -233,14 +257,22 @@ export class MemoryDetailComponent implements OnInit {
 
     this.memoryService.deleteMedia(mem.id, media.id).subscribe({
       next: () => {
-        this.snackBar.open('Photo deleted successfully.', 'OK', { duration: 3000 });
+        this.snackBar.open('Photo removed from memory.', 'OK', { duration: 3000 });
+        if (this.activeMedia()?.id === media.id) {
+          const remaining = mem.mediaList.filter(m => m.id !== media.id);
+          this.activeMedia.set(remaining.length > 0 ? remaining[0] : null);
+        }
         this.loadMemory(mem.id);
       },
       error: (err) => {
-        console.error('Failed to delete photo:', err);
-        this.snackBar.open('Failed to delete photo. Please try again.', 'Close', { duration: 4000 });
+        console.error('Failed to remove photo:', err);
+        this.snackBar.open('Failed to remove photo. Please try again.', 'Close', { duration: 4000 });
       }
     });
+  }
+
+  deleteMedia(media: Media, event?: Event): void {
+    this.confirmDeleteMedia(media, event);
   }
 
   onFilesSelected(event: Event): void {

@@ -31,20 +31,23 @@ public class NotificationController {
     }
 
     @GetMapping("/unread-count")
-    public ResponseEntity<ApiResponse<Long>> getUnreadCount() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getUnreadCount() {
         UUID currentUserId = SecurityUtils.getCurrentUserId();
         long count = notificationService.getUnreadCount(currentUserId);
-        return ResponseEntity.ok(ApiResponse.success(count));
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
+                "unreadCount", count,
+                "count", count
+        )));
     }
 
-    @PatchMapping("/{id}/read")
+    @RequestMapping(value = {"/{id}/read", "/{id}/mark-read"}, method = {RequestMethod.PATCH, RequestMethod.PUT})
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable UUID id) {
         UUID currentUserId = SecurityUtils.getCurrentUserId();
         notificationService.markAsRead(id, currentUserId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @PatchMapping("/mark-all-read")
+    @RequestMapping(value = {"/mark-all-read", "/read-all"}, method = {RequestMethod.PATCH, RequestMethod.PUT})
     public ResponseEntity<ApiResponse<Void>> markAllAsRead() {
         UUID currentUserId = SecurityUtils.getCurrentUserId();
         notificationService.markAllAsRead(currentUserId);

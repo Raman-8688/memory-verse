@@ -7,6 +7,8 @@ public enum NotificationType {
     JOURNEY_UPDATED,
     CHAPTER_UPDATED,
     TAGGED,
+    NEW_TAG,
+    MEMORY_SHARED,
     ON_THIS_DAY,
     SYSTEM
 }

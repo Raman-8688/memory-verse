@@ -105,16 +105,33 @@
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
     <nav class="nav-list settings-list">
-      <a [routerLink]="authService.isAdmin() ? '/admin/group' : '/profile'" 
-         routerLinkActive="active" 
-         class="nav-link"
-         [matTooltip]="sidebarService.isCollapsed() ? 'Settings' : ''"
-         matTooltipPosition="right">
-        <mat-icon class="nav-icon">settings</mat-icon>
-        @if (!sidebarService.isCollapsed()) {
-          <span class="nav-label">Settings</span>
-        }
-      </a>
+      @if (authService.currentUser(); as user) {
+        <a [routerLink]="authService.isAdmin() ? '/admin/group' : '/profile'" 
+           routerLinkActive="active" 
+           class="nav-link user-nav-link"
+           [matTooltip]="sidebarService.isCollapsed() ? (user.fullName || 'Profile') : ''"
+           matTooltipPosition="right">
+          <div class="sidebar-avatar-wrap">
+            <img [src]="user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'"
+                 [alt]="user.fullName"
+                 class="sidebar-user-avatar">
+          </div>
+          @if (!sidebarService.isCollapsed()) {
+            <span class="nav-label text-truncate">{{ user.fullName || 'Profile' }}</span>
+          }
+        </a>
+      } @else {
+        <a routerLink="/profile" 
+           routerLinkActive="active" 
+           class="nav-link"
+           [matTooltip]="sidebarService.isCollapsed() ? 'Settings' : ''"
+           matTooltipPosition="right">
+          <mat-icon class="nav-icon">settings</mat-icon>
+          @if (!sidebarService.isCollapsed()) {
+            <span class="nav-label">Settings</span>
+          }
+        </a>
+      }
     </nav>
 
     <!-- Mini Collapse / Expand Toggle Button -->

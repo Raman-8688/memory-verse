@@ -121,7 +121,7 @@
 
       <!-- Immersive Full-Bleed / Wide Rounded Hero -->
       @if (activeMedia(); as hero) {
-        <header class="hero-showcase" (click)="openLightbox(0)" title="Click to view fullscreen">
+        <header class="hero-showcase" (click)="openLightbox(getActiveMediaIndex())" title="Click to view fullscreen">
           <div class="hero-media-wrapper">
             @if (hero.mediaType === 'VIDEO') {
               <video [src]="hero.mediaUrl" controls class="hero-media-element" autoplay [muted]="true"></video>
@@ -129,6 +129,34 @@
               <img [src]="hero.mediaUrl" [alt]="m.title" mvFallback class="hero-media-element" />
             }
             <div class="hero-gradient-overlay"></div>
+
+            @if (canEdit()) {
+              <div class="hero-actions-overlay" (click)="$event.stopPropagation()">
+                <button 
+                  type="button" 
+                  class="hero-more-btn" 
+                  [matMenuTriggerFor]="heroMenu" 
+                  title="Photo options"
+                  aria-label="Photo options">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #heroMenu="matMenu" class="editorial-menu media-options-menu">
+                  <button mat-menu-item (click)="openLightbox(getActiveMediaIndex())">
+                    <mat-icon>fullscreen</mat-icon>
+                    <span>View Fullscreen</span>
+                  </button>
+                  <button mat-menu-item (click)="downloadMedia(hero)">
+                    <mat-icon>download</mat-icon>
+                    <span>Download Photo</span>
+                  </button>
+                  <div class="menu-divider"></div>
+                  <button mat-menu-item class="danger-menu-item" (click)="confirmDeleteMedia(hero)">
+                    <mat-icon class="danger-icon">delete_outline</mat-icon>
+                    <span>Remove from Memory</span>
+                  </button>
+                </mat-menu>
+              </div>
+            }
 
             <div class="hero-caption-overlay">
               <span class="hero-date-badge">
@@ -233,11 +261,28 @@
                     @if (canEdit()) {
                       <button 
                         type="button" 
-                        class="thumb-delete-btn" 
-                        (click)="deleteMedia(media, $event)" 
-                        title="Delete photo">
-                        <mat-icon>close</mat-icon>
+                        class="thumb-more-btn" 
+                        [matMenuTriggerFor]="thumbMenu" 
+                        (click)="$event.stopPropagation()" 
+                        title="Photo options"
+                        aria-label="Photo options">
+                        <mat-icon>more_vert</mat-icon>
                       </button>
+                      <mat-menu #thumbMenu="matMenu" class="editorial-menu media-options-menu">
+                        <button mat-menu-item (click)="openLightbox(idx)">
+                          <mat-icon>fullscreen</mat-icon>
+                          <span>View Fullscreen</span>
+                        </button>
+                        <button mat-menu-item (click)="downloadMedia(media, $event)">
+                          <mat-icon>download</mat-icon>
+                          <span>Download</span>
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button mat-menu-item class="danger-menu-item" (click)="confirmDeleteMedia(media, $event)">
+                          <mat-icon class="danger-icon">delete_outline</mat-icon>
+                          <span>Remove from Memory</span>
+                        </button>
+                      </mat-menu>
                     }
                     @if (media.mediaType === 'VIDEO') {
                       <video [src]="media.mediaUrl" class="thumb-media"></video>

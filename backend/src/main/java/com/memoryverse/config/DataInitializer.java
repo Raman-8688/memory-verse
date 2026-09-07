@@ -276,10 +276,13 @@ public class DataInitializer implements CommandLineRunner {
             User user = existing.get();
             user.setFullName(fullName);
             user.setRole(role);
-            user.setAvatarUrl(avatarUrl);
+            // Only update default avatar if user has not uploaded their own custom avatar
+            if (user.getAvatarUrl() == null || user.getAvatarUrl().isBlank()) {
+                user.setAvatarUrl(avatarUrl);
+            }
             user.setPassword(encodedPassword);
             User updated = userRepository.save(user);
-            log.info("Updated existing member: {} ({}) [{}] with avatar {}", fullName, email, role, avatarUrl);
+            log.info("Updated existing member: {} ({}) [{}] with avatar {}", fullName, email, role, user.getAvatarUrl());
             return updated;
         } else {
             User newUser = User.builder()

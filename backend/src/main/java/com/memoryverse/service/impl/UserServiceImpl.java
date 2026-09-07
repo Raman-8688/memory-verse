@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_PLACES, RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public UserDto updateUser(UUID id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -111,7 +111,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_PLACES, RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public UserDto updateUserAvatar(UUID id, MultipartFile file) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD}, allEntries = true)
+    @CacheEvict(value = {RedisConfig.CACHE_PEOPLE, RedisConfig.CACHE_DASHBOARD, RedisConfig.CACHE_PLACES, RedisConfig.CACHE_JOURNEYS, RedisConfig.CACHE_GALLERY}, allEntries = true)
     public void deleteUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));

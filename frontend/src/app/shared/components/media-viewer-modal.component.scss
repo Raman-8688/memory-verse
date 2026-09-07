@@ -232,6 +232,26 @@
   &:hover { background-color: var(--mv-primary-hover) !important; }
 }
 
+::ng-deep .media-options-menu {
+  .danger-menu-item {
+    color: var(--mv-danger, #ef4444) !important;
+
+    .danger-icon {
+      color: var(--mv-danger, #ef4444) !important;
+    }
+
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.08) !important;
+    }
+  }
+
+  .menu-divider {
+    height: 1px;
+    background-color: var(--mv-border, #e5e7eb);
+    margin: 4px 0;
+  }
+}
+
 @media (max-width: 768px) {
   .stage-nav-arrow { display: none; }
   .lightbox-bottom-drawer {
@@ -244,3 +264,4 @@
   .drawer-right { width: 100%; }
   .view-story-cta { width: 100%; justify-content: center; }
 }
+
