@@ -286,6 +286,72 @@
   }
 }
 
+/* Collaboration Section */
+.collaboration-section {
+  border-left: 4px solid #d97706;
+  background: linear-gradient(135deg, var(--mv-bg-surface) 0%, #fffbeb 100%);
+}
+
+.collaboration-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mv-space-16);
+}
+
+.collab-header-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--mv-space-16);
+}
+
+.collab-avatar-box {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--mv-radius-lg);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1.5px solid #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b45309;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(180, 83, 9, 0.12);
+
+  .collab-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+  }
+}
+
+.collab-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collab-name {
+  font-family: var(--font-editorial);
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--mv-text-primary);
+  margin: 0;
+}
+
+.collab-role {
+  font-size: 0.86rem;
+  color: var(--mv-text-secondary);
+  font-weight: 500;
+  margin: 0;
+}
+
+.collab-body {
+  font-size: 0.95rem;
+  color: var(--mv-text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
 /* 4. Technical Pillars Grid */
 .pillars-grid {
   display: grid;
