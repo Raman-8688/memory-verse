@@ -1,0 +1,104 @@
+.moment-fab-btn {
+  position: fixed;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px 0 14px;
+  height: 48px;
+  border-radius: 24px;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 60%, #92400e 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(180, 83, 9, 0.38), 0 2px 6px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all var(--mv-transition-normal, 0.25s ease);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  /* Desktop coordinates */
+  bottom: 32px;
+  right: 32px;
+
+  .fab-inner-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.35) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .fab-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: #fef3c7;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    transition: transform 0.25s ease;
+  }
+
+  .fab-label {
+    white-space: nowrap;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  &:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 22px rgba(180, 83, 9, 0.48), 0 3px 8px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #b45309 100%);
+
+    .fab-icon {
+      transform: scale(1.15) rotate(-8deg);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.96);
+    box-shadow: 0 2px 10px rgba(180, 83, 9, 0.3);
+  }
+}
+
+/* Mobile viewport adjustments — strictly position above mobile-nav without overlapping */
+@media (max-width: 1023px) {
+  .moment-fab-btn {
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    height: 44px;
+    padding: 0 14px 0 10px;
+    border-radius: 22px;
+
+    .fab-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .fab-label {
+      font-size: 0.82rem;
+    }
+  }
+}
+
+/* Very narrow screens (e.g. 360px) */
+@media (max-width: 380px) {
+  .moment-fab-btn {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    right: 12px;
+    padding: 0 12px 0 8px;
+    height: 40px;
+    border-radius: 20px;
+
+    .fab-label {
+      display: none; /* Icon-only compact bubble on extreme narrow viewports to avoid blocking content */
+    }
+    
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+  }
+}

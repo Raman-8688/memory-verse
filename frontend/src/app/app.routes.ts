@@ -66,6 +66,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/favorites/favorites.component').then(m => m.FavoritesComponent)
       },
       {
+        path: 'moments',
+        loadComponent: () => import('./features/moments/moments-page.component').then(m => m.MomentsPageComponent)
+      },
+      {
         path: 'collections',
         loadComponent: () => import('./features/collections/collections-list.component').then(m => m.CollectionsListComponent)
       },

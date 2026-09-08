@@ -5,6 +5,7 @@ import { NavbarComponent } from '../navbar/navbar.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { MobileNavComponent } from '../mobile-nav/mobile-nav.component';
 import { CommandPaletteComponent } from '@shared/components/command-palette/command-palette.component';
+import { MomentFabComponent } from '@features/moments/moment-fab.component';
 import { SidebarService } from '@core/services/sidebar.service';
 
 @Component({
@@ -16,7 +17,8 @@ import { SidebarService } from '@core/services/sidebar.service';
     NavbarComponent, 
     SidebarComponent, 
     MobileNavComponent,
-    CommandPaletteComponent
+    CommandPaletteComponent,
+    MomentFabComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'

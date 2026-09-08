@@ -1,0 +1,130 @@
+<div class="composer-container">
+  <!-- Sheet Handle for Mobile Bottom Sheet -->
+  <div class="sheet-drag-handle"></div>
+
+  <!-- Header -->
+  <header class="composer-header">
+    <div class="header-left">
+      <div class="moment-icon-bubble">
+        <mat-icon>bolt</mat-icon>
+      </div>
+      <div>
+        <h3 class="composer-title">New Moment</h3>
+        <p class="composer-subtitle">Instant status share &bull; No dates or journeys required</p>
+      </div>
+    </div>
+    <button type="button" class="close-btn" (click)="close()" aria-label="Close composer">
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <div class="composer-body">
+    <!-- Desktop Dropzone (Hidden on small mobile screens) -->
+    <div class="desktop-dropzone-wrapper">
+      <mv-desktop-upload-dropzone (filesSelected)="onFilesSelected($event)"></mv-desktop-upload-dropzone>
+    </div>
+
+    <!-- Mobile Quick Picker Bar (Visible on mobile or as alternative) -->
+    <div class="quick-picker-bar">
+      <button type="button" class="picker-chip camera-chip" (click)="triggerCamera()">
+        <mat-icon>photo_camera</mat-icon>
+        <span>Camera</span>
+      </button>
+
+      <button type="button" class="picker-chip gallery-chip" (click)="triggerGallery()">
+        <mat-icon>add_photo_alternate</mat-icon>
+        <span>Add Photos / Videos</span>
+      </button>
+    </div>
+
+    <!-- Hidden native file inputs -->
+    <input
+      #cameraInput
+      type="file"
+      accept="image/*"
+      capture="environment"
+      (change)="onFileInputChange($event)"
+      class="visually-hidden"
+    />
+
+    <input
+      #galleryInput
+      type="file"
+      accept="image/*,video/*"
+      multiple
+      (change)="onFileInputChange($event)"
+      class="visually-hidden"
+    />
+
+    <!-- Selected Media Previews -->
+    @if (selectedFiles().length > 0) {
+      <div class="previews-section">
+        <div class="previews-header">
+          <span class="previews-count">
+            <strong>{{ selectedFiles().length }}</strong> {{ selectedFiles().length === 1 ? 'file' : 'files' }} selected
+          </span>
+          <button type="button" class="add-more-btn" (click)="triggerGallery()">
+            <mat-icon>add</mat-icon>
+            <span>Add more</span>
+          </button>
+        </div>
+
+        <div class="previews-scroll-track">
+          @for (item of selectedFiles(); track $index) {
+            <div class="preview-item">
+              <img [src]="item.previewUrl" [alt]="item.name" class="preview-img" />
+              @if (item.isVideo) {
+                <div class="video-indicator">
+                  <mat-icon>play_circle</mat-icon>
+                </div>
+              }
+              <button 
+                type="button" 
+                class="remove-preview-btn" 
+                (click)="removeFile($index)" 
+                aria-label="Remove media">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Optional Caption Textarea -->
+    <div class="caption-wrapper">
+      <textarea
+        [(ngModel)]="caption"
+        maxlength="2000"
+        rows="3"
+        placeholder="Write a caption... (optional)"
+        class="caption-textarea"
+        aria-label="Moment caption"
+      ></textarea>
+      @if (caption.length > 1500) {
+        <span class="char-count">{{ caption.length }} / 2000</span>
+      }
+    </div>
+  </div>
+
+  <!-- Footer Actions -->
+  <footer class="composer-footer">
+    <button mat-button type="button" class="cancel-btn" (click)="close()" [disabled]="isSubmitting()">
+      Cancel
+    </button>
+    <button 
+      mat-flat-button 
+      color="primary" 
+      type="button" 
+      class="share-btn" 
+      (click)="submit()" 
+      [disabled]="selectedFiles().length === 0 || isSubmitting()">
+      @if (isSubmitting()) {
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+      } @else {
+        <mat-icon>send</mat-icon>
+      }
+      <span>{{ isSubmitting() ? 'Sharing...' : 'Share Moment' }}</span>
+    </button>
+  </footer>
+</div>

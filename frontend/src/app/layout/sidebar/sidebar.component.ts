@@ -66,6 +66,7 @@ export class SidebarComponent implements OnDestroy {
       items: [
         { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: false },
         { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
+        { path: '/moments', label: 'Moments', icon: 'bolt', exact: false },
         { path: '/timeline', label: 'Timeline', icon: 'schedule', exact: true },
         { path: '/favorites', label: 'Favorites', icon: 'favorite_border', exact: true },
         { path: '/collections', label: 'Collections', icon: 'collections_bookmark', exact: false }

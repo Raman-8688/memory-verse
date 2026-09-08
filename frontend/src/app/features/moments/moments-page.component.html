@@ -1,0 +1,257 @@
+<div class="moments-page-container">
+  <!-- Hero Header -->
+  <header class="page-hero">
+    <div class="hero-left">
+      <div class="hero-kicker">
+        <mat-icon>bolt</mat-icon>
+        <span>LIVING STATUS ARCHIVE</span>
+      </div>
+      <h1 class="page-title">Shared Moments</h1>
+      <p class="page-subtitle">
+        Spontaneous, unscripted snapshots and video glimpses of life as it unfolds.
+      </p>
+    </div>
+
+    <button mat-flat-button color="primary" class="hero-share-btn" (click)="openComposer()">
+      <mat-icon>add_photo_alternate</mat-icon>
+      <span>Share Moment</span>
+    </button>
+  </header>
+
+  <!-- Author Filter Chips Bar -->
+  <section class="filters-bar" aria-label="Filter moments by author">
+    <span class="filter-label">Filter by:</span>
+    <div class="filter-chips-scroll">
+      <button 
+        type="button" 
+        class="filter-chip" 
+        [class.active]="selectedAuthorId() === null"
+        (click)="selectAuthor(null)">
+        <span>All Moments</span>
+        @if (selectedAuthorId() === null && totalElements() > 0) {
+          <span class="chip-count">{{ totalElements() }}</span>
+        }
+      </button>
+
+      @for (user of users(); track user.id) {
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.active]="selectedAuthorId() === user.id"
+          (click)="selectAuthor(user.id)">
+          <img 
+            [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=60&q=80'" 
+            [alt]="user.fullName"
+            mvFallback 
+            class="chip-avatar" 
+          />
+          <span>{{ user.fullName }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Loading State Skeleton -->
+  @if (isLoading()) {
+    <div class="moments-loading-grid">
+      <div class="moment-skeleton-card"></div>
+      <div class="moment-skeleton-card"></div>
+      <div class="moment-skeleton-card"></div>
+    </div>
+  } @else if (moments().length === 0) {
+    <!-- Empty State -->
+    <div class="moments-empty-box">
+      <div class="empty-icon-circle">
+        <mat-icon>bolt</mat-icon>
+      </div>
+      <h3 class="empty-title">No moments found</h3>
+      <p class="empty-desc">
+        {{ selectedAuthorId() ? 'This person has not shared any moments yet.' : 'Be the first to share an everyday moment with friends.' }}
+      </p>
+      <button mat-stroked-button color="primary" class="empty-action-btn" (click)="openComposer()">
+        <mat-icon>add</mat-icon>
+        <span>Share a Moment</span>
+      </button>
+    </div>
+  } @else {
+    <!-- Moments Grid -->
+    <div class="moments-cards-grid">
+      @for (moment of moments(); track moment.id) {
+        <article class="moment-card">
+          <!-- Card Header (Author & Meta) -->
+          <div class="moment-header">
+            <div class="author-info">
+              <img
+                [src]="(moment.author.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'"
+                [alt]="moment.author.fullName"
+                mvFallback
+                class="author-avatar"
+              />
+              <div class="author-meta">
+                <span class="author-name">{{ moment.author.fullName }}</span>
+                <span class="moment-time">{{ moment.createdAt | timeAgo }}</span>
+              </div>
+            </div>
+
+            <!-- Admin / Author Actions -->
+            <div class="moment-actions">
+              @if (canEdit(moment) && editingMomentId() !== moment.id) {
+                <button
+                  type="button"
+                  class="icon-action-btn"
+                  (click)="startEditCaption(moment)"
+                  matTooltip="Edit caption"
+                  aria-label="Edit caption">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              }
+
+              @if (authService.isAdmin()) {
+                <button
+                  type="button"
+                  class="icon-action-btn danger-btn"
+                  (click)="deleteMoment(moment)"
+                  matTooltip="Delete moment (Admin)"
+                  aria-label="Delete moment">
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Media Collage Grid -->
+          @if (moment.media && moment.media.length > 0) {
+            <div 
+              class="collage-container"
+              [class.grid-single]="moment.media.length === 1"
+              [class.grid-two]="moment.media.length === 2"
+              [class.grid-three]="moment.media.length === 3"
+              [class.grid-four]="moment.media.length === 4"
+              [class.grid-multi]="moment.media.length >= 5">
+
+              <!-- Case 1: Single Media -->
+              @if (moment.media.length === 1) {
+                <div class="collage-cell full-hero" (click)="openLightbox(moment, 0)">
+                  @if (moment.media[0].mediaType === 'VIDEO') {
+                    <video [src]="moment.media[0].mediaUrl | resolveMediaUrl" class="collage-media" controls preload="metadata"></video>
+                  } @else {
+                    <img [src]="moment.media[0].mediaUrl | resolveMediaUrl" [alt]="moment.caption || 'Moment photo'" class="collage-media" loading="lazy" />
+                  }
+                </div>
+              }
+
+              <!-- Case 2: 2 Media items (side-by-side) -->
+              @if (moment.media.length === 2) {
+                @for (item of moment.media; track item.id; let idx = $index) {
+                  <div class="collage-cell" (click)="openLightbox(moment, idx)">
+                    <img [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl" [alt]="'Moment media ' + (idx + 1)" class="collage-media" loading="lazy" />
+                    @if (item.mediaType === 'VIDEO') {
+                      <div class="video-badge"><mat-icon>play_arrow</mat-icon></div>
+                    }
+                  </div>
+                }
+              }
+
+              <!-- Case 3: 3 Media items (1 large left, 2 stacked right) -->
+              @if (moment.media.length === 3) {
+                <div class="collage-cell hero-left" (click)="openLightbox(moment, 0)">
+                  <img [src]="(moment.media[0].thumbnailUrl || moment.media[0].mediaUrl) | resolveMediaUrl" alt="Moment media 1" class="collage-media" loading="lazy" />
+                  @if (moment.media[0].mediaType === 'VIDEO') {
+                    <div class="video-badge"><mat-icon>play_arrow</mat-icon></div>
+                  }
+                </div>
+                <div class="stacked-right">
+                  <div class="collage-cell stacked-item" (click)="openLightbox(moment, 1)">
+                    <img [src]="(moment.media[1].thumbnailUrl || moment.media[1].mediaUrl) | resolveMediaUrl" alt="Moment media 2" class="collage-media" loading="lazy" />
+                    @if (moment.media[1].mediaType === 'VIDEO') {
+                      <div class="video-badge"><mat-icon>play_arrow</mat-icon></div>
+                    }
+                  </div>
+                  <div class="collage-cell stacked-item" (click)="openLightbox(moment, 2)">
+                    <img [src]="(moment.media[2].thumbnailUrl || moment.media[2].mediaUrl) | resolveMediaUrl" alt="Moment media 3" class="collage-media" loading="lazy" />
+                    @if (moment.media[2].mediaType === 'VIDEO') {
+                      <div class="video-badge"><mat-icon>play_arrow</mat-icon></div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Case 4: 4 Media items (2x2 grid) -->
+              @if (moment.media.length === 4) {
+                @for (item of moment.media; track item.id; let idx = $index) {
+                  <div class="collage-cell cell-2x2" (click)="openLightbox(moment, idx)">
+                    <img [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl" [alt]="'Moment media ' + (idx + 1)" class="collage-media" loading="lazy" />
+                    @if (item.mediaType === 'VIDEO') {
+                      <div class="video-badge"><mat-icon>play_arrow</mat-icon></div>
+                    }
+                  </div>
+                }
+              }
+
+              <!-- Case 5: 5+ Media items (2x2 grid with +N tile) -->
+              @if (moment.media.length >= 5) {
+                @for (item of moment.media.slice(0, 3); track item.id; let idx = $index) {
+                  <div class="collage-cell cell-2x2" (click)="openLightbox(moment, idx)">
+                    <img [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl" [alt]="'Moment media ' + (idx + 1)" class="collage-media" loading="lazy" />
+                    @if (item.mediaType === 'VIDEO') {
+                      <div class="video-badge"><mat-icon>play_arrow</mat-icon></div>
+                    }
+                  </div>
+                }
+                <!-- 4th tile with +N overlay -->
+                <div class="collage-cell cell-2x2 more-tile" (click)="openLightbox(moment, 3)">
+                  <img [src]="(moment.media[3].thumbnailUrl || moment.media[3].mediaUrl) | resolveMediaUrl" alt="More media" class="collage-media" loading="lazy" />
+                  <div class="more-overlay">
+                    <span class="more-count">+{{ moment.media.length - 3 }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Caption Section -->
+          <div class="moment-footer">
+            @if (editingMomentId() === moment.id) {
+              <!-- Edit mode -->
+              <div class="caption-edit-box">
+                <textarea
+                  [(ngModel)]="editingCaptionText"
+                  maxlength="2000"
+                  rows="2"
+                  class="edit-textarea"
+                  placeholder="Update caption..."
+                  aria-label="Edit caption"
+                ></textarea>
+                <div class="edit-btn-row">
+                  <button type="button" class="cancel-edit-btn" (click)="cancelEditCaption()" [disabled]="isSavingCaption()">
+                    Cancel
+                  </button>
+                  <button type="button" class="save-edit-btn" (click)="saveCaption(moment)" [disabled]="isSavingCaption()">
+                    Save
+                  </button>
+                </div>
+              </div>
+            } @else if (moment.caption) {
+              <!-- Display mode -->
+              <p class="moment-caption-text">{{ moment.caption }}</p>
+            }
+          </div>
+        </article>
+      }
+    </div>
+
+    <!-- Load More Section -->
+    @if (hasMore()) {
+      <div class="load-more-row">
+        <button mat-stroked-button class="load-more-btn" (click)="loadMore()" [disabled]="isLoadingMore()">
+          @if (isLoadingMore()) {
+            <mat-spinner diameter="18" class="more-spinner"></mat-spinner>
+          } @else {
+            <mat-icon>expand_more</mat-icon>
+          }
+          <span>{{ isLoadingMore() ? 'Loading moments...' : 'Load more moments' }}</span>
+        </button>
+      </div>
+    }
+  }
+</div>

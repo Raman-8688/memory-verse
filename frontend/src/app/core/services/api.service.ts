@@ -33,6 +33,13 @@ export class ApiService {
     );
   }
 
+  patch<T>(endpoint: string, body: any, params?: Record<string, any>): Observable<T> {
+    const httpParams = this.buildParams(params);
+    return this.http.patch<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, body, { params: httpParams }).pipe(
+      map(res => res.data)
+    );
+  }
+
   delete<T>(endpoint: string, params?: Record<string, any>): Observable<T> {
     const httpParams = this.buildParams(params);
     return this.http.delete<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, { params: httpParams }).pipe(

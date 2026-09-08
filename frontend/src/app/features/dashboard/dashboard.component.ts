@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
 import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
+import { MomentsFeedComponent } from '@features/moments/moments-feed.component';
 import { AuthService } from '@core/auth/auth.service';
 import { DashboardService } from '@core/services/dashboard.service';
 import { MediaCaptureService } from '@core/services/media-capture.service';
@@ -25,7 +26,8 @@ import { optimizeCloudinaryUrl } from '@shared/pipes/cloudinary-optimize.pipe';
     MatIconModule,
     MatProgressSpinnerModule,
     ImageFallbackDirective,
-    ResolveMediaUrlPipe
+    ResolveMediaUrlPipe,
+    MomentsFeedComponent
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
