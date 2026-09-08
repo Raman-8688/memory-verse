@@ -9,6 +9,7 @@
       <a [routerLink]="homeItem.path" 
          routerLinkActive="active" 
          [routerLinkActiveOptions]="{ exact: !!homeItem.exact }"
+         (click)="onLinkClick()"
          class="nav-link"
          [matTooltip]="sidebarService.isCollapsed() ? homeItem.label : ''"
          matTooltipPosition="right">
@@ -72,6 +73,7 @@
                 <a [routerLink]="item.path" 
                    routerLinkActive="active" 
                    [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                   (click)="onLinkClick()"
                    class="nav-link sub-nav-link"
                    [class.ai-item]="item.isAi"
                    [matTooltip]="sidebarService.isCollapsed() ? item.label : ''"
@@ -108,6 +110,7 @@
       @if (authService.currentUser(); as user) {
         <a [routerLink]="authService.isAdmin() ? '/admin/group' : '/profile'" 
            routerLinkActive="active" 
+           (click)="onLinkClick()"
            class="nav-link user-nav-link"
            [matTooltip]="sidebarService.isCollapsed() ? (user.fullName || 'Profile') : ''"
            matTooltipPosition="right">
@@ -124,6 +127,7 @@
       } @else {
         <a routerLink="/profile" 
            routerLinkActive="active" 
+           (click)="onLinkClick()"
            class="nav-link"
            [matTooltip]="sidebarService.isCollapsed() ? 'Settings' : ''"
            matTooltipPosition="right">

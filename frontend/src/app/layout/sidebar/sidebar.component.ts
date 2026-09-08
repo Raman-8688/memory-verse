@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, Output, EventEmitter, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +8,8 @@ import { AuthService } from '@core/auth/auth.service';
 import { SidebarService } from '@core/services/sidebar.service';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
+import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
 export interface NavItem {
   path: string;
@@ -24,9 +26,6 @@ export interface NavSection {
   items: NavItem[];
 }
 
-import { ImageFallbackDirective } from '@shared/directives/image-fallback.directive';
-import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
-
 @Component({
   selector: 'mv-sidebar',
   standalone: true,
@@ -42,6 +41,8 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent implements OnDestroy {
+  @Output() readonly navigated = new EventEmitter<void>();
+
   readonly notificationState = inject(NotificationStateService);
   readonly authService = inject(AuthService);
   readonly sidebarService = inject(SidebarService);
@@ -61,7 +62,7 @@ export class SidebarComponent implements OnDestroy {
     {
       id: 'memories',
       title: 'Memories',
-      icon: 'photo_library',
+      icon: 'auto_stories',
       items: [
         { path: '/journeys', label: 'Journeys', icon: 'auto_stories', exact: false },
         { path: '/memories', label: 'Memories', icon: 'photo_library', exact: true },
@@ -85,10 +86,11 @@ export class SidebarComponent implements OnDestroy {
     {
       id: 'ai-discovery',
       title: 'AI & Discovery',
-      icon: 'auto_awesome',
+      icon: 'psychology',
       items: [
         { path: '/assistant', label: 'Ask AI', icon: 'auto_awesome', isAi: true, exact: true },
-        { path: '/guide', label: 'User Guide', icon: 'menu_book', exact: true }
+        { path: '/guide', label: 'User Guide', icon: 'menu_book', exact: true },
+        { path: '/developer', label: 'Developer', icon: 'code', exact: true }
       ]
     },
     {
@@ -119,6 +121,11 @@ export class SidebarComponent implements OnDestroy {
   }
 
   toggleSection(sectionId: string): void {
+    if (this.sidebarService.isCollapsed()) {
+      this.sidebarService.expand();
+      this.expandedSection.set(sectionId);
+      return;
+    }
     this.expandedSection.update(current => current === sectionId ? null : sectionId);
   }
 
@@ -136,6 +143,10 @@ export class SidebarComponent implements OnDestroy {
       return this.notificationState.unreadCount();
     }
     return 0;
+  }
+
+  onLinkClick(): void {
+    this.navigated.emit();
   }
 
   private cleanUrl(url: string): string {
@@ -171,7 +182,7 @@ export class SidebarComponent implements OnDestroy {
       }
     }
 
-    if (clean === '/' || clean === '/dashboard') {
+    if (clean === '/' || clean === '/dashboard' || clean.startsWith('/profile') || clean.startsWith('/admin')) {
       this.expandedSection.set(null);
     }
   }

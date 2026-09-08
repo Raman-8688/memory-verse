@@ -194,14 +194,20 @@
 .nav-submenu-wrapper {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  transition: grid-template-rows 0.24s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, visibility 0.24s;
+  visibility: hidden;
+  opacity: 0;
 
   &.is-open {
     grid-template-rows: 1fr;
+    visibility: visible;
+    opacity: 1;
   }
 }
 
 .nav-submenu-content {
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
