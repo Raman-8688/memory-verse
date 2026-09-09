@@ -124,15 +124,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   private checkScroll(): void {
-    if (!this.isDashboard()) {
-      this.isScrolled.set(false);
-      return;
-    }
     const winScroll = typeof window !== 'undefined' ? (window.scrollY || document.documentElement.scrollTop || 0) : 0;
     const mainContent = typeof document !== 'undefined' ? document.querySelector('.layout-main-content') : null;
     const contentScroll = mainContent ? mainContent.scrollTop : 0;
     const scrollPos = Math.max(winScroll, contentScroll);
-    this.isScrolled.set(scrollPos > 45);
+    this.isScrolled.set(scrollPos > 20);
   }
 
   ngOnDestroy(): void {

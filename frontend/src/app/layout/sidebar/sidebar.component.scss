@@ -5,7 +5,6 @@
   background-color: var(--mv-bg-surface);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding: var(--mv-space-16) var(--mv-space-12);
   box-sizing: border-box;
   transition: padding var(--mv-transition-base);
@@ -69,8 +68,8 @@
 }
 
 .sidebar-header-block {
-  margin-bottom: var(--mv-space-16);
-  padding: var(--mv-space-4) var(--mv-space-8) 0;
+  margin-bottom: var(--mv-space-8);
+  padding: 0 var(--mv-space-8);
 }
 
 .sidebar-brand-header {
@@ -394,6 +393,7 @@
 }
 
 .sidebar-footer {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   gap: var(--mv-space-8);

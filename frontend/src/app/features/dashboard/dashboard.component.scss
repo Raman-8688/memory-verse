@@ -193,8 +193,8 @@
   margin-top: 4px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-width: 520px;
+  gap: 8px;
+  max-width: 580px;
   width: 100%;
 }
 
@@ -264,26 +264,14 @@
   mat-icon { font-size: 14px; width: 14px; height: 14px; }
 }
 
-/* Suggestion Chips (Horizontally Scrollable Track with Trailing Fade) */
+/* Suggestion Chips: Fully Visible & Wrapping */
 .search-suggestions-row {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  overflow: hidden;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 28px;
-    background: linear-gradient(to right, rgba(250, 249, 246, 0), var(--mv-bg-main, #faf9f6));
-    pointer-events: none;
-    z-index: 2;
-  }
+  flex-wrap: wrap;
+  margin-top: 2px;
 }
 
 .suggestions-label {
@@ -297,17 +285,8 @@
 .suggestions-list {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 2px 28px 2px 0;
-  width: 100%;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 }
 
 .suggestion-chip {

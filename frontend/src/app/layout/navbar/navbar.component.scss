@@ -61,6 +61,14 @@
 .page-title-wrap {
   display: flex;
   align-items: center;
+  white-space: nowrap;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  .navbar--scrolled & {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-4px);
+  }
 }
 
 .page-title {
@@ -308,6 +316,9 @@
   }
   .navbar-actions {
     gap: var(--mv-space-8);
+  }
+  .page-title-wrap {
+    display: none !important;
   }
 }
 
