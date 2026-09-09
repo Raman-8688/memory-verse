@@ -32,24 +32,25 @@
 }
 
 .hero-3d-character-pane {
-  width: 175px;
-  height: 175px;
-  min-width: 175px;
+  width: 185px;
+  height: 185px;
+  min-width: 185px;
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 
-    0 10px 24px rgba(200, 120, 80, 0.18),
-    0 2px 6px rgba(0, 0, 0, 0.04);
+    0 12px 28px rgba(180, 110, 70, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #FFF3EC;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  transition: transform var(--mv-transition-fast);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  transition: transform var(--mv-transition-fast), box-shadow var(--mv-transition-fast);
 
   &:hover {
-    transform: scale(1.02);
+    transform: scale(1.03);
+    box-shadow: 0 16px 36px rgba(180, 110, 70, 0.28);
   }
 }
 
