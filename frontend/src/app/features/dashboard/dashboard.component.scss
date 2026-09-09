@@ -19,13 +19,13 @@
   align-items: center;
   gap: 28px;
   padding: 24px 32px;
-  background: linear-gradient(135deg, #FDE6D9 0%, #FFF3EC 45%, #FDE9DF 100%);
-  border: 1.5px solid rgba(243, 203, 185, 0.85);
+  background: linear-gradient(135deg, #FDFCF9 0%, #F5F0E6 50%, #ECE4D4 100%);
+  border: 1.5px solid rgba(218, 206, 188, 0.85);
   border-radius: 28px;
   box-shadow: 
-    0 16px 40px rgba(220, 140, 100, 0.12),
+    0 16px 40px rgba(140, 120, 95, 0.08),
     0 4px 12px rgba(0, 0, 0, 0.02),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -38,19 +38,19 @@
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 
-    0 12px 28px rgba(180, 110, 70, 0.2),
+    0 12px 28px rgba(130, 110, 85, 0.16),
     0 2px 8px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFF3EC;
+  background: #F5EFE6;
   border: 2.5px solid rgba(255, 255, 255, 0.95);
   transition: transform var(--mv-transition-fast), box-shadow var(--mv-transition-fast);
 
   &:hover {
     transform: scale(1.03);
-    box-shadow: 0 16px 36px rgba(180, 110, 70, 0.28);
+    box-shadow: 0 16px 36px rgba(130, 110, 85, 0.24);
   }
 }
 
@@ -80,18 +80,18 @@
   font-size: clamp(1.8rem, 2.5vw, 2.3rem);
   font-weight: 800;
   line-height: 1.15;
-  color: #2D231E;
+  color: #262320;
   margin: 0;
   letter-spacing: -0.02em;
 }
 
 .highlight-name {
-  color: #C25E3E;
+  color: #B45309;
 }
 
 .hero-subtitle {
   font-size: 0.95rem;
-  color: #7B685E;
+  color: #6B5D52;
   margin: 0;
   line-height: 1.35;
   font-weight: 500;
@@ -131,43 +131,43 @@
   }
 
   &.primary-add {
-    background: linear-gradient(135deg, #E07A5F 0%, #D86B4F 100%) !important;
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%) !important;
     color: #ffffff !important;
     padding: 0 22px !important;
     box-shadow: 
-      0 6px 16px rgba(224, 122, 95, 0.35),
+      0 6px 16px rgba(180, 83, 9, 0.32),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
 
     &:hover {
-      background: linear-gradient(135deg, #D4694E 0%, #C45B3F 100%) !important;
+      background: linear-gradient(135deg, #C76B05 0%, #9A4406 100%) !important;
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(224, 122, 95, 0.45);
+      box-shadow: 0 8px 20px rgba(180, 83, 9, 0.42);
     }
   }
 
   &.capture-btn {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    color: #4A3A31 !important;
-    border: 1.5px solid rgba(235, 195, 175, 0.9) !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    color: #3D332A !important;
+    border: 1.5px solid rgba(218, 206, 188, 0.9) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 
     &:hover {
       background-color: #ffffff !important;
-      border-color: #C25E3E !important;
-      color: #C25E3E !important;
+      border-color: #B45309 !important;
+      color: #B45309 !important;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(200, 100, 60, 0.15);
+      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.14);
     }
   }
 
   &.tertiary-btn {
-    color: #7B685E !important;
+    color: #6B5D52 !important;
     background: transparent !important;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.6) !important;
-      color: #2D231E !important;
+      background-color: rgba(255, 255, 255, 0.7) !important;
+      color: #262320 !important;
     }
   }
 }
@@ -180,14 +180,14 @@
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 
-    0 8px 20px rgba(180, 140, 100, 0.15),
+    0 8px 20px rgba(130, 110, 85, 0.12),
     0 2px 6px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFF3EC;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: #F5EFE6;
+  border: 2px solid rgba(255, 255, 255, 0.95);
   transition: transform var(--mv-transition-fast);
 
   &:hover {
@@ -216,8 +216,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1.5px solid rgba(235, 195, 175, 0.8);
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(218, 206, 188, 0.85);
   border-radius: var(--mv-radius-full);
   padding: 4px 6px 4px 14px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
@@ -225,14 +225,14 @@
   transition: all var(--mv-transition-fast);
 
   &:hover, &:focus-within {
-    border-color: #C25E3E;
+    border-color: #B45309;
     background-color: #ffffff;
-    box-shadow: 0 4px 16px rgba(224, 122, 95, 0.15);
+    box-shadow: 0 4px 16px rgba(180, 83, 9, 0.14);
   }
 }
 
 .search-icon {
-  color: #C25E3E;
+  color: #B45309;
   font-size: 18px;
   width: 18px;
   height: 18px;
@@ -247,11 +247,11 @@
   outline: none !important;
   font-family: var(--font-ui);
   font-size: 0.86rem;
-  color: #2D231E;
+  color: #262320;
   padding: 3px 0;
 
   &::placeholder {
-    color: #9C8A80;
+    color: #8C7A70;
     font-size: 0.82rem;
   }
 }
@@ -291,7 +291,7 @@
 
 .suggestions-label {
   font-size: 0.74rem;
-  color: #8C7A70;
+  color: #7D6F64;
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
@@ -305,13 +305,13 @@
 }
 
 .suggestion-chip {
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(235, 195, 175, 0.7);
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(218, 206, 188, 0.8);
   border-radius: var(--mv-radius-full);
   padding: 4px 10px;
   font-size: 0.74rem;
   font-weight: 500;
-  color: #5C4B40;
+  color: #52473D;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
@@ -319,8 +319,8 @@
 
   &:hover {
     background-color: #ffffff;
-    color: #C25E3E;
-    border-color: #C25E3E;
+    color: #B45309;
+    border-color: #B45309;
     transform: translateY(-1px);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   }
@@ -373,34 +373,36 @@
     .stat-trend { color: #2E7D32; }
   }
 
-  /* 2. Peach Coral Card */
-  &.card-coral {
-    background-color: #FCE4D6;
-    border: 1.5px solid #F8C2A8;
+  /* 2. Honey Amber Gold Card (Zero pink) */
+  &.card-coral,
+  &.card-amber {
+    background-color: #FEF3C7;
+    border: 1.5px solid #FDE68A;
 
     .stat-icon-tile {
-      background: #F8BFA5;
-      color: #8C3B1E;
-      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 4px 10px rgba(180, 80, 50, 0.18);
+      background: #FCD34D;
+      color: #78350F;
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.7), 0 4px 10px rgba(180, 110, 10, 0.18);
     }
-    .stat-label { color: #7D4C3A; }
-    .stat-number { color: #4D2112; }
-    .stat-trend { color: #C2410C; }
+    .stat-label { color: #78350F; }
+    .stat-number { color: #451A03; }
+    .stat-trend { color: #B45309; }
   }
 
-  /* 3. Buttercream Gold Card */
-  &.card-buttercream {
-    background-color: #FEF2D6;
-    border: 1.5px solid #F8DC9B;
+  /* 3. Soft Iris Lavender Card */
+  &.card-buttercream,
+  &.card-lavender {
+    background-color: #EDE9FE;
+    border: 1.5px solid #DDD6FE;
 
     .stat-icon-tile {
-      background: #F8DA94;
-      color: #7C5109;
-      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.6), 0 4px 10px rgba(160, 115, 20, 0.18);
+      background: #C4B5FD;
+      color: #4C1D95;
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.7), 0 4px 10px rgba(100, 70, 170, 0.18);
     }
-    .stat-label { color: #7D632F; }
-    .stat-number { color: #422D05; }
-    .stat-trend { color: #B45309; }
+    .stat-label { color: #5B21B6; }
+    .stat-number { color: #2E1065; }
+    .stat-trend { color: #6D28D9; }
   }
 
   /* 4. Powder Sky Blue Card */

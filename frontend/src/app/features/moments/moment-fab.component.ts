@@ -27,7 +27,7 @@ import { MomentComposerSheetComponent } from './moment-composer-sheet.component'
       matTooltipPosition="left"
       aria-label="Share a Moment">
       <div class="fab-inner-glow"></div>
-      <mat-icon class="fab-icon">bolt</mat-icon>
+      <mat-icon class="fab-icon">camera_alt</mat-icon>
     </button>
   `,
   styleUrl: './moment-fab.component.scss'
