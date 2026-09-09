@@ -8,9 +8,11 @@
       <mat-icon>menu</mat-icon>
     </button>
 
-    <div class="page-title-wrap">
-      <h1 class="page-title">{{ pageTitle() }}</h1>
-    </div>
+    @if (!isDashboard()) {
+      <div class="page-title-wrap">
+        <h1 class="page-title">{{ pageTitle() }}</h1>
+      </div>
+    }
   </div>
 
   <div class="navbar-actions">

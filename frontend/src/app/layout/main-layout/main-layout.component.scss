@@ -39,7 +39,7 @@
 
 .layout-navbar {
   flex-shrink: 0;
-  height: 64px;
+  height: 52px;
   z-index: 40;
 }
 
@@ -49,7 +49,7 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--mv-space-24) var(--mv-space-32) var(--mv-space-64);
+  padding: var(--mv-space-4) var(--mv-space-28) var(--mv-space-64);
   box-sizing: border-box;
   scroll-behavior: smooth;
 
@@ -145,7 +145,7 @@
     padding-bottom: calc(84px + env(safe-area-inset-bottom, 20px));
 
     &:has(mv-assistant) {
-      height: calc(100vh - 64px - 60px);
+      height: calc(100vh - 52px - 60px);
       padding: 0;
       overflow: hidden;
     }
