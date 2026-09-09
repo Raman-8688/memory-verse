@@ -12,16 +12,48 @@
       </h1>
       <p class="hero-subtitle">Your memories, beautifully remembered.</p>
 
-      <!-- Subtle Contextual Summary Line (No heavy analytics box) -->
+      <!-- Subtle Stat Cards (Row on desktop, 2x2 grid on mobile) -->
       @if (dashboardData()?.stats; as stats) {
-        <div class="archive-summary-line">
-          <span class="summary-stat"><strong>{{ stats.totalMemories || 0 }}</strong> memories</span>
-          <span class="summary-dot">·</span>
-          <span class="summary-stat"><strong>{{ stats.totalJourneys || 0 }}</strong> journeys</span>
-          <span class="summary-dot">·</span>
-          <span class="summary-stat"><strong>{{ stats.totalFriends || 0 }}</strong> people</span>
-          <span class="summary-dot">·</span>
-          <span class="summary-stat"><strong>{{ stats.totalPhotos || 0 }}</strong> photographs</span>
+        <div class="hero-stats-grid">
+          <div class="hero-stat-card">
+            <div class="stat-icon-wrap">
+              <mat-icon>photo_library</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalMemories || 0 }}</span>
+              <span class="stat-label">Memories</span>
+            </div>
+          </div>
+
+          <div class="hero-stat-card">
+            <div class="stat-icon-wrap">
+              <mat-icon>auto_stories</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalJourneys || 0 }}</span>
+              <span class="stat-label">Journeys</span>
+            </div>
+          </div>
+
+          <div class="hero-stat-card">
+            <div class="stat-icon-wrap">
+              <mat-icon>people</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalFriends || 0 }}</span>
+              <span class="stat-label">People</span>
+            </div>
+          </div>
+
+          <div class="hero-stat-card">
+            <div class="stat-icon-wrap">
+              <mat-icon>image</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-number">{{ stats.totalPhotos || 0 }}</span>
+              <span class="stat-label">Photographs</span>
+            </div>
+          </div>
         </div>
       }
     </div>

@@ -1,11 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Subject, fromEvent } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { NotificationStateService } from '@core/services/notification-state.service';
 import { MediaCaptureService } from '@core/services/media-capture.service';
@@ -32,10 +34,66 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss'
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit, OnDestroy {
   readonly authService = inject(AuthService);
   readonly notificationState = inject(NotificationStateService);
   readonly captureService = inject(MediaCaptureService);
   readonly paletteService = inject(CommandPaletteService);
   readonly sidebarService = inject(SidebarService);
+  private readonly router = inject(Router);
+
+  readonly isDashboard = signal<boolean>(false);
+  readonly isScrolled = signal<boolean>(false);
+
+  private readonly destroy$ = new Subject<void>();
+
+  ngOnInit(): void {
+    this.updateRouteStatus(this.router.url);
+
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe((e) => {
+      this.updateRouteStatus(e.urlAfterRedirects || e.url);
+      this.checkScroll();
+    });
+
+    if (typeof window !== 'undefined') {
+      fromEvent(window, 'scroll', { passive: true })
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => this.checkScroll());
+
+      setTimeout(() => {
+        const mainContent = document.querySelector('.layout-main-content');
+        if (mainContent) {
+          fromEvent(mainContent, 'scroll', { passive: true })
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => this.checkScroll());
+        }
+        this.checkScroll();
+      }, 100);
+    }
+  }
+
+  private updateRouteStatus(url: string): void {
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    this.isDashboard.set(cleanUrl === '/' || cleanUrl === '/dashboard');
+  }
+
+  private checkScroll(): void {
+    if (!this.isDashboard()) {
+      this.isScrolled.set(false);
+      return;
+    }
+    const winScroll = typeof window !== 'undefined' ? (window.scrollY || document.documentElement.scrollTop || 0) : 0;
+    const mainContent = typeof document !== 'undefined' ? document.querySelector('.layout-main-content') : null;
+    const contentScroll = mainContent ? mainContent.scrollTop : 0;
+    const scrollPos = Math.max(winScroll, contentScroll);
+    this.isScrolled.set(scrollPos > 45);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

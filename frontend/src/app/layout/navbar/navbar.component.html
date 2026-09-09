@@ -1,4 +1,4 @@
-<header class="navbar">
+<header class="navbar" [class.navbar--transparent]="isDashboard() && !isScrolled()">
   <div class="navbar-brand">
     <button 
       mat-icon-button 

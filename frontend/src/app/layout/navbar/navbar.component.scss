@@ -9,6 +9,19 @@
   position: sticky;
   top: 0;
   z-index: 40;
+  transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+
+  &.navbar--transparent {
+    background-color: transparent !important;
+    border-bottom-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar {
+    transition: none !important;
+  }
 }
 
 .navbar-brand {
