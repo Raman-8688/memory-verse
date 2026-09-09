@@ -8,7 +8,7 @@
   @if (sidebarService.isMobileOpen()) {
     <div class="mobile-sidebar-backdrop" (click)="sidebarService.closeMobile()" role="presentation"></div>
     <aside class="mobile-sidebar-drawer" role="dialog" aria-label="Navigation Menu">
-      <mv-sidebar (navigated)="sidebarService.closeMobile()"></mv-sidebar>
+      <mv-sidebar [forceExpanded]="true" (navigated)="sidebarService.closeMobile()"></mv-sidebar>
     </aside>
   }
 

@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject, signal, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -41,12 +41,17 @@ export interface NavSection {
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent implements OnDestroy {
+  @Input() forceExpanded = false;
   @Output() readonly navigated = new EventEmitter<void>();
 
   readonly notificationState = inject(NotificationStateService);
   readonly authService = inject(AuthService);
   readonly sidebarService = inject(SidebarService);
   private readonly router = inject(Router);
+
+  get isEffectivelyCollapsed(): boolean {
+    return !this.forceExpanded && this.sidebarService.isCollapsed();
+  }
 
   // Active expanded section id in accordion (only one open at a time)
   readonly expandedSection = signal<string | null>(null);
@@ -122,7 +127,7 @@ export class SidebarComponent implements OnDestroy {
   }
 
   toggleSection(sectionId: string): void {
-    if (this.sidebarService.isCollapsed()) {
+    if (this.isEffectivelyCollapsed) {
       this.sidebarService.expand();
       this.expandedSection.set(sectionId);
       return;

@@ -8,18 +8,18 @@
       <mat-icon>menu</mat-icon>
     </button>
 
+    @if (!isDashboard()) {
+      <div class="page-title-wrap">
+        <h1 class="page-title">{{ pageTitle() }}</h1>
+      </div>
+    }
+
     <!-- Universal Search (Positioned on Left with clear visibility) -->
     <button mat-button class="navbar-search-btn" (click)="paletteService.open()" title="Universal Search (Cmd+K / Ctrl+K)">
       <mat-icon>search</mat-icon>
       <span class="search-label">Search archive...</span>
       <kbd class="shortcut-cap">⌘K</kbd>
     </button>
-
-    @if (!isDashboard()) {
-      <div class="page-title-wrap">
-        <h1 class="page-title">{{ pageTitle() }}</h1>
-      </div>
-    }
   </div>
 
   <div class="navbar-actions">
@@ -104,6 +104,10 @@
           <span>Sign Out</span>
         </button>
       </mat-menu>
+    } @else {
+      <a routerLink="/auth/login" mat-icon-button class="user-avatar-btn user-avatar-fallback-btn" title="Sign In" aria-label="Sign In">
+        <mat-icon class="fallback-avatar-icon">person</mat-icon>
+      </a>
     }
   </div>
 </header>

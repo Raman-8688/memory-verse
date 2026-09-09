@@ -449,6 +449,10 @@
   transition: all var(--mv-transition-fast);
   white-space: nowrap;
 
+  @media (max-width: 1024px) {
+    display: none !important;
+  }
+
   &:hover {
     background-color: var(--mv-bg-subtle);
     color: var(--mv-text-primary);
