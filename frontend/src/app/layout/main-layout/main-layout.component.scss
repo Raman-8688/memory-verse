@@ -5,6 +5,28 @@
   display: flex;
   flex-direction: column;
   background-color: var(--mv-bg-main);
+
+  /* Dashboard Floating Overlay Header Layout */
+  &.layout--dashboard {
+    .layout-navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 68px;
+      z-index: 40;
+    }
+
+    .desktop-sidebar-wrapper {
+      padding-top: 68px;
+      box-sizing: border-box;
+    }
+
+    .layout-main-content {
+      padding-top: calc(68px + var(--mv-space-24));
+    }
+  }
 }
 
 .layout-navbar {
@@ -139,5 +161,9 @@
       padding: 0;
       overflow: hidden;
     }
+  }
+
+  .layout-container.layout--dashboard .layout-main-content {
+    padding-top: calc(68px + var(--mv-space-16));
   }
 }
