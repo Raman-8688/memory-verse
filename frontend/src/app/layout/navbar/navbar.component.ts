@@ -44,6 +44,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   readonly isDashboard = signal<boolean>(false);
   readonly isScrolled = signal<boolean>(false);
+  readonly pageTitle = signal<string>('Dashboard');
 
   private readonly destroy$ = new Subject<void>();
 
@@ -78,6 +79,48 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private updateRouteStatus(url: string): void {
     const cleanUrl = url.split('?')[0].split('#')[0];
     this.isDashboard.set(cleanUrl === '/' || cleanUrl === '/dashboard');
+
+    if (cleanUrl === '/' || cleanUrl === '/dashboard') {
+      this.pageTitle.set('Dashboard');
+    } else if (cleanUrl.startsWith('/journeys')) {
+      this.pageTitle.set('Journeys');
+    } else if (cleanUrl.startsWith('/memories')) {
+      this.pageTitle.set('Memories');
+    } else if (cleanUrl.startsWith('/moments')) {
+      this.pageTitle.set('Moments');
+    } else if (cleanUrl.startsWith('/timeline')) {
+      this.pageTitle.set('Timeline');
+    } else if (cleanUrl.startsWith('/favorites')) {
+      this.pageTitle.set('Favorites');
+    } else if (cleanUrl.startsWith('/collections')) {
+      this.pageTitle.set('Collections');
+    } else if (cleanUrl.startsWith('/people')) {
+      this.pageTitle.set('People');
+    } else if (cleanUrl.startsWith('/places')) {
+      this.pageTitle.set('Places');
+    } else if (cleanUrl.startsWith('/map')) {
+      this.pageTitle.set('Memory Map');
+    } else if (cleanUrl.startsWith('/on-this-day')) {
+      this.pageTitle.set('On This Day');
+    } else if (cleanUrl.startsWith('/gallery')) {
+      this.pageTitle.set('Media Gallery');
+    } else if (cleanUrl.startsWith('/assistant')) {
+      this.pageTitle.set('Ask AI');
+    } else if (cleanUrl.startsWith('/guide')) {
+      this.pageTitle.set('User Guide');
+    } else if (cleanUrl.startsWith('/developer')) {
+      this.pageTitle.set('Developer');
+    } else if (cleanUrl.startsWith('/notifications')) {
+      this.pageTitle.set('Notifications');
+    } else if (cleanUrl.startsWith('/trash')) {
+      this.pageTitle.set('Trash Bin');
+    } else if (cleanUrl.startsWith('/profile')) {
+      this.pageTitle.set('Profile');
+    } else if (cleanUrl.startsWith('/admin')) {
+      this.pageTitle.set('Administration');
+    } else {
+      this.pageTitle.set('MemoryVerse');
+    }
   }
 
   private checkScroll(): void {

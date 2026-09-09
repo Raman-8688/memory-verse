@@ -1,4 +1,28 @@
 <aside class="sidebar" [class.mini-variant]="sidebarService.isCollapsed()">
+  <!-- Top: User Greeting / Brand Card -->
+  <div class="sidebar-header-block">
+    @if (!sidebarService.isCollapsed()) {
+      <div class="sidebar-user-card" routerLink="/profile">
+        @if (authService.currentUser(); as user) {
+          <img [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
+               [alt]="user.fullName" 
+               mvFallback
+               class="sidebar-card-avatar">
+          <div class="sidebar-card-info">
+            <span class="sidebar-card-greeting">Hi, {{ user.fullName ? (user.fullName.split(' ')[0]) : 'Friend' }}! 👋</span>
+            <span class="sidebar-card-role">{{ user.role || 'Member' }}</span>
+          </div>
+        } @else {
+          <div class="sidebar-brand-title">MemoryVerse</div>
+        }
+      </div>
+    } @else {
+      <div class="mini-logo-wrap" (click)="sidebarService.expand()" title="Expand Navigation">
+        <span class="mini-brand-initial">MV</span>
+      </div>
+    }
+  </div>
+
   <!-- Main Core Navigation (Accordion Architecture) -->
   <div class="sidebar-top">
     <!-- HOME Section -->

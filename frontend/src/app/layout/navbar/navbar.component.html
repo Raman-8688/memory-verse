@@ -1,19 +1,16 @@
-<header class="navbar" [class.navbar--dashboard]="isDashboard()" [class.navbar--scrolled]="isScrolled()">
-  <div class="navbar-brand">
+<header class="navbar" [class.navbar--scrolled]="isScrolled()">
+  <div class="navbar-left">
     <button 
       mat-icon-button 
-      class="sidebar-toggle-btn" 
-      (click)="sidebarService.toggle()" 
-      [matTooltip]="sidebarService.isCollapsed() ? 'Expand Navigation' : 'Collapse Navigation'"
-      matTooltipPosition="below"
-      aria-label="Toggle Sidebar Navigation">
-      <mat-icon>{{ sidebarService.isCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+      class="sidebar-mobile-toggle-btn" 
+      (click)="sidebarService.openMobile()" 
+      aria-label="Open Navigation Menu">
+      <mat-icon>menu</mat-icon>
     </button>
 
-    <a routerLink="/dashboard" class="brand-link">
-      <span class="brand-name">MemoryVerse</span>
-      <span class="brand-tagline">Our Journey, Our Memories</span>
-    </a>
+    <div class="page-title-wrap">
+      <h1 class="page-title">{{ pageTitle() }}</h1>
+    </div>
   </div>
 
   <div class="navbar-actions">
@@ -25,7 +22,7 @@
     </button>
 
     <!-- Desktop & Tablet Action Icons (hidden on narrow screens < 540px) -->
-    <button mat-stroked-button class="quick-capture-btn desktop-only-action" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
+    <button mat-flat-button class="quick-capture-btn desktop-only-action" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
       <mat-icon>add_a_photo</mat-icon>
       <span class="btn-text">Capture</span>
     </button>
@@ -75,15 +72,13 @@
       </a>
     </mat-menu>
 
-    <!-- User Profile Dropdown (Always visible) -->
+    <!-- Clean Circular User Avatar Button (Icon only) -->
     @if (authService.currentUser(); as user) {
-      <button mat-button [matMenuTriggerFor]="userMenu" class="user-profile-btn" aria-label="User profile menu">
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" aria-label="User profile menu">
         <img [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'" 
              [alt]="user.fullName" 
              mvFallback
-             class="user-avatar">
-        <span class="user-name">{{ user.fullName }}</span>
-        <mat-icon class="dropdown-icon">expand_more</mat-icon>
+             class="user-avatar-circle">
       </button>
 
       <mat-menu #userMenu="matMenu" xPosition="before" class="editorial-menu">
@@ -93,7 +88,7 @@
         </div>
         <a mat-menu-item routerLink="/profile">
           <mat-icon>person_outline</mat-icon>
-          <span>Profile</span>
+          <span>Profile & Settings</span>
         </a>
         @if (authService.isAdmin()) {
           <a mat-menu-item routerLink="/admin/group">

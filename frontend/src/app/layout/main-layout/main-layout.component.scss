@@ -3,54 +3,18 @@
   width: 100vw;
   overflow: hidden;
   display: flex;
-  flex-direction: column;
   background-color: var(--mv-bg-main);
-
-  /* Dashboard Floating Overlay Header Layout */
-  &.layout--dashboard {
-    .layout-navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      height: 68px;
-      z-index: 40;
-    }
-
-    .desktop-sidebar-wrapper {
-      padding-top: 68px;
-      box-sizing: border-box;
-    }
-
-    .layout-main-content {
-      padding-top: calc(68px + var(--mv-space-24));
-    }
-  }
-}
-
-.layout-navbar {
-  flex-shrink: 0;
-  height: 68px;
-  z-index: 40;
-}
-
-.layout-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  position: relative;
 }
 
 .desktop-sidebar-wrapper {
   flex-shrink: 0;
-  height: 100%;
+  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 250px;
   transition: width var(--mv-transition-base);
   z-index: 30;
+  border-right: 1px solid var(--mv-border);
   -ms-overflow-style: none;
   scrollbar-width: none;
 
@@ -63,13 +27,29 @@
   }
 }
 
+.layout-main-column {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.layout-navbar {
+  flex-shrink: 0;
+  height: 64px;
+  z-index: 40;
+}
+
 .layout-main-content {
   flex: 1;
   min-width: 0;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: var(--mv-space-32) var(--mv-space-32) var(--mv-space-64);
+  padding: var(--mv-space-24) var(--mv-space-32) var(--mv-space-64);
   box-sizing: border-box;
   scroll-behavior: smooth;
 
@@ -139,15 +119,23 @@
   .layout-container {
     height: auto;
     min-height: 100vh;
-    overflow: visible;
-  }
-
-  .layout-body {
+    flex-direction: column;
     overflow: visible;
   }
 
   .desktop-sidebar-wrapper {
     display: none;
+  }
+
+  .layout-main-column {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .layout-navbar {
+    position: sticky;
+    top: 0;
   }
 
   .layout-main-content {
@@ -157,13 +145,9 @@
     padding-bottom: calc(84px + env(safe-area-inset-bottom, 20px));
 
     &:has(mv-assistant) {
-      height: calc(100vh - 68px - 64px);
+      height: calc(100vh - 64px - 60px);
       padding: 0;
       overflow: hidden;
     }
-  }
-
-  .layout-container.layout--dashboard .layout-main-content {
-    padding-top: calc(68px + var(--mv-space-16));
   }
 }

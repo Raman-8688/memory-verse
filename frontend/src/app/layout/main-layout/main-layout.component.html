@@ -1,23 +1,25 @@
-<div class="layout-container" [class.layout--dashboard]="isDashboard()">
-  <mv-navbar class="layout-navbar"></mv-navbar>
-  <div class="layout-body">
-    <!-- Desktop Sidebar -->
-    <div class="desktop-sidebar-wrapper" [class.collapsed]="sidebarService.isCollapsed()">
-      <mv-sidebar></mv-sidebar>
-    </div>
+<div class="layout-container">
+  <!-- Desktop Full-Height Sidebar (top: 0 to bottom: 100vh) -->
+  <aside class="desktop-sidebar-wrapper" [class.collapsed]="sidebarService.isCollapsed()">
+    <mv-sidebar></mv-sidebar>
+  </aside>
 
-    <!-- Mobile/Tablet Sidebar Drawer & Backdrop -->
-    @if (sidebarService.isMobileOpen()) {
-      <div class="mobile-sidebar-backdrop" (click)="sidebarService.closeMobile()" role="presentation"></div>
-      <aside class="mobile-sidebar-drawer" role="dialog" aria-label="Navigation Menu">
-        <mv-sidebar (navigated)="sidebarService.closeMobile()"></mv-sidebar>
-      </aside>
-    }
+  <!-- Mobile/Tablet Sidebar Drawer & Backdrop -->
+  @if (sidebarService.isMobileOpen()) {
+    <div class="mobile-sidebar-backdrop" (click)="sidebarService.closeMobile()" role="presentation"></div>
+    <aside class="mobile-sidebar-drawer" role="dialog" aria-label="Navigation Menu">
+      <mv-sidebar (navigated)="sidebarService.closeMobile()"></mv-sidebar>
+    </aside>
+  }
 
+  <!-- Main Content Column (Integrated Top Action Header + Scrollable View) -->
+  <div class="layout-main-column">
+    <mv-navbar class="layout-navbar"></mv-navbar>
     <main class="layout-main-content route-fade-in">
       <router-outlet></router-outlet>
     </main>
   </div>
+
   <mv-mobile-nav></mv-mobile-nav>
   <mv-command-palette></mv-command-palette>
   <mv-moment-fab></mv-moment-fab>
