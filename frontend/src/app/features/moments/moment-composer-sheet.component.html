@@ -26,14 +26,14 @@
 
     <!-- Mobile Quick Picker Bar (Visible on mobile or as alternative) -->
     <div class="quick-picker-bar">
-      <button type="button" class="picker-chip camera-chip" (click)="triggerCamera()">
+      <button type="button" class="picker-chip camera-chip" (click)="triggerCamera()" aria-label="Take Photo with Camera">
         <mat-icon>photo_camera</mat-icon>
         <span>Camera</span>
       </button>
 
-      <button type="button" class="picker-chip gallery-chip" (click)="triggerGallery()">
+      <button type="button" class="picker-chip gallery-chip" (click)="triggerGallery()" aria-label="Add Photos or Videos">
         <mat-icon>add_photo_alternate</mat-icon>
-        <span>Add Photos / Videos</span>
+        <span>Add Photos</span>
       </button>
     </div>
 

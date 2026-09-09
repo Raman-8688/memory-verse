@@ -158,10 +158,86 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
         </section>
       }
 
-      <!-- TAB 2: Security & Data Privacy -->
+      <!-- TAB 2: Security & Preferences -->
       @if (activeTab() === 'security') {
         <section class="security-section">
-          <!-- Card 1: Default Privacy Setting -->
+          <!-- Card 1: Default Landing Destination -->
+          <div class="settings-card">
+            <div class="card-header-row">
+              <div class="card-icon-bubble primary">
+                <mat-icon>home</mat-icon>
+              </div>
+              <div>
+                <h2 class="card-title">Default Landing Page</h2>
+                <p class="card-subtitle">Choose where MemoryVerse opens right after signing in or navigating to the home route.</p>
+              </div>
+            </div>
+
+            <div class="privacy-options-grid">
+              <!-- Option: Dashboard -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultLandingPage() === '/dashboard'"
+                   (click)="setDefaultLandingPage('/dashboard')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">dashboard</mat-icon>
+                  <span class="badge-recommended">Default</span>
+                  <span class="radio-circle" [class.checked]="defaultLandingPage() === '/dashboard'"></span>
+                </div>
+                <h4 class="option-title">Dashboard</h4>
+                <p class="option-desc">Overview with daily moments feed, memory spotlight, quick metrics, and latest journeys.</p>
+              </div>
+
+              <!-- Option: Moments Feed -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultLandingPage() === '/moments'"
+                   (click)="setDefaultLandingPage('/moments')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">auto_stories</mat-icon>
+                  <span class="radio-circle" [class.checked]="defaultLandingPage() === '/moments'"></span>
+                </div>
+                <h4 class="option-title">Moments Feed</h4>
+                <p class="option-desc">Jump straight to companion stories, rapid captures, and live circle moment cards.</p>
+              </div>
+
+              <!-- Option: Journeys -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultLandingPage() === '/journeys'"
+                   (click)="setDefaultLandingPage('/journeys')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">explore</mat-icon>
+                  <span class="radio-circle" [class.checked]="defaultLandingPage() === '/journeys'"></span>
+                </div>
+                <h4 class="option-title">Journeys</h4>
+                <p class="option-desc">Explore organized milestone albums, adventure tracks, and collective storybooks.</p>
+              </div>
+
+              <!-- Option: Timeline -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultLandingPage() === '/memories'"
+                   (click)="setDefaultLandingPage('/memories')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">timeline</mat-icon>
+                  <span class="radio-circle" [class.checked]="defaultLandingPage() === '/memories'"></span>
+                </div>
+                <h4 class="option-title">Timeline & Feed</h4>
+                <p class="option-desc">Chronological flow of all memories with tag filters, date scrubbers, and search.</p>
+              </div>
+
+              <!-- Option: Visual Gallery -->
+              <div class="privacy-option-box" 
+                   [class.selected]="defaultLandingPage() === '/gallery'"
+                   (click)="setDefaultLandingPage('/gallery')">
+                <div class="option-top">
+                  <mat-icon class="option-icon">grid_view</mat-icon>
+                  <span class="radio-circle" [class.checked]="defaultLandingPage() === '/gallery'"></span>
+                </div>
+                <h4 class="option-title">Visual Gallery</h4>
+                <p class="option-desc">Immersive masonry media wall displaying all uploaded photos and videos.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Default Privacy Setting -->
           <div class="settings-card">
             <div class="card-header-row">
               <div class="card-icon-bubble primary">
@@ -1038,11 +1114,26 @@ export class ProfileComponent implements OnInit {
   readonly defaultPrivacy = signal<PrivacyLevel>(
     (localStorage.getItem('mv_default_privacy_level') as PrivacyLevel) || 'CIRCLE_COMPANIONS'
   );
+  readonly defaultLandingPage = signal<string>(
+    (typeof window !== 'undefined' && localStorage.getItem('mv_default_landing_page')) || '/dashboard'
+  );
 
   readonly defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';
 
   ngOnInit(): void {
     this.loadTaggedMemories();
+  }
+
+  setDefaultLandingPage(page: string): void {
+    this.defaultLandingPage.set(page);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mv_default_landing_page', page);
+    }
+    const friendlyName = page === '/dashboard' ? 'Dashboard' :
+                         page === '/moments' ? 'Moments Feed' :
+                         page === '/journeys' ? 'Journeys' :
+                         page === '/memories' ? 'Timeline & Feed' : 'Visual Gallery';
+    this.snackBar.open(`Default landing page saved: ${friendlyName}`, 'OK', { duration: 3000 });
   }
 
   setDefaultPrivacy(level: PrivacyLevel): void {

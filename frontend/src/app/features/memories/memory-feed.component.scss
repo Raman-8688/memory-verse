@@ -148,16 +148,41 @@
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }
 
+.filter-chips-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 36px;
+    background: linear-gradient(to right, rgba(250, 249, 246, 0), var(--mv-bg-main, #faf9f6));
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
 .filter-chips-track {
   display: flex;
   align-items: center;
   gap: var(--mv-space-8);
   overflow-x: auto;
-  padding-bottom: 4px;
-  &::-webkit-scrollbar { height: 3px; }
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 36px 4px 0;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .filter-chip {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;

@@ -42,6 +42,14 @@
               <div class="palette-quick-suggestions">
                 <span class="quick-title">Quick Jump</span>
                 <div class="quick-actions-row">
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/dashboard')">
+                    <mat-icon>dashboard</mat-icon>
+                    <span>Dashboard</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/moments')">
+                    <mat-icon>bolt</mat-icon>
+                    <span>Moments</span>
+                  </button>
                   <button type="button" class="quick-chip" (click)="quickNavigate('/memories')">
                     <mat-icon>history_edu</mat-icon>
                     <span>Timeline</span>
@@ -50,26 +58,60 @@
                     <mat-icon>auto_stories</mat-icon>
                     <span>Journeys</span>
                   </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/gallery')">
+                    <mat-icon>photo_library</mat-icon>
+                    <span>Gallery</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/on-this-day')">
+                    <mat-icon>event_repeat</mat-icon>
+                    <span>On This Day</span>
+                  </button>
                   <button type="button" class="quick-chip" (click)="quickNavigate('/places')">
                     <mat-icon>place</mat-icon>
                     <span>Places</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/map')">
+                    <mat-icon>map</mat-icon>
+                    <span>Memory Map</span>
                   </button>
                   <button type="button" class="quick-chip" (click)="quickNavigate('/people')">
                     <mat-icon>people</mat-icon>
                     <span>People</span>
                   </button>
-                  <button type="button" class="quick-chip" (click)="quickNavigate('/favorites')">
-                    <mat-icon>favorite_border</mat-icon>
-                    <span>Favorites</span>
-                  </button>
                   <button type="button" class="quick-chip" (click)="quickNavigate('/collections')">
                     <mat-icon>collections_bookmark</mat-icon>
                     <span>Collections</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/favorites')">
+                    <mat-icon>favorite_border</mat-icon>
+                    <span>Favorites</span>
                   </button>
                   <button type="button" class="quick-chip" (click)="quickNavigate('/assistant')">
                     <mat-icon>auto_awesome</mat-icon>
                     <span>Ask AI</span>
                   </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/notifications')">
+                    <mat-icon>notifications</mat-icon>
+                    <span>Notifications</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/guide')">
+                    <mat-icon>menu_book</mat-icon>
+                    <span>User Guide</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/developer')">
+                    <mat-icon>code</mat-icon>
+                    <span>Developer</span>
+                  </button>
+                  <button type="button" class="quick-chip" (click)="quickNavigate('/trash')">
+                    <mat-icon>delete_outline</mat-icon>
+                    <span>Trash Bin</span>
+                  </button>
+                  @if (authService.isAdmin()) {
+                    <button type="button" class="quick-chip" (click)="quickNavigate('/admin')">
+                      <mat-icon>admin_panel_settings</mat-icon>
+                      <span>Admin</span>
+                    </button>
+                  }
                 </div>
               </div>
             }

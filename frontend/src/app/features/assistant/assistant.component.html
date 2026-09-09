@@ -1,16 +1,28 @@
 <div class="assistant-page-container">
 
   <!-- Header Masthead -->
-  <header class="companion-header">
+  <header class="companion-header" [class.compact-header]="aiService.messages().length > 0">
     <div class="header-inner">
-      <div class="header-titles">
-        <div class="companion-tag">
-          <mat-icon class="ai-sparkle">auto_awesome</mat-icon>
-          <span>Memory Companion</span>
+      @if (aiService.messages().length === 0) {
+        <div class="header-titles">
+          <div class="companion-tag">
+            <mat-icon class="ai-sparkle">auto_awesome</mat-icon>
+            <span>Memory Companion</span>
+          </div>
+          <h1 class="companion-title">Ask My Memories</h1>
+          <p class="companion-subtitle">A grounded conversation with your collective history and shared moments.</p>
         </div>
-        <h1 class="companion-title">Ask My Memories</h1>
-        <p class="companion-subtitle">A grounded conversation with your collective history and shared moments.</p>
-      </div>
+      } @else {
+        <div class="compact-header-titles">
+          <div class="compact-tag-bubble">
+            <mat-icon class="ai-sparkle">auto_awesome</mat-icon>
+          </div>
+          <div class="compact-title-group">
+            <h2 class="compact-title">Ask My Memories</h2>
+            <span class="compact-grounded-pill">Verified Archive</span>
+          </div>
+        </div>
+      }
 
       <div class="header-actions">
         <!-- Model Selection Badge -->
@@ -43,7 +55,7 @@
           }
         </div>
 
-        <button mat-icon-button class="clear-convo-btn" (click)="resetConversation()" title="Reset Conversation">
+        <button mat-icon-button class="clear-convo-btn" (click)="resetConversation()" title="New Chat / Reset Conversation">
           <mat-icon>refresh</mat-icon>
         </button>
       </div>

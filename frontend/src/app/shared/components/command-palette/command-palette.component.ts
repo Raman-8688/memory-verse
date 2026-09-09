@@ -21,6 +21,8 @@ import { JourneyService } from '@core/services/journey.service';
 import { Memory } from '@core/models/memory.model';
 import { Journey } from '@core/models/journey.model';
 
+import { AuthService } from '@core/auth/auth.service';
+
 export type ResultType = 'memory' | 'journey' | 'place' | 'person';
 
 export interface PaletteItem {
@@ -56,6 +58,7 @@ export interface CategorizedResults {
 })
 export class CommandPaletteComponent implements OnInit {
   readonly paletteService = inject(CommandPaletteService);
+  readonly authService = inject(AuthService);
   private readonly memoryService = inject(MemoryService);
   private readonly journeyService = inject(JourneyService);
   private readonly router = inject(Router);

@@ -3,6 +3,8 @@
   color: var(--mv-text-primary);
   width: 100%;
   max-width: 480px;
+  max-height: 85vh;
+  box-sizing: border-box;
   border-radius: var(--mv-radius-xl);
   overflow: hidden;
   display: flex;
@@ -15,6 +17,7 @@
   justify-content: space-between;
   padding: 20px 24px 16px;
   border-bottom: 1px solid var(--mv-border);
+  flex-shrink: 0;
 }
 
 .dialog-kicker {
@@ -60,6 +63,7 @@
   background-color: var(--mv-bg-subtle);
   padding: 10px 24px;
   border-bottom: 1px solid var(--mv-border);
+  flex-shrink: 0;
 }
 
 .preview-icon {
@@ -92,7 +96,9 @@
 
 .dialog-body-scroll {
   padding: 16px 24px 24px !important;
-  max-height: 60vh;
+  max-height: calc(85vh - 140px);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

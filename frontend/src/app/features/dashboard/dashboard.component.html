@@ -86,7 +86,10 @@
   } @else {
     @if (dashboardData(); as data) {
 
-      <!-- 4. Featured Spotlight Memory / On This Day -->
+      <!-- Moments Feed: Stories row placed directly under the search bar -->
+      <mv-moments-feed [limit]="6"></mv-moments-feed>
+
+      <!-- Featured Spotlight Memory / Recent Memory Highlight / On This Day -->
       @if (data.memoryOfTheDay; as otd) {
         <section class="spotlight-section">
           <div class="spotlight-card">
@@ -168,9 +171,6 @@
           </div>
         </section>
       }
-
-      <!-- 4.5 Daily Moments: Realtime spontaneous visual status feed -->
-      <mv-moments-feed [limit]="6"></mv-moments-feed>
 
       <!-- 5. Recently Remembered: Visual Memory Cards -->
       @if (data.recentMemories && data.recentMemories.length > 0) {

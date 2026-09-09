@@ -28,7 +28,7 @@ import { switchMap, of } from 'rxjs';
   ],
   template: `
     <div class="dialog-container">
-      <!-- Dialog Header -->
+      <!-- Dialog Header (Fixed) -->
       <header class="dialog-header">
         <div>
           <span class="sub-tag">Admin Management</span>
@@ -40,114 +40,117 @@ import { switchMap, of } from 'rxjs';
       </header>
 
       <form [formGroup]="addForm" (ngSubmit)="onSubmit()" class="dialog-form">
-        <!-- Direct System File Upload Area -->
-        <div class="avatar-upload-card">
-          <div class="avatar-clickable-wrapper" (click)="fileInput.click()" title="Click to browse photo from computer">
-            <img [src]="previewImage()" 
-                 alt="Companion photo" 
-                 class="preview-avatar" />
-            <div class="camera-badge">
-              <mat-icon>photo_camera</mat-icon>
+        <!-- Scrollable Middle Section -->
+        <mat-dialog-content class="dialog-scroll-content">
+          <!-- Direct System File Upload Area -->
+          <div class="avatar-upload-card">
+            <div class="avatar-clickable-wrapper" (click)="fileInput.click()" title="Click to browse photo from computer">
+              <img [src]="previewImage()" 
+                   alt="Companion photo" 
+                   class="preview-avatar" />
+              <div class="camera-badge">
+                <mat-icon>photo_camera</mat-icon>
+              </div>
             </div>
-          </div>
 
-          <div class="upload-meta">
-            <h4 class="meta-title">Profile Photograph</h4>
-            @if (selectedFileName()) {
-              <div class="selected-file-pill">
-                <mat-icon class="pill-icon">check_circle</mat-icon>
-                <span class="file-name">{{ selectedFileName() }}</span>
-                <button type="button" mat-icon-button class="clear-file-btn" (click)="clearSelectedFile($event)" title="Clear selection">
-                  <mat-icon>close</mat-icon>
+            <div class="upload-meta">
+              <h4 class="meta-title">Profile Photograph</h4>
+              @if (selectedFileName()) {
+                <div class="selected-file-pill">
+                  <mat-icon class="pill-icon">check_circle</mat-icon>
+                  <span class="file-name">{{ selectedFileName() }}</span>
+                  <button type="button" mat-icon-button class="clear-file-btn" (click)="clearSelectedFile($event)" title="Clear selection">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              } @else {
+                <p class="meta-sub">Choose a picture from your device (optional).</p>
+              }
+
+              <div class="upload-actions">
+                <button type="button" mat-stroked-button class="browse-btn" (click)="fileInput.click()">
+                  <mat-icon>folder_open</mat-icon>
+                  <span>{{ selectedFile ? 'Change Photo' : 'Browse Picture' }}</span>
                 </button>
               </div>
-            } @else {
-              <p class="meta-sub">Choose a picture from your device (optional).</p>
-            }
 
-            <div class="upload-actions">
-              <button type="button" mat-stroked-button class="browse-btn" (click)="fileInput.click()">
-                <mat-icon>folder_open</mat-icon>
-                <span>{{ selectedFile ? 'Change Photo' : 'Browse Picture' }}</span>
-              </button>
+              <input #fileInput 
+                     type="file" 
+                     accept="image/png,image/jpeg,image/jpg,image/webp" 
+                     (change)="onFileSelected($event)" 
+                     style="display: none;" />
             </div>
-
-            <input #fileInput 
-                   type="file" 
-                   accept="image/png,image/jpeg,image/jpg,image/webp" 
-                   (change)="onFileSelected($event)" 
-                   style="display: none;" />
           </div>
-        </div>
 
-        <!-- Full Name Input -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Full Name</mat-label>
-          <input matInput formControlName="fullName" placeholder="e.g. Maya Chen">
-          <mat-icon matPrefix class="field-icon">person</mat-icon>
-          @if (addForm.get('fullName')?.hasError('required') && addForm.get('fullName')?.touched) {
-            <mat-error>Full name is required</mat-error>
+          <!-- Full Name Input -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <input matInput formControlName="fullName" placeholder="e.g. Maya Chen">
+            <mat-icon matPrefix class="field-icon">person</mat-icon>
+            @if (addForm.get('fullName')?.hasError('required') && addForm.get('fullName')?.touched) {
+              <mat-error>Full name is required</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Email Input -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <input matInput type="email" formControlName="email" placeholder="e.g. maya@memoryverse.com">
+            <mat-icon matPrefix class="field-icon">mail</mat-icon>
+            @if (addForm.get('email')?.hasError('required') && addForm.get('email')?.touched) {
+              <mat-error>Email address is required</mat-error>
+            }
+            @if (addForm.get('email')?.hasError('email') && addForm.get('email')?.touched) {
+              <mat-error>Please enter a valid email address</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Password Input -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Initial Password</mat-label>
+            <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" placeholder="Min 6 characters">
+            <mat-icon matPrefix class="field-icon">lock</mat-icon>
+            <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" [attr.aria-label]="'Hide password'">
+              <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            @if (addForm.get('password')?.hasError('required') && addForm.get('password')?.touched) {
+              <mat-error>Password is required</mat-error>
+            }
+            @if (addForm.get('password')?.hasError('minlength') && addForm.get('password')?.touched) {
+              <mat-error>Password must be at least 6 characters</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Access Role Selection -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Access Role</mat-label>
+            <mat-select formControlName="role">
+              <mat-option value="MEMBER">
+                <div class="role-option">
+                  <strong>MEMBER</strong>
+                  <span class="role-desc">Standard companion: can view and contribute memories</span>
+                </div>
+              </mat-option>
+              <mat-option value="ADMIN">
+                <div class="role-option">
+                  <strong class="admin-txt">ADMIN</strong>
+                  <span class="role-desc">Full administrator: full management access</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">security</mat-icon>
+          </mat-form-field>
+
+          @if (errorMessage()) {
+            <div class="error-banner">
+              <mat-icon>error</mat-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
           }
-        </mat-form-field>
+        </mat-dialog-content>
 
-        <!-- Email Input -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email Address</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="e.g. maya@memoryverse.com">
-          <mat-icon matPrefix class="field-icon">mail</mat-icon>
-          @if (addForm.get('email')?.hasError('required') && addForm.get('email')?.touched) {
-            <mat-error>Email address is required</mat-error>
-          }
-          @if (addForm.get('email')?.hasError('email') && addForm.get('email')?.touched) {
-            <mat-error>Please enter a valid email address</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Password Input -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Initial Password</mat-label>
-          <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" placeholder="Min 6 characters">
-          <mat-icon matPrefix class="field-icon">lock</mat-icon>
-          <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" [attr.aria-label]="'Hide password'">
-            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          @if (addForm.get('password')?.hasError('required') && addForm.get('password')?.touched) {
-            <mat-error>Password is required</mat-error>
-          }
-          @if (addForm.get('password')?.hasError('minlength') && addForm.get('password')?.touched) {
-            <mat-error>Password must be at least 6 characters</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Access Role Selection -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Access Role</mat-label>
-          <mat-select formControlName="role">
-            <mat-option value="MEMBER">
-              <div class="role-option">
-                <strong>MEMBER</strong>
-                <span class="role-desc">Standard companion: can view and contribute memories</span>
-              </div>
-            </mat-option>
-            <mat-option value="ADMIN">
-              <div class="role-option">
-                <strong class="admin-txt">ADMIN</strong>
-                <span class="role-desc">Full administrator: full management access</span>
-              </div>
-            </mat-option>
-          </mat-select>
-          <mat-icon matPrefix class="field-icon">security</mat-icon>
-        </mat-form-field>
-
-        @if (errorMessage()) {
-          <div class="error-banner">
-            <mat-icon>error</mat-icon>
-            <span>{{ errorMessage() }}</span>
-          </div>
-        }
-
-        <!-- Dialog Footer Actions -->
-        <div class="dialog-actions">
+        <!-- Dialog Footer Actions (Fixed, Pinned) -->
+        <mat-dialog-actions class="dialog-actions">
           <button type="button" mat-button (click)="dialogRef.close()" [disabled]="isSaving()">
             Cancel
           </button>
@@ -162,7 +165,7 @@ import { switchMap, of } from 'rxjs';
               </ng-container>
             }
           </button>
-        </div>
+        </mat-dialog-actions>
       </form>
     </div>
   `,
@@ -171,17 +174,23 @@ import { switchMap, of } from 'rxjs';
       padding: var(--space-4, 16px);
       background-color: var(--mv-bg-surface);
       color: var(--mv-text-primary);
-      min-width: 340px;
+      min-width: 320px;
       max-width: 520px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .dialog-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: var(--space-4, 16px);
+      margin-bottom: var(--space-3, 12px);
       border-bottom: 1px solid var(--mv-border);
       padding-bottom: var(--space-2, 8px);
+      flex-shrink: 0;
     }
 
     .sub-tag {
@@ -202,7 +211,20 @@ import { switchMap, of } from 'rxjs';
     .dialog-form {
       display: flex;
       flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .dialog-scroll-content {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 4px 4px 12px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
       gap: 16px;
+      box-sizing: border-box;
     }
 
     .avatar-upload-card {
@@ -385,10 +407,16 @@ import { switchMap, of } from 'rxjs';
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
+      align-items: center;
       gap: 12px;
-      margin-top: var(--space-2, 8px);
+      margin-top: auto;
       padding-top: var(--space-3, 12px);
       border-top: 1px solid var(--mv-border);
+      flex-shrink: 0;
+      background: var(--mv-bg-surface);
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
     }
 
     .save-btn {

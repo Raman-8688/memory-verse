@@ -30,7 +30,7 @@ import { resolveMediaUrl } from '@shared/utils/media-url.util';
   ],
   template: `
     <div class="dialog-container">
-      <!-- Dialog Header -->
+      <!-- Dialog Header (Fixed) -->
       <header class="dialog-header">
         <div>
           <span class="sub-tag">Group Directory</span>
@@ -42,80 +42,83 @@ import { resolveMediaUrl } from '@shared/utils/media-url.util';
       </header>
 
       <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="dialog-form">
-        <!-- Direct System File Upload Area (No manual typing required) -->
-        <div class="avatar-upload-card">
-          <div class="avatar-clickable-wrapper" (click)="fileInput.click()" title="Click to browse photo from computer">
-            <img [src]="previewImage()" 
-                 [alt]="data.fullName" 
-                 (error)="onAvatarError()" 
-                 class="preview-avatar" />
-            <div class="camera-badge">
-              <mat-icon>photo_camera</mat-icon>
+        <!-- Scrollable Middle Section -->
+        <mat-dialog-content class="dialog-scroll-content">
+          <!-- Direct System File Upload Area (No manual typing required) -->
+          <div class="avatar-upload-card">
+            <div class="avatar-clickable-wrapper" (click)="fileInput.click()" title="Click to browse photo from computer">
+              <img [src]="previewImage()" 
+                   [alt]="data.fullName" 
+                   (error)="onAvatarError()" 
+                   class="preview-avatar" />
+              <div class="camera-badge">
+                <mat-icon>photo_camera</mat-icon>
+              </div>
             </div>
-          </div>
 
-          <div class="upload-meta">
-            <h4 class="meta-title">Profile Photograph</h4>
-            @if (selectedFileName()) {
-              <div class="selected-file-pill">
-                <mat-icon class="pill-icon">check_circle</mat-icon>
-                <span class="file-name">{{ selectedFileName() }}</span>
-                <button type="button" mat-icon-button class="clear-file-btn" (click)="clearSelectedFile($event)" title="Clear selection">
-                  <mat-icon>close</mat-icon>
+            <div class="upload-meta">
+              <h4 class="meta-title">Profile Photograph</h4>
+              @if (selectedFileName()) {
+                <div class="selected-file-pill">
+                  <mat-icon class="pill-icon">check_circle</mat-icon>
+                  <span class="file-name">{{ selectedFileName() }}</span>
+                  <button type="button" mat-icon-button class="clear-file-btn" (click)="clearSelectedFile($event)" title="Clear selection">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              } @else {
+                <p class="meta-sub">Browse a picture directly from your device.</p>
+              }
+
+              <div class="upload-actions">
+                <button type="button" mat-stroked-button class="browse-btn" (click)="fileInput.click()">
+                  <mat-icon>folder_open</mat-icon>
+                  <span>{{ selectedFile ? 'Change Photo' : 'Browse from System' }}</span>
                 </button>
               </div>
-            } @else {
-              <p class="meta-sub">Browse a picture directly from your device.</p>
-            }
 
-            <div class="upload-actions">
-              <button type="button" mat-stroked-button class="browse-btn" (click)="fileInput.click()">
-                <mat-icon>folder_open</mat-icon>
-                <span>{{ selectedFile ? 'Change Photo' : 'Browse from System' }}</span>
-              </button>
+              <!-- Hidden File Input -->
+              <input #fileInput 
+                     type="file" 
+                     accept="image/png,image/jpeg,image/jpg,image/webp" 
+                     (change)="onFileSelected($event)" 
+                     style="display: none;" />
             </div>
-
-            <!-- Hidden File Input -->
-            <input #fileInput 
-                   type="file" 
-                   accept="image/png,image/jpeg,image/jpg,image/webp" 
-                   (change)="onFileSelected($event)" 
-                   style="display: none;" />
           </div>
-        </div>
 
-        <!-- Full Name Input -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Full Name</mat-label>
-          <input matInput formControlName="fullName" placeholder="e.g. Raman">
-          <mat-icon matPrefix class="field-icon">person</mat-icon>
-          @if (editForm.get('fullName')?.hasError('required') && editForm.get('fullName')?.touched) {
-            <mat-error>Full name is required</mat-error>
-          }
-        </mat-form-field>
+          <!-- Full Name Input -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <input matInput formControlName="fullName" placeholder="e.g. Raman">
+            <mat-icon matPrefix class="field-icon">person</mat-icon>
+            @if (editForm.get('fullName')?.hasError('required') && editForm.get('fullName')?.touched) {
+              <mat-error>Full name is required</mat-error>
+            }
+          </mat-form-field>
 
-        <!-- Access Role Selection -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Access Role</mat-label>
-          <mat-select formControlName="role">
-            <mat-option value="MEMBER">
-              <div class="role-option">
-                <strong>MEMBER</strong>
-                <span class="role-desc">Standard member: can create and view memories</span>
-              </div>
-            </mat-option>
-            <mat-option value="ADMIN">
-              <div class="role-option">
-                <strong class="admin-txt">ADMIN</strong>
-                <span class="role-desc">Full administrator: manage group & chapters</span>
-              </div>
-            </mat-option>
-          </mat-select>
-          <mat-icon matPrefix class="field-icon">security</mat-icon>
-        </mat-form-field>
+          <!-- Access Role Selection -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Access Role</mat-label>
+            <mat-select formControlName="role">
+              <mat-option value="MEMBER">
+                <div class="role-option">
+                  <strong>MEMBER</strong>
+                  <span class="role-desc">Standard member: can create and view memories</span>
+                </div>
+              </mat-option>
+              <mat-option value="ADMIN">
+                <div class="role-option">
+                  <strong class="admin-txt">ADMIN</strong>
+                  <span class="role-desc">Full administrator: manage group & chapters</span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="field-icon">security</mat-icon>
+          </mat-form-field>
+        </mat-dialog-content>
 
-        <!-- Dialog Footer Actions -->
-        <div class="dialog-actions">
+        <!-- Dialog Footer Actions (Fixed, Pinned) -->
+        <mat-dialog-actions class="dialog-actions">
           <button type="button" mat-button (click)="dialogRef.close()" [disabled]="isSaving()">
             Cancel
           </button>
@@ -130,26 +133,32 @@ import { resolveMediaUrl } from '@shared/utils/media-url.util';
               </ng-container>
             }
           </button>
-        </div>
+        </mat-dialog-actions>
       </form>
     </div>
   `,
   styles: [`
     .dialog-container {
-      padding: var(--space-4);
+      padding: var(--space-4, 16px);
       background-color: var(--mv-bg-surface);
       color: var(--mv-text-primary);
-      min-width: 340px;
+      min-width: 320px;
       max-width: 520px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     .dialog-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: var(--space-4);
+      margin-bottom: var(--space-3, 12px);
       border-bottom: 1px solid var(--mv-border);
-      padding-bottom: var(--space-2);
+      padding-bottom: var(--space-2, 8px);
+      flex-shrink: 0;
     }
 
     .sub-tag {
@@ -169,7 +178,20 @@ import { resolveMediaUrl } from '@shared/utils/media-url.util';
     .dialog-form {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .dialog-scroll-content {
+      max-height: 60vh;
+      overflow-y: auto;
+      padding: 4px 4px 12px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-sizing: border-box;
     }
 
     .avatar-upload-card {
@@ -332,10 +354,16 @@ import { resolveMediaUrl } from '@shared/utils/media-url.util';
     .dialog-actions {
       display: flex;
       justify-content: flex-end;
+      align-items: center;
       gap: 12px;
-      margin-top: 8px;
-      padding-top: 14px;
+      margin-top: auto;
+      padding-top: 12px;
       border-top: 1px solid var(--mv-border);
+      flex-shrink: 0;
+      background: var(--mv-bg-surface);
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
     }
 
     .save-btn {
@@ -345,6 +373,8 @@ import { resolveMediaUrl } from '@shared/utils/media-url.util';
       align-items: center;
       gap: 6px;
       padding: 0 18px !important;
+      border-radius: var(--radius-md, 8px);
+      font-weight: 600;
     }
 
     .save-spinner ::ng-deep circle {

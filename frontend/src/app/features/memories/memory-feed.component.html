@@ -56,55 +56,57 @@
       }
     </div>
 
-    <!-- Filter Chips Track -->
-    <div class="filter-chips-track">
-      <!-- All Journeys Chip -->
-      <button 
-        type="button" 
-        class="filter-chip" 
-        [class.active]="!selectedJourneyId" 
-        (click)="selectJourney('')">
-        <span>All Journeys</span>
-      </button>
-
-      @for (j of journeys(); track j.id) {
+    <!-- Filter Chips Track with Trailing Fade Hint -->
+    <div class="filter-chips-wrapper">
+      <div class="filter-chips-track">
+        <!-- All Journeys Chip -->
         <button 
           type="button" 
           class="filter-chip" 
-          [class.active]="selectedJourneyId === j.id" 
-          (click)="selectJourney(j.id)">
-          <span>{{ j.title }}</span>
+          [class.active]="!selectedJourneyId" 
+          (click)="selectJourney('')">
+          <span>All Journeys</span>
         </button>
-      }
 
-      <div class="chip-divider"></div>
+        @for (j of journeys(); track j.id) {
+          <button 
+            type="button" 
+            class="filter-chip" 
+            [class.active]="selectedJourneyId === j.id" 
+            (click)="selectJourney(j.id)">
+            <span>{{ j.title }}</span>
+          </button>
+        }
 
-      <!-- Media Type Filters -->
-      <button 
-        type="button" 
-        class="filter-chip" 
-        [class.active]="!selectedMediaType" 
-        (click)="selectMediaType('')">
-        <span>All Media</span>
-      </button>
+        <div class="chip-divider"></div>
 
-      <button 
-        type="button" 
-        class="filter-chip" 
-        [class.active]="selectedMediaType === 'IMAGE'" 
-        (click)="selectMediaType('IMAGE')">
-        <mat-icon class="chip-icon">photo</mat-icon>
-        <span>Photos</span>
-      </button>
+        <!-- Media Type Filters -->
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.active]="!selectedMediaType" 
+          (click)="selectMediaType('')">
+          <span>All Media</span>
+        </button>
 
-      <button 
-        type="button" 
-        class="filter-chip" 
-        [class.active]="selectedMediaType === 'VIDEO'" 
-        (click)="selectMediaType('VIDEO')">
-        <mat-icon class="chip-icon">videocam</mat-icon>
-        <span>Videos</span>
-      </button>
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.active]="selectedMediaType === 'IMAGE'" 
+          (click)="selectMediaType('IMAGE')">
+          <mat-icon class="chip-icon">photo</mat-icon>
+          <span>Photos</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="filter-chip" 
+          [class.active]="selectedMediaType === 'VIDEO'" 
+          (click)="selectMediaType('VIDEO')">
+          <mat-icon class="chip-icon">videocam</mat-icon>
+          <span>Videos</span>
+        </button>
+      </div>
     </div>
   </section>
 

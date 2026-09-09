@@ -401,7 +401,8 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isLoading.set(false);
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/journeys';
+        const defaultLanding = (typeof window !== 'undefined' ? localStorage.getItem('mv_default_landing_page') : null) || '/dashboard';
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || defaultLanding;
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {

@@ -45,78 +45,80 @@ import { MediaService } from '@core/services/media.service';
       </header>
 
       <form [formGroup]="editForm" (ngSubmit)="save()" class="dialog-form">
-        <!-- Title -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Journey Title *</mat-label>
-          <input matInput formControlName="title" placeholder="e.g. B.Tech College Days (2020-2024)" />
-          @if (editForm.get('title')?.hasError('required') && editForm.get('title')?.touched) {
-            <mat-error>A journey title is required.</mat-error>
-          }
-        </mat-form-field>
-
-        <!-- Date Range Row -->
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Start Date</mat-label>
-            <input matInput [matDatepicker]="startPicker" formControlName="startDate" />
-            <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
-            <mat-datepicker #startPicker></mat-datepicker>
+        <mat-dialog-content class="edit-dialog-content">
+          <!-- Title -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Journey Title *</mat-label>
+            <input matInput formControlName="title" placeholder="e.g. B.Tech College Days (2020-2024)" />
+            @if (editForm.get('title')?.hasError('required') && editForm.get('title')?.touched) {
+              <mat-error>A journey title is required.</mat-error>
+            }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="half-width">
-            <mat-label>End Date</mat-label>
-            <input matInput [matDatepicker]="endPicker" formControlName="endDate" />
-            <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
-            <mat-datepicker #endPicker></mat-datepicker>
+          <!-- Date Range Row -->
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>Start Date</mat-label>
+              <input matInput [matDatepicker]="startPicker" formControlName="startDate" />
+              <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="half-width">
+              <mat-label>End Date</mat-label>
+              <input matInput [matDatepicker]="endPicker" formControlName="endDate" />
+              <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <!-- Cover Artwork Upload Section (Device / Mobile Camera Pick) -->
+          <div class="cover-upload-block">
+            <label class="section-label">Cover Artwork</label>
+
+            <!-- Hidden single file input -->
+            <input 
+              type="file" 
+              #coverFileInput 
+              accept="image/*" 
+              (change)="onCoverFileSelected($event)" 
+              style="display: none;" />
+
+            @if (coverPreviewUrl()) {
+              <div class="cover-preview-card">
+                <img [src]="coverPreviewUrl()" alt="Cover preview" class="cover-preview-img" />
+                <div class="preview-actions-overlay">
+                  <button type="button" mat-flat-button class="overlay-btn change-btn" (click)="coverFileInput.click()" [disabled]="isSaving()">
+                    <mat-icon>photo_camera</mat-icon>
+                    <span>Change Photo</span>
+                  </button>
+                  <button type="button" mat-stroked-button class="overlay-btn remove-btn" (click)="removeCover()" [disabled]="isSaving()">
+                    <mat-icon>delete</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="upload-dropzone" (click)="coverFileInput.click()">
+                <div class="dropzone-icon">
+                  <mat-icon>add_photo_alternate</mat-icon>
+                </div>
+                <div class="dropzone-text">
+                  <strong>Upload Cover Photo from Device</strong>
+                  <span>Tap to choose from phone gallery, camera, or computer</span>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Description -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Journey Description & Theme</mat-label>
+            <textarea matInput formControlName="description" rows="3" placeholder="What was the story or spirit of this journey?"></textarea>
           </mat-form-field>
-        </div>
+        </mat-dialog-content>
 
-        <!-- Cover Artwork Upload Section (Device / Mobile Camera Pick) -->
-        <div class="cover-upload-block">
-          <label class="section-label">Cover Artwork</label>
-
-          <!-- Hidden single file input -->
-          <input 
-            type="file" 
-            #coverFileInput 
-            accept="image/*" 
-            (change)="onCoverFileSelected($event)" 
-            style="display: none;" />
-
-          @if (coverPreviewUrl()) {
-            <div class="cover-preview-card">
-              <img [src]="coverPreviewUrl()" alt="Cover preview" class="cover-preview-img" />
-              <div class="preview-actions-overlay">
-                <button type="button" mat-flat-button class="overlay-btn change-btn" (click)="coverFileInput.click()" [disabled]="isSaving()">
-                  <mat-icon>photo_camera</mat-icon>
-                  <span>Change Photo</span>
-                </button>
-                <button type="button" mat-stroked-button class="overlay-btn remove-btn" (click)="removeCover()" [disabled]="isSaving()">
-                  <mat-icon>delete</mat-icon>
-                  <span>Remove</span>
-                </button>
-              </div>
-            </div>
-          } @else {
-            <div class="upload-dropzone" (click)="coverFileInput.click()">
-              <div class="dropzone-icon">
-                <mat-icon>add_photo_alternate</mat-icon>
-              </div>
-              <div class="dropzone-text">
-                <strong>Upload Cover Photo from Device</strong>
-                <span>Tap to choose from phone gallery, camera, or computer</span>
-              </div>
-            </div>
-          }
-        </div>
-
-        <!-- Description -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Journey Description & Theme</mat-label>
-          <textarea matInput formControlName="description" rows="3" placeholder="What was the story or spirit of this journey?"></textarea>
-        </mat-form-field>
-
-        <footer class="dialog-actions">
+        <mat-dialog-actions class="dialog-actions">
           <button mat-button type="button" (click)="dialogRef.close()" [disabled]="isSaving()" class="cancel-btn">
             Cancel
           </button>
@@ -131,7 +133,7 @@ import { MediaService } from '@core/services/media.service';
               </ng-container>
             }
           </button>
-        </footer>
+        </mat-dialog-actions>
       </form>
     </div>
   `,
@@ -195,12 +197,20 @@ import { MediaService } from '@core/services/media.service';
     .dialog-form {
       display: flex;
       flex-direction: column;
-      gap: var(--space-2);
-      padding-top: var(--space-3);
       flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .edit-dialog-content {
+      max-height: 60vh;
       overflow-y: auto;
-      max-height: calc(85vh - 120px);
-      padding-right: 4px;
+      padding: var(--space-3) 4px var(--space-2);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      box-sizing: border-box;
     }
 
     .form-row {
