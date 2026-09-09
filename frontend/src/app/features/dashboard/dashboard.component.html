@@ -1,119 +1,136 @@
 <div class="dashboard-container">
 
-  <!-- 1. Emotional Personal Greeting & Editorial Hero Header -->
+  <!-- 1. Editorial Hero Banner Card (Inspired by reference layout) -->
   <header class="hero-section">
-    <div class="hero-top-meta">
-      <div class="hero-date-badge">
-        <mat-icon class="date-icon">calendar_today</mat-icon>
-        <span class="hero-date">{{ formattedToday }}</span>
-      </div>
-    </div>
-
-    <div class="hero-greeting-wrapper">
-      <h1 class="hero-greeting">
-        {{ timeOfDayGreeting }}, <span class="highlight-name">{{ authService.currentUser()?.fullName ? (authService.currentUser()!.fullName.split(' ')[0]) : 'Friend' }}</span>.
-      </h1>
-      <p class="hero-subtitle">Your collective memories, beautifully organized.</p>
-    </div>
-
-    <!-- 2. Primary Memory Search: Visual Centerpiece -->
-    <div class="memory-search-centerpiece">
-      <div class="search-bar-shell" (click)="focusSearchInput()">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input 
-          #searchInput
-          type="text" 
-          [(ngModel)]="searchQuery" 
-          (keyup.enter)="submitAiSearch()" 
-          placeholder="Ask anything about your memories (e.g. 'Trip to Manali', 'College farewell')..." 
-          class="search-input-field"
-          aria-label="Ask anything about your memories"
-        />
-        <button mat-flat-button class="search-submit-btn" (click)="submitAiSearch()">
-          <mat-icon>auto_awesome</mat-icon>
-          <span>Ask AI</span>
-        </button>
+    <div class="hero-layout-grid">
+      <!-- Left: User Portrait / Avatar Pane -->
+      <div class="hero-avatar-pane" routerLink="/profile" title="View Profile">
+        @if (authService.currentUser(); as user) {
+          <img 
+            [src]="(user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80'" 
+            [alt]="user.fullName" 
+            mvFallback
+            class="hero-avatar-img">
+        } @else {
+          <div class="hero-avatar-fallback">
+            <mat-icon>person</mat-icon>
+          </div>
+        }
       </div>
 
-      <!-- Suggestion Chips -->
-      <div class="search-suggestions-row">
-        <span class="suggestions-label">Try searching:</span>
-        <div class="suggestions-list">
-          @for (s of searchSuggestions; track s.label) {
-            <button type="button" class="suggestion-chip" (click)="selectSuggestion(s.query)">
-              {{ s.label }}
+      <!-- Right / Main: Content & Controls -->
+      <div class="hero-content-pane">
+        <div class="hero-top-meta">
+          <div class="hero-date-badge">
+            <mat-icon class="date-icon">calendar_today</mat-icon>
+            <span class="hero-date">{{ formattedToday }}</span>
+          </div>
+        </div>
+
+        <div class="hero-greeting-wrapper">
+          <h1 class="hero-greeting">
+            {{ timeOfDayGreeting }}, <span class="highlight-name">{{ authService.currentUser()?.fullName ? (authService.currentUser()!.fullName.split(' ')[0]) : 'Friend' }}</span>! ☀️
+          </h1>
+          <p class="hero-subtitle">Your collective memories, beautifully organized.</p>
+        </div>
+
+        <!-- Quick Actions Row (In between greeting and search) -->
+        <div class="primary-actions-group">
+          <a mat-flat-button class="quick-action-btn primary-add" routerLink="/memories/new">
+            <mat-icon>add</mat-icon>
+            <span>Add Memory</span>
+          </a>
+
+          <button mat-stroked-button class="quick-action-btn capture-btn" (click)="captureService.openCaptureFlow()">
+            <mat-icon>photo_camera</mat-icon>
+            <span>Capture</span>
+          </button>
+
+          <a mat-button class="quick-action-btn tertiary-btn" routerLink="/journeys">
+            <mat-icon>auto_stories</mat-icon>
+            <span>Browse Journeys</span>
+          </a>
+        </div>
+
+        <!-- Optimized Compact AI Search Centerpiece -->
+        <div class="memory-search-centerpiece">
+          <div class="search-bar-shell" (click)="focusSearchInput()">
+            <mat-icon class="search-icon">search</mat-icon>
+            <input 
+              #searchInput
+              type="text" 
+              [(ngModel)]="searchQuery" 
+              (keyup.enter)="submitAiSearch()" 
+              placeholder="Ask anything about your memories (e.g. 'Trip to Manali', 'Farewell')..." 
+              class="search-input-field"
+              aria-label="Ask anything about your memories"
+            />
+            <button mat-flat-button class="search-submit-btn" (click)="submitAiSearch()">
+              <mat-icon>auto_awesome</mat-icon>
+              <span>Ask AI</span>
             </button>
-          }
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Actions & Statistics Grid in Integrated Layout -->
-    <div class="hero-bottom-container">
-      <!-- Quick Action Buttons Group -->
-      <div class="primary-actions-group">
-        <a mat-flat-button class="quick-action-btn primary-add" routerLink="/memories/new">
-          <mat-icon>add</mat-icon>
-          <span>Add Memory</span>
-        </a>
-
-        <button mat-stroked-button class="quick-action-btn capture-btn" (click)="captureService.openCaptureFlow()">
-          <mat-icon>photo_camera</mat-icon>
-          <span>Capture</span>
-        </button>
-
-        <a mat-button class="quick-action-btn tertiary-btn" routerLink="/journeys">
-          <mat-icon>auto_stories</mat-icon>
-          <span>Browse Journeys</span>
-        </a>
-      </div>
-
-      <!-- 4 Compact Statistics Cards -->
-      @if (dashboardData()?.stats; as stats) {
-        <div class="hero-stats-grid">
-          <div class="hero-stat-card card-memories" routerLink="/memories" title="View all memories">
-            <div class="stat-icon-wrap memories-icon">
-              <mat-icon>photo_library</mat-icon>
-            </div>
-            <div class="stat-info">
-              <span class="stat-number">{{ stats.totalMemories || 0 }}</span>
-              <span class="stat-label">Memories</span>
-            </div>
           </div>
 
-          <div class="hero-stat-card card-photos" routerLink="/gallery" title="View media gallery">
-            <div class="stat-icon-wrap photos-icon">
-              <mat-icon>image</mat-icon>
-            </div>
-            <div class="stat-info">
-              <span class="stat-number">{{ stats.totalPhotos || 0 }}</span>
-              <span class="stat-label">Photographs</span>
-            </div>
-          </div>
-
-          <div class="hero-stat-card card-journeys" routerLink="/journeys" title="View journeys">
-            <div class="stat-icon-wrap journeys-icon">
-              <mat-icon>auto_stories</mat-icon>
-            </div>
-            <div class="stat-info">
-              <span class="stat-number">{{ stats.totalJourneys || 0 }}</span>
-              <span class="stat-label">Journeys</span>
-            </div>
-          </div>
-
-          <div class="hero-stat-card card-people" routerLink="/people" title="View circle members">
-            <div class="stat-icon-wrap people-icon">
-              <mat-icon>groups</mat-icon>
-            </div>
-            <div class="stat-info">
-              <span class="stat-number">{{ stats.totalFriends || 0 }}</span>
-              <span class="stat-label">In Circle</span>
+          <!-- Suggestion Chips -->
+          <div class="search-suggestions-row">
+            <span class="suggestions-label">Try searching:</span>
+            <div class="suggestions-list">
+              @for (s of searchSuggestions; track s.label) {
+                <button type="button" class="suggestion-chip" (click)="selectSuggestion(s.query)">
+                  {{ s.label }}
+                </button>
+              }
             </div>
           </div>
         </div>
-      }
+      </div>
     </div>
   </header>
+
+  <!-- 2. 4 Compact Statistics Cards Sitting Cleanly Below Hero Banner -->
+  @if (dashboardData()?.stats; as stats) {
+    <section class="hero-stats-row" aria-label="Archive Statistics">
+      <div class="hero-stat-card card-memories" routerLink="/memories" title="View all memories">
+        <div class="stat-icon-wrap memories-icon">
+          <mat-icon>photo_library</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.totalMemories || 0 }}</span>
+          <span class="stat-label">Memories</span>
+        </div>
+      </div>
+
+      <div class="hero-stat-card card-photos" routerLink="/gallery" title="View media gallery">
+        <div class="stat-icon-wrap photos-icon">
+          <mat-icon>image</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.totalPhotos || 0 }}</span>
+          <span class="stat-label">Photographs</span>
+        </div>
+      </div>
+
+      <div class="hero-stat-card card-journeys" routerLink="/journeys" title="View journeys">
+        <div class="stat-icon-wrap journeys-icon">
+          <mat-icon>auto_stories</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.totalJourneys || 0 }}</span>
+          <span class="stat-label">Journeys</span>
+        </div>
+      </div>
+
+      <div class="hero-stat-card card-people" routerLink="/people" title="View circle members">
+        <div class="stat-icon-wrap people-icon">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.totalFriends || 0 }}</span>
+          <span class="stat-label">In Circle</span>
+        </div>
+      </div>
+    </section>
+  }
 
   <!-- Loading Skeletons -->
   @if (isLoading()) {

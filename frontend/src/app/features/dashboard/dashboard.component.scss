@@ -8,18 +8,75 @@
   padding-bottom: var(--mv-space-80);
 }
 
-/* 1. Hero Section & Greeting */
+/* 1. Hero Section & Greeting Banner (Inspired by reference layout) */
 .hero-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 22px 28px;
+  padding: 24px 28px;
   background: linear-gradient(135deg, rgba(254, 243, 199, 0.45) 0%, rgba(255, 255, 255, 0.95) 45%, rgba(246, 244, 238, 0.65) 100%);
   border: 1px solid var(--mv-border);
   border-radius: var(--mv-radius-2xl);
   box-shadow: 0 4px 20px rgba(28, 25, 23, 0.03);
   position: relative;
   overflow: hidden;
+}
+
+.hero-layout-grid {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.hero-avatar-pane {
+  width: 90px;
+  height: 90px;
+  min-width: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--mv-bg-surface);
+  box-shadow: 0 6px 16px rgba(180, 83, 9, 0.15);
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--mv-bg-surface);
+  transition: transform var(--mv-transition-fast), box-shadow var(--mv-transition-fast);
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(180, 83, 9, 0.22);
+  }
+}
+
+.hero-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mv-primary-light);
+  color: var(--mv-primary);
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.hero-content-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
 }
 
 .hero-top-meta {
@@ -54,7 +111,7 @@
 
 .hero-greeting {
   font-family: var(--font-editorial);
-  font-size: clamp(2rem, 3.2vw, 2.75rem);
+  font-size: clamp(1.85rem, 2.8vw, 2.4rem);
   line-height: 1.1;
   color: var(--mv-text-primary);
   margin: 0;
@@ -66,175 +123,26 @@
 }
 
 .hero-subtitle {
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   color: var(--mv-text-secondary);
   margin: 0;
   line-height: 1.35;
 }
 
-/* 2. Primary Memory Search: Visual Centerpiece */
-.memory-search-centerpiece {
-  margin-top: 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.search-bar-shell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background-color: var(--mv-bg-surface);
-  border: 1.5px solid var(--mv-border);
-  border-radius: var(--mv-radius-full);
-  padding: 4px 6px 4px 16px;
-  box-shadow: var(--mv-shadow-sm);
-  cursor: text;
-  transition: all var(--mv-transition-fast);
-
-  &:hover, &:focus-within {
-    border-color: var(--mv-primary);
-    box-shadow: 0 3px 14px rgba(180, 83, 9, 0.12);
-  }
-}
-
-.search-icon {
-  color: var(--mv-primary);
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-}
-
-.search-input-field {
-  flex: 1;
-  min-width: 0;
-  border: none !important;
-  background: transparent !important;
-  outline: none !important;
-  font-family: var(--font-ui);
-  font-size: 0.9rem;
-  color: var(--mv-text-primary);
-  padding: 4px 0;
-
-  &::placeholder {
-    color: var(--mv-text-muted);
-    font-size: 0.86rem;
-  }
-}
-
-.search-submit-btn {
-  background-color: var(--mv-ai-subtle) !important;
-  color: var(--mv-ai-accent) !important;
-  border: 1px solid var(--mv-ai-border) !important;
-  border-radius: var(--mv-radius-full) !important;
-  font-weight: 600;
-  font-size: 0.8rem;
-  height: 34px;
-  padding: 0 14px !important;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  transition: all var(--mv-transition-fast);
-
-  &:hover {
-    background-color: var(--mv-ai-accent) !important;
-    color: #fff !important;
-  }
-
-  mat-icon { font-size: 15px; width: 15px; height: 15px; }
-}
-
-/* Suggestion Chips (Horizontally Scrollable Track with Trailing Fade) */
-.search-suggestions-row {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  overflow: hidden;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 36px;
-    background: linear-gradient(to right, rgba(250, 249, 246, 0), var(--mv-bg-main, #faf9f6));
-    pointer-events: none;
-    z-index: 2;
-  }
-}
-
-.suggestions-label {
-  font-size: 0.78rem;
-  color: var(--mv-text-muted);
-  font-weight: 500;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.suggestions-list {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding: 2px 36px 2px 0;
-  width: 100%;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.suggestion-chip {
-  background-color: var(--mv-bg-subtle);
-  border: 1px solid var(--mv-border);
-  border-radius: var(--mv-radius-full);
-  padding: 5px 12px;
-  font-size: 0.76rem;
-  font-weight: 500;
-  color: var(--mv-text-secondary);
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: all var(--mv-transition-fast);
-
-  &:hover {
-    background-color: var(--mv-bg-elevated);
-    color: var(--mv-primary);
-    border-color: var(--mv-primary-light);
-    transform: translateY(-1px);
-  }
-}
-
-/* 3. Hero Bottom: Actions + Statistics Row */
-.hero-bottom-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
+/* Quick Actions Row (In between greeting and search) */
 .primary-actions-group {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 2px;
 }
 
 .quick-action-btn {
   border-radius: var(--mv-radius-full) !important;
   font-weight: 600;
   font-size: 0.82rem;
-  height: 38px;
+  height: 36px;
   padding: 0 16px !important;
   display: inline-flex;
   align-items: center;
@@ -280,22 +188,165 @@
   }
 }
 
-/* 4 Compact Statistics Cards */
-.hero-stats-grid {
+/* 2. Primary Memory Search: Optimized & Compact */
+.memory-search-centerpiece {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 520px;
+  width: 100%;
+}
+
+.search-bar-shell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--mv-bg-surface);
+  border: 1.5px solid var(--mv-border);
+  border-radius: var(--mv-radius-full);
+  padding: 3px 5px 3px 14px;
+  box-shadow: var(--mv-shadow-sm);
+  cursor: text;
+  transition: all var(--mv-transition-fast);
+
+  &:hover, &:focus-within {
+    border-color: var(--mv-primary);
+    box-shadow: 0 3px 14px rgba(180, 83, 9, 0.12);
+  }
+}
+
+.search-icon {
+  color: var(--mv-primary);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.search-input-field {
+  flex: 1;
+  min-width: 0;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  color: var(--mv-text-primary);
+  padding: 3px 0;
+
+  &::placeholder {
+    color: var(--mv-text-muted);
+    font-size: 0.82rem;
+  }
+}
+
+.search-submit-btn {
+  background-color: var(--mv-ai-subtle) !important;
+  color: var(--mv-ai-accent) !important;
+  border: 1px solid var(--mv-ai-border) !important;
+  border-radius: var(--mv-radius-full) !important;
+  font-weight: 600;
+  font-size: 0.78rem;
+  height: 30px;
+  padding: 0 12px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: all var(--mv-transition-fast);
+
+  &:hover {
+    background-color: var(--mv-ai-accent) !important;
+    color: #fff !important;
+  }
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+/* Suggestion Chips (Horizontally Scrollable Track with Trailing Fade) */
+.search-suggestions-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    background: linear-gradient(to right, rgba(250, 249, 246, 0), var(--mv-bg-main, #faf9f6));
+    pointer-events: none;
+    z-index: 2;
+  }
+}
+
+.suggestions-label {
+  font-size: 0.74rem;
+  color: var(--mv-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.suggestions-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 28px 2px 0;
+  width: 100%;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.suggestion-chip {
+  background-color: var(--mv-bg-subtle);
+  border: 1px solid var(--mv-border);
+  border-radius: var(--mv-radius-full);
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--mv-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--mv-transition-fast);
+
+  &:hover {
+    background-color: var(--mv-bg-elevated);
+    color: var(--mv-primary);
+    border-color: var(--mv-primary-light);
+    transform: translateY(-1px);
+  }
+}
+
+/* 2. 4 Compact Statistics Cards Sitting Cleanly Below Hero Banner */
+.hero-stats-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(110px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
 }
 
 .hero-stat-card {
   background-color: var(--mv-bg-surface);
   border: 1px solid var(--mv-border);
-  border-radius: var(--mv-radius-lg);
-  padding: 6px 12px;
+  border-radius: var(--mv-radius-xl);
+  padding: 10px 14px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   box-shadow: var(--mv-shadow-sm);
   cursor: pointer;
   text-decoration: none;
@@ -312,9 +363,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   border-radius: var(--mv-radius-md);
   flex-shrink: 0;
 
@@ -339,10 +390,10 @@
   }
 
   mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    line-height: 16px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
     display: block;
   }
 }
@@ -358,7 +409,7 @@
 
 .stat-number {
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   color: var(--mv-text-primary);
   font-family: var(--font-ui);
   line-height: 1.1;
@@ -374,6 +425,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.1;
+  margin-top: 1px;
 }
 
 /* 4. Featured Spotlight Memory / On This Day */
@@ -1021,49 +1073,52 @@
   .hero-section {
     padding: 16px 18px;
     border-radius: var(--mv-radius-xl);
-    gap: 12px;
   }
-  .hero-stats-grid {
+  .hero-layout-grid {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .hero-avatar-pane {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+  }
+  .hero-stats-row {
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    max-width: 100%;
+    gap: 8px;
+    margin-top: -4px;
   }
   .hero-stat-card {
-    height: 44px;
-    padding: 5px 8px;
-    gap: 8px;
+    padding: 8px 10px;
+    gap: 10px;
   }
   .stat-icon-wrap {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
     mat-icon {
-      font-size: 14px;
-      width: 14px;
-      height: 14px;
-      line-height: 14px;
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
     }
   }
   .stat-number {
-    font-size: 0.88rem;
+    font-size: 1rem;
   }
   .stat-label {
-    font-size: 0.58rem;
-  }
-  .hero-bottom-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
+    font-size: 0.6rem;
   }
   .primary-actions-group {
     flex-direction: row;
     width: 100%;
-    gap: 8px;
+    gap: 6px;
     .quick-action-btn {
       flex: 1;
       justify-content: center;
-      padding: 0 10px !important;
-      font-size: 0.78rem;
+      padding: 0 8px !important;
+      font-size: 0.76rem;
     }
   }
   .spotlight-narrative-pane {
@@ -1073,7 +1128,7 @@
     font-size: 1.45rem;
   }
   .search-bar-shell {
-    padding: 4px 6px 4px 12px;
+    padding: 3px 5px 3px 12px;
     gap: 8px;
   }
   .search-submit-btn {
@@ -1087,7 +1142,7 @@
 
 @media (max-width: 480px) {
   .hero-greeting {
-    font-size: 1.65rem;
+    font-size: 1.55rem;
   }
   .search-submit-btn span {
     display: none;
@@ -1111,27 +1166,26 @@
 }
 
 @media (max-width: 360px) {
-  .hero-stats-grid {
-    gap: 5px;
+  .hero-stats-row {
+    gap: 6px;
   }
   .hero-stat-card {
-    height: 40px;
-    padding: 4px 6px;
+    padding: 6px 8px;
     gap: 6px;
   }
   .stat-icon-wrap {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
     mat-icon {
-      font-size: 12px;
-      width: 12px;
-      height: 12px;
-      line-height: 12px;
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      line-height: 14px;
     }
   }
   .stat-number {
-    font-size: 0.82rem;
+    font-size: 0.9rem;
   }
   .stat-label {
     font-size: 0.54rem;

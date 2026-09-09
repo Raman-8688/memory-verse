@@ -8,6 +8,13 @@
       <mat-icon>menu</mat-icon>
     </button>
 
+    <!-- Universal Search (Positioned on Left with clear visibility) -->
+    <button mat-button class="navbar-search-btn" (click)="paletteService.open()" title="Universal Search (Cmd+K / Ctrl+K)">
+      <mat-icon>search</mat-icon>
+      <span class="search-label">Search archive...</span>
+      <kbd class="shortcut-cap">⌘K</kbd>
+    </button>
+
     @if (!isDashboard()) {
       <div class="page-title-wrap">
         <h1 class="page-title">{{ pageTitle() }}</h1>
@@ -16,12 +23,6 @@
   </div>
 
   <div class="navbar-actions">
-    <!-- Universal Search (Always visible) -->
-    <button mat-button class="navbar-search-btn" (click)="paletteService.open()" title="Universal Search (Cmd+K / Ctrl+K)">
-      <mat-icon>search</mat-icon>
-      <span class="search-label">Search archive...</span>
-      <kbd class="shortcut-cap">⌘K</kbd>
-    </button>
 
     <!-- Desktop & Tablet Action Icons (hidden on narrow screens < 540px) -->
     <button mat-flat-button class="quick-capture-btn desktop-only-action" (click)="captureService.openCaptureFlow()" title="Quick Add Media">
