@@ -15,6 +15,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketAuthChannelInterceptor authChannelInterceptor;
+    private final WebSocketOutboundChannelInterceptor outboundChannelInterceptor;
 
     @Value("${app.cors.allowed-origins:}")
     private String corsAllowedOrigins;
@@ -43,6 +44,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(authChannelInterceptor);
+    }
+
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        registration.interceptors(outboundChannelInterceptor);
     }
 
     private String[] resolveAllowedOriginPatterns() {

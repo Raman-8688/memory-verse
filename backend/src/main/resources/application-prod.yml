@@ -18,7 +18,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -28,6 +28,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 0
+    clean-disabled: true
 
 logging:
   level:

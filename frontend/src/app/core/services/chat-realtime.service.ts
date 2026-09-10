@@ -7,7 +7,7 @@ import {
   ChatRealtimeEvent,
   RealtimeConnectionStatus
 } from '../models/chat-realtime.model';
-import { ChatMessage, ChatMessageSendDto } from '../models/chat.model';
+import { ChatMessageSendDto } from '../models/chat.model';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +21,16 @@ export class ChatRealtimeService {
   private activeSubscribedGroupId: string | null = null;
   private activeEventCallback: ((event: ChatRealtimeEvent<any>) => void) | null = null;
   private wasEverConnected = false;
+
+  // Reconnection backoff parameters (Phase 12D)
+  private readonly initialDelayMs = 1000;
+  private readonly maxDelayMs = 30000;
+  private readonly backoffMultiplier = 1.8;
+  private readonly jitterFactor = 0.25; // +/- 25% randomized jitter
+  private reconnectAttempt = 0;
+  private reconnectTimer: any = null;
+  private connectionStableTimer: any = null;
+  private isTerminalAuthError = false;
 
   // Connection State Signals
   readonly connectionStatus = signal<RealtimeConnectionStatus>('DISCONNECTED');
@@ -39,6 +49,7 @@ export class ChatRealtimeService {
     effect(() => {
       const token = this.authService.token();
       if (token) {
+        this.isTerminalAuthError = false;
         this.connect();
       } else {
         this.disconnect();
@@ -48,16 +59,22 @@ export class ChatRealtimeService {
 
   connect(): void {
     const token = this.authService.token();
-    if (!token) {
+    if (!token || this.isTerminalAuthError) {
       this.connectionStatus.set('DISCONNECTED');
       return;
     }
 
-    if (this.client && this.client.active) {
+    if (this.client && (this.client.active || this.client.connected)) {
       return;
     }
 
-    this.connectionStatus.set('CONNECTING');
+    this.clearReconnectTimer();
+
+    if (this.reconnectAttempt > 0) {
+      this.connectionStatus.set('RECONNECTING');
+    } else {
+      this.connectionStatus.set('CONNECTING');
+    }
 
     const brokerUrl = this.resolveBrokerUrl();
 
@@ -66,7 +83,7 @@ export class ChatRealtimeService {
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
-      reconnectDelay: 4000,
+      reconnectDelay: 0, // Handled manually with exponential backoff + randomized jitter
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
       onConnect: () => {
@@ -74,10 +91,16 @@ export class ChatRealtimeService {
         this.wasEverConnected = true;
         this.connectionStatus.set('CONNECTED');
 
-        // Subscribe to user-specific notifications topic
+        // Mark connection stable after 5 continuous seconds to reset backoff attempt counter
+        this.clearConnectionStableTimer();
+        this.connectionStableTimer = setTimeout(() => {
+          this.reconnectAttempt = 0;
+        }, 5000);
+
+        // Safe Resubscribe: Subscribe to user-specific notifications topic
         this.subscribeToUserNotifications();
 
-        // Resubscribe to current active group if connection was dropped and restored
+        // Safe Resubscribe: Restore current active group subscription if connection was restored
         if (this.activeSubscribedGroupId && this.activeEventCallback) {
           const groupId = this.activeSubscribedGroupId;
           const callback = this.activeEventCallback;
@@ -90,14 +113,45 @@ export class ChatRealtimeService {
         }
       },
       onDisconnect: () => {
+        this.clearConnectionStableTimer();
         this.connectionStatus.set('DISCONNECTED');
+        this.scheduleReconnect();
       },
-      onStompError: () => {
+      onStompError: (frame) => {
+        this.clearConnectionStableTimer();
+        const errorMsg = frame.headers['message'] || '';
+        const body = frame.body || '';
+        
+        // Terminal check for auth rejection
+        if (
+          errorMsg.toLowerCase().includes('unauthorized') ||
+          errorMsg.toLowerCase().includes('jwt') ||
+          errorMsg.toLowerCase().includes('invalid token') ||
+          body.toLowerCase().includes('unauthorized')
+        ) {
+          console.warn('[STOMP] Terminal authentication error. Halting reconnection attempts.');
+          this.isTerminalAuthError = true;
+          this.disconnect();
+          return;
+        }
+
         this.connectionStatus.set('DISCONNECTED');
+        this.scheduleReconnect();
       },
-      onWebSocketClose: () => {
-        if (this.authService.token()) {
+      onWebSocketClose: (event) => {
+        this.clearConnectionStableTimer();
+
+        // Codes 4001/4003 or policy violations imply auth failure
+        if (event.code === 4001 || event.code === 4003) {
+          console.warn(`[STOMP] WebSocket closed with auth code ${event.code}. Halting reconnect.`);
+          this.isTerminalAuthError = true;
+          this.disconnect();
+          return;
+        }
+
+        if (this.authService.token() && !this.isTerminalAuthError) {
           this.connectionStatus.set('RECONNECTING');
+          this.scheduleReconnect();
         } else {
           this.connectionStatus.set('DISCONNECTED');
         }
@@ -107,13 +161,73 @@ export class ChatRealtimeService {
     this.client.activate();
   }
 
+  private scheduleReconnect(): void {
+    if (!this.authService.token() || this.isTerminalAuthError) {
+      this.connectionStatus.set('DISCONNECTED');
+      return;
+    }
+
+    this.clearReconnectTimer();
+
+    const delay = this.calculateNextBackoffDelay();
+    this.reconnectAttempt++;
+    this.connectionStatus.set('RECONNECTING');
+
+    this.reconnectTimer = setTimeout(() => {
+      if (!this.client || !this.client.connected) {
+        if (this.client) {
+          try {
+            this.client.deactivate();
+          } catch {
+            // Safe cleanup
+          }
+          this.client = null;
+        }
+        this.connect();
+      }
+    }, delay);
+  }
+
+  private calculateNextBackoffDelay(): number {
+    // Exponential backoff
+    const base = Math.min(
+      this.initialDelayMs * Math.pow(this.backoffMultiplier, this.reconnectAttempt),
+      this.maxDelayMs
+    );
+    // Randomized jitter (+/- jitterFactor)
+    const jitterMultiplier = 1 + (Math.random() * 2 * this.jitterFactor - this.jitterFactor);
+    const randomizedDelay = Math.round(base * jitterMultiplier);
+    return Math.max(500, Math.min(randomizedDelay, this.maxDelayMs));
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  private clearConnectionStableTimer(): void {
+    if (this.connectionStableTimer) {
+      clearTimeout(this.connectionStableTimer);
+      this.connectionStableTimer = null;
+    }
+  }
+
   disconnect(): void {
+    this.clearReconnectTimer();
+    this.clearConnectionStableTimer();
     this.unsubscribeCurrentGroup();
     this.unsubscribeUserNotifications();
     if (this.client) {
-      this.client.deactivate();
+      try {
+        this.client.deactivate();
+      } catch {
+        // Safe deactivation
+      }
       this.client = null;
     }
+    this.reconnectAttempt = 0;
     this.wasEverConnected = false;
     this.connectionStatus.set('DISCONNECTED');
   }

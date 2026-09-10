@@ -105,6 +105,14 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   readonly isMessagesLoading = signal<boolean>(false);
   readonly messagesError = signal<string | null>(null);
 
+  // Phase 12E: Pagination & Large Chat Performance Signals
+  readonly currentPage = signal<number>(0);
+  readonly hasMoreOlderMessages = signal<boolean>(true);
+  readonly isLoadingOlderMessages = signal<boolean>(false);
+  private isScrollAdjusting = false;
+  private loadedMediaGroupId: string | null = null;
+  private loadedFilesGroupId: string | null = null;
+
   // Phase 7 Interactive State Signals
   readonly replyingToMessage = signal<ChatMessageViewModel | null>(null);
   readonly editingMessage = signal<ChatMessageViewModel | null>(null);
@@ -279,9 +287,11 @@ export class GroupChatComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Background events (when another group receives a message while user is on current group)
+    // Background events (when another group receives a message or notifications arrive)
     this.subscriptions.add(
       this.realtimeService.incomingEvent$.subscribe(event => {
+        if (!event) return;
+
         if (event.eventType === 'MESSAGE_CREATED') {
           const sMsg = event.payload;
           if (!sMsg) return;
@@ -303,13 +313,54 @@ export class GroupChatComponent implements OnInit, OnDestroy {
               return copy.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
             });
           }
+        } else if (event.eventType === 'NOTIFICATION_CREATED') {
+          const notif = event.payload;
+          if (notif && (notif.type === 'GROUP_MEMBER_REMOVED' || notif.notificationType === 'GROUP_MEMBER_REMOVED')) {
+            const targetGroupId = notif.groupId || event.groupId;
+            if (this.activeGroupId() === targetGroupId) {
+              this.snackBar.open('You have been removed from this discussion group', 'Dismiss', { duration: 4000 });
+              this.activeGroupId.set(null);
+              this.activeGroupDetail.set(null);
+              this.messages.set([]);
+              this.realtimeService.unsubscribeCurrentGroup();
+              this.router.navigate(['/group-chat']);
+            }
+            this.fetchGroups();
+          } else if (notif && (notif.type === 'GROUP_MEMBER_ADDED' || notif.notificationType === 'GROUP_MEMBER_ADDED')) {
+            this.fetchGroups();
+          }
+        } else if (event.eventType === 'MEMBER_REMOVED') {
+          const removedUserId = (event.payload as any)?.id || event.payload;
+          if (this.currentUser()?.id === removedUserId) {
+            if (this.activeGroupId() === event.groupId) {
+              this.snackBar.open('You have been removed from this discussion group', 'Dismiss', { duration: 4000 });
+              this.activeGroupId.set(null);
+              this.activeGroupDetail.set(null);
+              this.messages.set([]);
+              this.realtimeService.unsubscribeCurrentGroup();
+              this.router.navigate(['/group-chat']);
+            }
+            this.fetchGroups();
+          }
         }
       })
     );
   }
 
+  readonly isNetworkOnline = signal<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  private readonly onlineHandler = () => this.isNetworkOnline.set(true);
+  private readonly offlineHandler = () => {
+    this.isNetworkOnline.set(false);
+    this.snackBar.open('You are offline. Messages will send when connection is restored.', 'Dismiss', { duration: 4000 });
+  };
+
   ngOnInit(): void {
     this.fetchGroups();
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.onlineHandler);
+      window.addEventListener('offline', this.offlineHandler);
+    }
 
     // Listen to route params for direct /group-chat/:groupId navigation
     this.subscriptions.add(
@@ -342,6 +393,16 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.triggerTyping(false);
     this.clearAllTypingTimers();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.onlineHandler);
+      window.removeEventListener('offline', this.offlineHandler);
+    }
+    if (this.attachmentPreviewUrl()) {
+      URL.revokeObjectURL(this.attachmentPreviewUrl()!);
+    }
+    if (this.avatarPreviewUrl()) {
+      URL.revokeObjectURL(this.avatarPreviewUrl()!);
+    }
     this.realtimeService.unsubscribeCurrentGroup();
     this.subscriptions.unsubscribe();
   }
@@ -678,6 +739,11 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   loadMessages(groupId: string): void {
     this.isMessagesLoading.set(true);
     this.messagesError.set(null);
+    this.currentPage.set(0);
+    this.hasMoreOlderMessages.set(true);
+    this.isLoadingOlderMessages.set(false);
+    this.loadedMediaGroupId = null;
+    this.loadedFilesGroupId = null;
 
     const targetGroup = this.groups().find(g => g.id === groupId);
     const unreadCount = targetGroup?.unreadCount || 0;
@@ -686,6 +752,10 @@ export class GroupChatComponent implements OnInit, OnDestroy {
       next: res => {
         // Backend returns newest first; reverse for natural top-to-bottom chat flow
         const content = res?.content || [];
+        if (content.length < 50) {
+          this.hasMoreOlderMessages.set(false);
+        }
+
         const chronological: ChatMessageViewModel[] = [...content].reverse().map(m => ({
           ...m,
           deliveryStatus: 'sent'
@@ -705,6 +775,75 @@ export class GroupChatComponent implements OnInit, OnDestroy {
       error: () => {
         this.messagesError.set("Could not load message history.");
         this.isMessagesLoading.set(false);
+      }
+    });
+  }
+
+  onMessagesScroll(event: Event): void {
+    if (this.isScrollAdjusting) return;
+    const el = event.target as HTMLElement;
+    if (!el) return;
+
+    const groupId = this.activeGroupId();
+    if (!groupId) return;
+
+    // Trigger older message loading when near top (<= 60px)
+    if (el.scrollTop <= 60 && this.hasMoreOlderMessages() && !this.isLoadingOlderMessages() && !this.isMessagesLoading()) {
+      this.loadOlderMessages(groupId);
+    }
+  }
+
+  loadOlderMessages(groupId: string): void {
+    const el = this.messagesContainer?.nativeElement;
+    if (!el || this.isLoadingOlderMessages()) return;
+
+    const prevScrollHeight = el.scrollHeight;
+    const prevScrollTop = el.scrollTop;
+    const nextPage = this.currentPage() + 1;
+
+    this.isLoadingOlderMessages.set(true);
+    this.chatService.getGroupMessages(groupId, nextPage, 50).subscribe({
+      next: res => {
+        if (this.activeGroupId() !== groupId) {
+          this.isLoadingOlderMessages.set(false);
+          return;
+        }
+
+        const content = res?.content || [];
+        if (content.length === 0 || content.length < 50) {
+          this.hasMoreOlderMessages.set(false);
+        }
+
+        if (content.length > 0) {
+          const olderChronological: ChatMessageViewModel[] = [...content].reverse().map(m => ({
+            ...m,
+            deliveryStatus: 'sent' as const
+          }));
+
+          this.messages.update(current => {
+            const currentIds = new Set(current.map(m => m.id));
+            const uniqueOlder = olderChronological.filter(m => !currentIds.has(m.id));
+            return [...uniqueOlder, ...current];
+          });
+
+          this.currentPage.set(nextPage);
+
+          // Restore scroll position after DOM prepend so conversation does not jump
+          this.isScrollAdjusting = true;
+          setTimeout(() => {
+            if (el) {
+              const delta = el.scrollHeight - prevScrollHeight;
+              el.scrollTop = prevScrollTop + delta;
+            }
+            this.isScrollAdjusting = false;
+            this.isLoadingOlderMessages.set(false);
+          }, 0);
+        } else {
+          this.isLoadingOlderMessages.set(false);
+        }
+      },
+      error: () => {
+        this.isLoadingOlderMessages.set(false);
       }
     });
   }
@@ -2038,18 +2177,27 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   // --- Phase 9 & 11: Media Gallery, Files & Lightbox Methods ---
   setDrawerTab(tab: 'members' | 'media' | 'files'): void {
     this.drawerActiveTab.set(tab);
-    if (tab === 'media' && this.activeGroupId()) {
-      this.loadGroupMedia(this.activeGroupId()!);
-    } else if (tab === 'files' && this.activeGroupId()) {
-      this.loadGroupFiles(this.activeGroupId()!);
+    const currentGroupId = this.activeGroupId();
+    if (!currentGroupId) return;
+
+    if (tab === 'media') {
+      if (this.loadedMediaGroupId !== currentGroupId && !this.isMediaLoading()) {
+        this.loadGroupMedia(currentGroupId);
+      }
+    } else if (tab === 'files') {
+      if (this.loadedFilesGroupId !== currentGroupId && !this.isFilesLoading()) {
+        this.loadGroupFiles(currentGroupId);
+      }
     }
   }
 
   loadGroupMedia(groupId: string): void {
+    if (this.isMediaLoading()) return;
     this.isMediaLoading.set(true);
     this.chatService.getGroupMedia(groupId, 0, 50).subscribe({
       next: res => {
         this.mediaGalleryItems.set(res?.content || []);
+        this.loadedMediaGroupId = groupId;
         this.isMediaLoading.set(false);
       },
       error: () => {
@@ -2060,10 +2208,12 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   }
 
   loadGroupFiles(groupId: string): void {
+    if (this.isFilesLoading()) return;
     this.isFilesLoading.set(true);
     this.chatService.getGroupFiles(groupId, 0, 50).subscribe({
       next: res => {
         this.fileGalleryItems.set(res?.content || []);
+        this.loadedFilesGroupId = groupId;
         this.isFilesLoading.set(false);
       },
       error: () => {

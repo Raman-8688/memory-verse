@@ -3,6 +3,7 @@ package com.memoryverse.exception;
 import com.memoryverse.dto.response.ApiError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -21,6 +22,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private String getCorrelationId(HttpServletRequest request) {
+        String cid = MDC.get("correlationId");
+        if (cid == null || cid.isBlank()) {
+            cid = request.getHeader("X-Correlation-Id");
+        }
+        return cid;
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
         log.warn("Resource not found: {}", ex.getMessage());
@@ -29,6 +38,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.NOT_FOUND.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
@@ -42,6 +52,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -61,6 +72,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.BAD_REQUEST.getReasonPhrase())
                 .message("Validation failed for one or more fields")
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .validationErrors(errors)
                 .timestamp(Instant.now())
                 .build();
@@ -76,6 +88,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                 .message("Invalid email or password")
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
@@ -89,6 +102,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.UNAUTHORIZED.getReasonPhrase())
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
@@ -102,6 +116,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.FORBIDDEN.getReasonPhrase())
                 .message("You do not have permission to perform this action")
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
@@ -115,6 +130,7 @@ public class GlobalExceptionHandler {
                 .error("Payload Too Large")
                 .message("Uploaded file exceeds the maximum allowed size (50MB)")
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.PAYLOAD_TOO_LARGE);
@@ -128,6 +144,7 @@ public class GlobalExceptionHandler {
                 .error("Too Many Requests")
                 .message(ex.getMessage())
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
@@ -143,6 +160,7 @@ public class GlobalExceptionHandler {
                 .error("AI Service Unavailable")
                 .message("The Memory Assistant is currently busy or temporarily unavailable. Please try again.")
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
@@ -156,6 +174,7 @@ public class GlobalExceptionHandler {
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
                 .message("An unexpected error occurred. Please try again later.")
                 .path(request.getRequestURI())
+                .correlationId(getCorrelationId(request))
                 .timestamp(Instant.now())
                 .build();
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -253,4 +253,89 @@ class WebSocketRealtimeChatTest {
         eventPublisher.publishMessageRead(groupId, userId, msgId, Instant.now());
         verify(simpMessagingTemplate, times(3)).convertAndSend(eq("/topic/chat/groups/" + groupId), any(ChatRealtimeEvent.class));
     }
+
+    @Test
+    @DisplayName("STOMP SUBSCRIBE to user notifications allowed when target user matches authenticated principal")
+    void testSubscribeUserNotificationsAllowed() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/users/" + userId + "/notifications");
+        accessor.setUser(authentication);
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        Message<?> result = interceptor.preSend(message, messageChannel);
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("STOMP SUBSCRIBE to user notifications forbidden when target user differs from authenticated principal")
+    void testSubscribeUserNotificationsForbiddenForOtherUser() {
+        UUID otherUserId = UUID.randomUUID();
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        accessor.setDestination("/topic/users/" + otherUserId + "/notifications");
+        accessor.setUser(authentication);
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        assertThrows(ForbiddenException.class, () -> interceptor.preSend(message, messageChannel));
+    }
+
+    @Test
+    @DisplayName("WebSocketOutboundChannelInterceptor allows group message to active member")
+    void testOutboundInterceptorAllowsGroupMessageForMember() {
+        com.memoryverse.config.websocket.WebSocketOutboundChannelInterceptor outbound =
+                new com.memoryverse.config.websocket.WebSocketOutboundChannelInterceptor(chatGroupMemberRepository);
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
+        accessor.setDestination("/topic/chat/groups/" + groupId);
+        accessor.setUser(authentication);
+        accessor.setLeaveMutable(true);
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        when(chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userId)).thenReturn(true);
+
+        Message<?> result = outbound.preSend(message, messageChannel);
+        assertNotNull(result);
+        verify(chatGroupMemberRepository).existsByChatGroupIdAndUserId(groupId, userId);
+    }
+
+    @Test
+    @DisplayName("WebSocketOutboundChannelInterceptor drops group message for evicted/non-member (P1-01)")
+    void testOutboundInterceptorDropsGroupMessageForNonMember() {
+        com.memoryverse.config.websocket.WebSocketOutboundChannelInterceptor outbound =
+                new com.memoryverse.config.websocket.WebSocketOutboundChannelInterceptor(chatGroupMemberRepository);
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
+        accessor.setDestination("/topic/chat/groups/" + groupId);
+        accessor.setUser(authentication);
+        accessor.setLeaveMutable(true);
+        Message<byte[]> message = MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+
+        when(chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userId)).thenReturn(false);
+
+        Message<?> result = outbound.preSend(message, messageChannel);
+        assertNull(result, "Outbound message should be dropped for evicted / non-member");
+    }
+
+    @Test
+    @DisplayName("WebSocketOutboundChannelInterceptor delivers MEMBER_REMOVED notification to the evicted user")
+    void testOutboundInterceptorDeliversMemberRemovedNotificationToEvictedUser() {
+        com.memoryverse.config.websocket.WebSocketOutboundChannelInterceptor outbound =
+                new com.memoryverse.config.websocket.WebSocketOutboundChannelInterceptor(chatGroupMemberRepository);
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.MESSAGE);
+        accessor.setDestination("/topic/chat/groups/" + groupId);
+        accessor.setUser(authentication);
+        accessor.setLeaveMutable(true);
+
+        ChatRealtimeEvent<UUID> memberRemovedEvent = ChatRealtimeEvent.of(
+                ChatRealtimeEventType.MEMBER_REMOVED,
+                groupId,
+                userId
+        );
+        Message<ChatRealtimeEvent<UUID>> message = MessageBuilder.createMessage(memberRemovedEvent, accessor.getMessageHeaders());
+
+        when(chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userId)).thenReturn(false);
+
+        Message<?> result = outbound.preSend(message, messageChannel);
+        assertNotNull(result, "MEMBER_REMOVED event should be delivered to the evicted user so client can clean up");
+    }
 }

@@ -106,9 +106,11 @@
               <div class="group-avatar-wrapper">
                 @if (group.avatarUrl) {
                   <img 
-                    [src]="group.avatarUrl | resolveMediaUrl" 
+                    [src]="group.avatarUrl | resolveMediaUrl:'avatar'" 
                     [alt]="group.name" 
                     mvFallback
+                    loading="lazy"
+                    decoding="async"
                     class="group-avatar-img">
                 } @else {
                   <div class="group-avatar-placeholder">
@@ -213,9 +215,11 @@
             <div class="header-avatar" (click)="toggleInfoDrawer()">
               @if (groupDetail.avatarUrl) {
                 <img 
-                  [src]="groupDetail.avatarUrl | resolveMediaUrl" 
+                  [src]="groupDetail.avatarUrl | resolveMediaUrl:'avatar'" 
                   [alt]="groupDetail.name" 
                   mvFallback 
+                  loading="lazy"
+                  decoding="async"
                   class="header-avatar-img">
               } @else {
                 <div class="header-avatar-placeholder">
@@ -358,7 +362,7 @@
         <div class="chat-body-container">
           
           <!-- Message Thread List -->
-          <div #messagesContainer class="messages-scroll-area custom-scrollbar">
+          <div #messagesContainer class="messages-scroll-area custom-scrollbar" (scroll)="onMessagesScroll($event)">
             
             @if (isMessagesLoading()) {
               <div class="messages-loading-wrap">
@@ -383,7 +387,14 @@
             } @else {
               <!-- Render Messages List -->
               <div class="messages-flow-list">
-                @for (msg of messages(); track msg.id; let idx = $index) {
+                @if (isLoadingOlderMessages()) {
+                  <div class="older-messages-loader" role="status" aria-live="polite">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    <span>Loading older messages...</span>
+                  </div>
+                }
+
+                @for (msg of messages(); track (msg.id || msg.clientMessageId); let idx = $index) {
                   
                   <!-- Date Separator -->
                   @if (shouldShowDateSeparator(msg, idx > 0 ? messages()[idx - 1] : null)) {
@@ -415,7 +426,7 @@
                         @if (shouldShowSenderName(msg, idx > 0 ? messages()[idx - 1] : null)) {
                           <div class="msg-avatar-circle" [matTooltip]="msg.sender.fullName">
                             @if (msg.sender.avatarUrl) {
-                              <img [src]="msg.sender.avatarUrl | resolveMediaUrl" [alt]="msg.sender.fullName" mvFallback class="msg-avatar-img">
+                              <img [src]="msg.sender.avatarUrl | resolveMediaUrl:'avatar'" [alt]="msg.sender.fullName" mvFallback loading="lazy" decoding="async" class="msg-avatar-img">
                             } @else {
                               <span>{{ msg.sender.fullName.charAt(0).toUpperCase() }}</span>
                             }
@@ -487,11 +498,12 @@
                               <!-- Image Card Bubble -->
                               <div class="bubble-image-container" (click)="openImageViewer(msg)">
                                 <img 
-                                  [src]="msg.localPreviewUrl || (msg.mediaUrl | resolveMediaUrl) || (msg.thumbnailUrl | resolveMediaUrl)" 
+                                  [src]="msg.localPreviewUrl || (msg.mediaUrl | resolveMediaUrl:'thumb') || (msg.thumbnailUrl | resolveMediaUrl:'thumb')" 
                                   [alt]="msg.textContent || 'Shared photo'" 
                                   mvFallback
                                   class="bubble-image-media"
                                   loading="lazy"
+                                  decoding="async"
                                 />
 
                                 <!-- Upload progress overlay if sending -->
@@ -522,9 +534,9 @@
                               <div class="bubble-video-container" (click)="openVideoViewer(msg)">
                                 <div class="video-preview-wrapper">
                                   @if (msg.thumbnailUrl) {
-                                    <img [src]="msg.thumbnailUrl | resolveMediaUrl" [alt]="msg.originalFileName || 'Shared video'" mvFallback class="bubble-video-poster" />
+                                    <img [src]="msg.thumbnailUrl | resolveMediaUrl:'thumb'" [alt]="msg.originalFileName || 'Shared video'" mvFallback loading="lazy" decoding="async" class="bubble-video-poster" />
                                   } @else if (msg.localPreviewUrl) {
-                                    <video [src]="msg.localPreviewUrl" class="bubble-video-poster" preload="metadata"></video>
+                                    <video [src]="msg.localPreviewUrl" class="bubble-video-poster" preload="metadata" playsinline></video>
                                   } @else {
                                     <div class="video-placeholder-backdrop">
                                       <mat-icon class="video-generic-icon">videocam</mat-icon>
@@ -948,11 +960,12 @@
                           (keyup.enter)="openGalleryLightbox(item, mIdx)"
                           [matTooltip]="(item.senderName || item.sender?.fullName || 'Member') + ' &bull; ' + formatTime(item.createdAt)">
                           <img 
-                            [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl" 
+                            [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl:'thumb'" 
                             [alt]="item.caption || item.originalFileName || 'Shared media'" 
                             mvFallback 
                             class="grid-thumb-img" 
                             loading="lazy" 
+                            decoding="async"
                           />
                           @if (item.messageType === 'VIDEO') {
                             <div class="grid-video-badge">

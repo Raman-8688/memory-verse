@@ -3647,3 +3647,69 @@
     margin-right: 4px;
   }
 }
+
+/* Phase 12E: Older Messages Pagination Loader */
+.older-messages-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  color: #8C7E72;
+  font-size: 0.8rem;
+  font-weight: 500;
+
+  mat-spinner {
+    stroke: #D97706;
+  }
+}
+
+/* Phase 12E: Mobile Responsiveness, Viewport Height & Touch Target Optimization */
+@media (max-width: 768px) {
+  .group-chat-layout {
+    height: 100dvh;
+    height: 100vh;
+  }
+
+  .groups-sidebar {
+    width: 100%;
+    &.mobile-hidden {
+      display: none;
+    }
+  }
+
+  .active-chat-pane {
+    width: 100%;
+    height: 100%;
+  }
+
+  .chat-composer-shell {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .composer-action-btn,
+  .composer-send-btn,
+  .header-action-btn,
+  .file-download-action-btn,
+  .drawer-file-dl-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .message-bubble-wrapper {
+    max-width: 90%;
+  }
+
+  .group-info-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Smooth decoding and image render performance */
+.bubble-image-media,
+.grid-thumb-img,
+.group-avatar-img,
+.msg-avatar-img {
+  content-visibility: auto;
+}

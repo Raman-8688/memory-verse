@@ -27,6 +27,8 @@ public class ApiError {
 
     private String path;
 
+    private String correlationId;
+
     private Map<String, String> validationErrors;
 
     @Builder.Default
