@@ -348,19 +348,17 @@ export class ChatRealtimeService {
   }
 
   private resolveBrokerUrl(): string {
-    const apiUrl = environment.apiUrl || '';
-    // Normalize base URL without trailing /api
-    const base = apiUrl.replace(/\/api\/?$/, '');
+    const apiUrl = (environment.apiUrl || '').replace(/\/+$/, '');
 
-    if (base.startsWith('https://')) {
-      return base.replace('https://', 'wss://') + '/ws';
-    } else if (base.startsWith('http://')) {
-      return base.replace('http://', 'ws://') + '/ws';
+    if (apiUrl.startsWith('https://')) {
+      return apiUrl.replace('https://', 'wss://') + '/ws';
+    } else if (apiUrl.startsWith('http://')) {
+      return apiUrl.replace('http://', 'ws://') + '/ws';
     } else if (typeof window !== 'undefined' && window.location) {
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = window.location.host;
-      return `${proto}//${host}/ws`;
+      return `${proto}//${host}/api/ws`;
     }
-    return 'ws://localhost:8080/ws';
+    return 'ws://localhost:8080/api/ws';
   }
 }

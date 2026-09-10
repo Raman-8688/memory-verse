@@ -161,7 +161,8 @@ export interface ChatGroupUpdateDto {
 }
 
 export interface ChatMemberAddDto {
-  userId: string;
+  userId?: string;
+  email?: string;
   role?: ChatGroupRole;
 }
 

@@ -15,8 +15,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ChatMemberAddDto {
 
-    @NotNull(message = "User ID is required")
     private UUID userId;
+    private String email;
 
     @Builder.Default
     private ChatGroupRole role = ChatGroupRole.MEMBER;

@@ -843,6 +843,19 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     private void verifyMembership(UUID groupId, UUID userId) {
         if (!chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userId)) {
+            // Self-healing fallback: If userId is group creator, auto-heal member record
+            ChatGroup group = chatGroupRepository.findById(groupId).orElse(null);
+            if (group != null && group.getCreatedBy() != null && group.getCreatedBy().getId().equals(userId)) {
+                User user = group.getCreatedBy();
+                ChatGroupMember creatorMember = ChatGroupMember.builder()
+                        .chatGroup(group)
+                        .user(user)
+                        .role(com.memoryverse.entity.ChatGroupRole.ADMIN)
+                        .joinedAt(group.getCreatedAt() != null ? group.getCreatedAt() : Instant.now())
+                        .build();
+                chatGroupMemberRepository.save(creatorMember);
+                return;
+            }
             throw new ForbiddenException("You are not a member of this chat group");
         }
     }

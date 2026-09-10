@@ -245,12 +245,24 @@ public class ChatGroupServiceImpl implements ChatGroupService {
         ChatGroup group = chatGroupRepository.findById(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group not found with id: " + groupId));
 
-        if (chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, dto.getUserId())) {
+        if (dto.getUserId() != null && chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, dto.getUserId())) {
             throw new BusinessValidationException("User is already a member of this group");
         }
 
-        User userToAdd = userRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + dto.getUserId()));
+        User userToAdd;
+        if (dto.getUserId() != null) {
+            userToAdd = userRepository.findById(dto.getUserId())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + dto.getUserId()));
+        } else if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            userToAdd = userRepository.findByEmail(dto.getEmail().trim().toLowerCase())
+                    .orElseThrow(() -> new ResourceNotFoundException("No user found with email: " + dto.getEmail().trim()));
+        } else {
+            throw new BusinessValidationException("User ID or Email is required to add member");
+        }
+
+        if (chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userToAdd.getId())) {
+            throw new BusinessValidationException("User is already a member of this group");
+        }
 
         ChatGroupMember member = ChatGroupMember.builder()
                 .chatGroup(group)
@@ -259,7 +271,7 @@ public class ChatGroupServiceImpl implements ChatGroupService {
                 .build();
 
         ChatGroupMember savedMember = chatGroupMemberRepository.save(member);
-        log.info("Added user [{}] to chat group [{}] with role [{}]", dto.getUserId(), groupId, member.getRole());
+        log.info("Added user [{}] to chat group [{}] with role [{}]", userToAdd.getId(), groupId, member.getRole());
 
         if (chatRealtimeEventPublisher != null) {
             chatRealtimeEventPublisher.publishMemberAdded(groupId, com.memoryverse.dto.response.ChatGroupMemberDto.fromEntity(savedMember));
@@ -388,18 +400,47 @@ public class ChatGroupServiceImpl implements ChatGroupService {
     }
 
     private void verifyMembership(UUID groupId, UUID userId) {
-        if (!chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userId)) {
-            throw new ForbiddenException("You are not a member of this chat group");
+        if (chatGroupMemberRepository.existsByChatGroupIdAndUserId(groupId, userId)) {
+            return;
         }
+
+        // Self-healing fallback for creator if group exists
+        Optional<ChatGroup> groupOpt = chatGroupRepository.findById(groupId);
+        if (groupOpt.isPresent() && groupOpt.get().getCreatedBy() != null && groupOpt.get().getCreatedBy().getId().equals(userId)) {
+            ChatGroupMember adminMember = ChatGroupMember.builder()
+                    .chatGroup(groupOpt.get())
+                    .user(groupOpt.get().getCreatedBy())
+                    .role(ChatGroupRole.ADMIN)
+                    .build();
+            chatGroupMemberRepository.save(adminMember);
+            return;
+        }
+
+        throw new ForbiddenException("You are not a member of this chat group");
     }
 
     private void verifyAdmin(UUID groupId, UUID userId) {
-        ChatGroupMember member = chatGroupMemberRepository.findByChatGroupIdAndUserId(groupId, userId)
-                .orElseThrow(() -> new ForbiddenException("You are not a member of this chat group"));
-
-        if (member.getRole() != ChatGroupRole.ADMIN) {
+        Optional<ChatGroupMember> memberOpt = chatGroupMemberRepository.findByChatGroupIdAndUserId(groupId, userId);
+        if (memberOpt.isPresent()) {
+            if (memberOpt.get().getRole() == ChatGroupRole.ADMIN) {
+                return;
+            }
             throw new ForbiddenException("Only group admins can perform this action");
         }
+
+        // Self-healing fallback for creator if group exists
+        Optional<ChatGroup> groupOpt = chatGroupRepository.findById(groupId);
+        if (groupOpt.isPresent() && groupOpt.get().getCreatedBy() != null && groupOpt.get().getCreatedBy().getId().equals(userId)) {
+            ChatGroupMember adminMember = ChatGroupMember.builder()
+                    .chatGroup(groupOpt.get())
+                    .user(groupOpt.get().getCreatedBy())
+                    .role(ChatGroupRole.ADMIN)
+                    .build();
+            chatGroupMemberRepository.save(adminMember);
+            return;
+        }
+
+        throw new ForbiddenException("Only group admins can perform this action");
     }
 
     private List<ChatGroupSummaryDto> toSummaryDtos(List<ChatGroup> groups, UUID currentUserId) {

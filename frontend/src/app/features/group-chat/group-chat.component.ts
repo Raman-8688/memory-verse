@@ -35,6 +35,7 @@ import {
   ChatMessageSendDto,
   ChatGroupCreateDto,
   ChatGroupUpdateDto,
+  ChatMemberAddDto,
   ChatMessageSearchResult,
   ChatMediaItem,
   ReactionGroup
@@ -85,6 +86,15 @@ export class GroupChatComponent implements OnInit, OnDestroy {
 
   // Allowed whitelist reactions
   readonly ALLOWED_REACTIONS: string[] = ['❤️', '😂', '🔥', '👍', '👏', '🥹', '😍', '😮', '🎉', '🙌'];
+
+  // Composer quick emojis
+  readonly COMPOSER_EMOJIS: string[] = [
+    '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂',
+    '😉', '😍', '🥰', '😘', '😋', '😎', '🤩', '🥳', '😏', '🤔',
+    '🤫', '🤭', '😴', '🥺', '😢', '😭', '😱', '🤯', '😡', '🤝',
+    '👍', '👎', '👏', '🙌', '🙏', '💪', '✌️', '❤️', '💖', '🔥',
+    '✨', '🎉', '🌟', '💯', '🚀', '☕', '🍕', '🎂', '🎈', '🏆'
+  ];
 
   // Groups list state
   readonly groups = signal<ChatGroupSummary[]>([]);
@@ -1135,6 +1145,23 @@ export class GroupChatComponent implements OnInit, OnDestroy {
     this.mentionQuery.set('');
     this.mentionSelectedIndex.set(0);
     this.mentionCursorStart.set(-1);
+  }
+
+  insertEmoji(emoji: string): void {
+    const textarea = this.composerTextarea?.nativeElement;
+    const currentText = this.composerText || '';
+    if (textarea) {
+      const start = textarea.selectionStart ?? currentText.length;
+      const end = textarea.selectionEnd ?? currentText.length;
+      this.composerText = currentText.substring(0, start) + emoji + currentText.substring(end);
+      setTimeout(() => {
+        textarea.focus();
+        const newCursor = start + emoji.length;
+        textarea.setSelectionRange(newCursor, newCursor);
+      }, 0);
+    } else {
+      this.composerText = currentText + emoji;
+    }
   }
 
   formatMessageWithMentions(text?: string): { text: string; isMention: boolean; isSelf: boolean }[] {
@@ -2447,21 +2474,28 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   submitAddMember(): void {
     const groupId = this.activeGroupId();
     if (!groupId || !this.newMemberUserId.trim()) {
-      this.snackBar.open('Please enter a valid User ID', 'Dismiss', { duration: 3000 });
+      this.snackBar.open('Please enter a user email or UUID', 'Dismiss', { duration: 3000 });
       return;
     }
 
+    const input = this.newMemberUserId.trim();
+    const isEmail = input.includes('@');
+    const dto: ChatMemberAddDto = isEmail 
+      ? { email: input, role: 'MEMBER' }
+      : { userId: input, role: 'MEMBER' };
+
     this.isAddingMember.set(true);
-    this.chatService.addMember(groupId, { userId: this.newMemberUserId.trim(), role: 'MEMBER' }).subscribe({
+    this.chatService.addMember(groupId, dto).subscribe({
       next: () => {
         this.isAddingMember.set(false);
         this.closeAddMemberModal();
-        this.snackBar.open('Member added successfully', 'OK', { duration: 3000 });
+        this.snackBar.open('Member added successfully!', 'OK', { duration: 3000 });
         this.loadGroupMembers(groupId);
+        this.fetchGroups();
       },
       error: (err) => {
         this.isAddingMember.set(false);
-        const msg = err?.error?.message || 'Failed to add member. Check user ID.';
+        const msg = err?.error?.message || 'Failed to add member. Check email or user ID.';
         this.snackBar.open(msg, 'Dismiss', { duration: 4000 });
       }
     });

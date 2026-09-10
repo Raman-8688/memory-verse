@@ -19,7 +19,7 @@
           (click)="openCreateModal()"
           matTooltip="Create a new discussion group">
           <mat-icon>add</mat-icon>
-          <span class="btn-text">New Group</span>
+          <span class="btn-text">Group</span>
         </button>
       </div>
 
@@ -361,6 +361,14 @@
         <!-- Main Body: Messages & Details Drawer Container -->
         <div class="chat-body-container">
           
+          <!-- Ephemeral Offline Connectivity Strip -->
+          @if (!isNetworkOnline()) {
+            <div class="offline-notification-strip" role="status" aria-live="polite">
+              <mat-icon class="offline-icon">cloud_off</mat-icon>
+              <span>You are currently offline. Realtime sync will automatically resume when connected.</span>
+            </div>
+          }
+
           <!-- Message Thread List -->
           <div #messagesContainer class="messages-scroll-area custom-scrollbar" (scroll)="onMessagesScroll($event)">
             
@@ -1208,7 +1216,7 @@
               [(ngModel)]="composerText" 
               (input)="onComposerInput($event)"
               (keydown)="onComposerKeyDown($event)"
-              [placeholder]="editingMessage() ? 'Edit message... (Enter to save, Esc to cancel)' : (selectedAttachmentFile() ? 'Add a caption (optional)...' : (replyingToMessage() ? 'Type a reply...' : 'Type a message... (Press Enter to send, Shift+Enter for newline)'))" 
+              [placeholder]="editingMessage() ? 'Edit message...' : (selectedAttachmentFile() ? 'Add a caption...' : (replyingToMessage() ? 'Type a reply...' : 'Type a message...'))" 
               class="composer-input-textarea"
               aria-label="Type a message or caption"
               rows="1"
@@ -1217,12 +1225,22 @@
 
             <button 
               type="button" 
-              class="composer-tool-btn disabled-tool" 
+              class="composer-tool-btn" 
+              [matMenuTriggerFor]="composerEmojiMenu"
               matTooltip="Add emoji" 
-              aria-label="Add emoji"
-              disabled>
+              aria-label="Add emoji">
               <mat-icon>sentiment_satisfied</mat-icon>
             </button>
+
+            <mat-menu #composerEmojiMenu="matMenu" class="custom-chat-menu composer-emoji-picker-menu">
+              <div class="composer-emoji-grid" (click)="$event.stopPropagation()">
+                @for (emoji of COMPOSER_EMOJIS; track emoji) {
+                  <button type="button" class="composer-emoji-btn" (click)="insertEmoji(emoji)" [attr.aria-label]="'Insert emoji ' + emoji">
+                    {{ emoji }}
+                  </button>
+                }
+              </div>
+            </mat-menu>
 
             <button 
               type="button" 
@@ -1398,10 +1416,10 @@
           </button>
         </div>
 
-        <form (ngSubmit)="submitGroupSettings()" class="create-group-form">
+        <form (ngSubmit)="submitGroupSettings()" class="modal-form">
           <!-- Avatar Uploader -->
           <div class="avatar-upload-section">
-            <div class="avatar-preview-box" (click)="avatarFileInput.click()">
+            <div class="avatar-preview-box" (click)="avatarFileInput.click()" role="button" tabindex="0" (keydown.enter)="avatarFileInput.click()" aria-label="Upload new group avatar">
               @if (avatarPreviewUrl()) {
                 <img [src]="avatarPreviewUrl()" alt="New Avatar Preview" class="settings-avatar-preview" />
               } @else if (activeGroupDetail()?.avatarUrl) {
@@ -1427,27 +1445,27 @@
           </div>
 
           <div class="form-field-group">
-            <label for="editGroupNameInput" class="field-label">Group Name *</label>
+            <label for="editGroupNameInput" class="form-label">Group Name <span class="required-star">*</span></label>
             <input 
               id="editGroupNameInput"
               type="text" 
               [(ngModel)]="editGroupName" 
               name="editGroupName"
               placeholder="Group name" 
-              class="field-input"
+              class="form-text-input"
               maxlength="100"
               required
             />
           </div>
 
           <div class="form-field-group">
-            <label for="editGroupDescInput" class="field-label">Description</label>
+            <label for="editGroupDescInput" class="form-label">Description (Optional)</label>
             <textarea 
               id="editGroupDescInput"
               [(ngModel)]="editGroupDescription" 
               name="editGroupDescription"
               placeholder="What is this group about?" 
-              class="field-textarea"
+              class="form-textarea"
               rows="3"
               maxlength="500"
             ></textarea>
@@ -1497,16 +1515,16 @@
           </button>
         </div>
 
-        <form (ngSubmit)="submitAddMember()" class="create-group-form">
+        <form (ngSubmit)="submitAddMember()" class="modal-form">
           <div class="form-field-group">
-            <label for="memberUserIdInput" class="field-label">User ID *</label>
+            <label for="memberUserIdInput" class="form-label">User Email or User ID <span class="required-star">*</span></label>
             <input 
               id="memberUserIdInput"
               type="text" 
               [(ngModel)]="newMemberUserId" 
               name="newMemberUserId"
-              placeholder="Enter user UUID (e.g. 1c24cead-927e-4f20-b2db-f576218f4489)" 
-              class="field-input"
+              placeholder="e.g. friend@example.com or user UUID" 
+              class="form-text-input"
               required
             />
           </div>
