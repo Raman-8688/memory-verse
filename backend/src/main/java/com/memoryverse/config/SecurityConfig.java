@@ -57,7 +57,8 @@ public class SecurityConfig {
                                 "/media/files/**",
                                 "/media/raw/**",
                                 "/v3/api-docs/**",
-                                "/swagger-ui/**"
+                                "/swagger-ui/**",
+                                "/ws/**"
                         ).permitAll()
                         .requestMatchers("/ai/**").authenticated()
                         .anyRequest().authenticated()

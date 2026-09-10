@@ -71,13 +71,43 @@
         </div>
       </div>
 
-      <!-- Right: Cute 3D Clay Potted Plant (Matching Reference Template) -->
-      <div class="hero-3d-plant-pane">
-        <img 
-          src="assets/images/hero_3d_plant.jpg" 
-          alt="Clay Plant" 
-          class="hero-3d-plant-img">
-      </div>
+      <!-- Right: Premium 3D Animated Group Discussion Visual -->
+      <a 
+        class="hero-3d-discussion-pane" 
+        routerLink="/group-chat" 
+        matTooltip="Talk with your MemoryVerse group"
+        aria-label="Open MemoryVerse Group Discussion">
+        <div class="discussion-clay-card">
+          <!-- Multi-silhouette Clay Avatar Group -->
+          <div class="clay-group-avatars">
+            <div class="clay-avatar avatar-left">
+              <span class="avatar-face">🧑‍🦱</span>
+            </div>
+            <div class="clay-avatar avatar-center">
+              <span class="avatar-face">👩‍🦰</span>
+            </div>
+            <div class="clay-avatar avatar-right">
+              <span class="avatar-face">👨‍🦲</span>
+            </div>
+          </div>
+
+          <!-- Floating Animated Speech Bubbles -->
+          <div class="floating-bubble bubble-left">
+            <span class="bubble-dot"></span>
+            <span class="bubble-dot"></span>
+            <span class="bubble-dot"></span>
+          </div>
+          <div class="floating-bubble bubble-right">
+            <mat-icon class="bubble-icon">favorite</mat-icon>
+          </div>
+
+          <!-- Bottom Label Badge -->
+          <div class="discussion-label-badge">
+            <span class="pulse-status-dot"></span>
+            <span class="badge-text">Group Chat</span>
+          </div>
+        </div>
+      </a>
     </div>
   </header>
 

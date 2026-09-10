@@ -1,0 +1,18 @@
+package com.memoryverse.dto.realtime;
+
+public enum ChatRealtimeEventType {
+    MESSAGE_CREATED,
+    MESSAGE_UPDATED,
+    MESSAGE_DELETED,
+    REACTION_UPDATED,
+    TYPING,
+    PRESENCE,
+    MESSAGE_READ,
+    GROUP_UPDATED,
+    MEMBER_ADDED,
+    MEMBER_REMOVED,
+    MEMBER_ROLE_CHANGED,
+    NOTIFICATION_CREATED,
+    NOTIFICATION_READ,
+    NOTIFICATION_READ_ALL
+}

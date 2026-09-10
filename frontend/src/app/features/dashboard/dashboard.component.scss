@@ -326,6 +326,222 @@
   }
 }
 
+/* Premium 3D Animated Group Discussion Visual Pane */
+.hero-3d-discussion-pane {
+  width: 185px;
+  height: 185px;
+  min-width: 185px;
+  border-radius: 24px;
+  box-shadow: 
+    0 12px 28px rgba(180, 83, 9, 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #FFFDF8 0%, #FEF9EE 100%);
+  border: 2.5px solid rgba(255, 255, 255, 0.95);
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--mv-transition-normal);
+
+  &:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 
+      0 18px 36px rgba(180, 83, 9, 0.22),
+      0 4px 12px rgba(180, 83, 9, 0.12);
+    border-color: #FCD34D;
+
+    .floating-bubble.bubble-left {
+      transform: translateY(-3px) scale(1.05);
+    }
+    .floating-bubble.bubble-right {
+      transform: translateY(-4px) scale(1.08);
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #B45309;
+  }
+}
+
+.discussion-clay-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.clay-group-avatars {
+  position: relative;
+  width: 110px;
+  height: 64px;
+  margin-top: -6px;
+}
+
+.clay-avatar {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #FFFFFF;
+  box-shadow: 0 6px 14px rgba(60, 45, 25, 0.12);
+  transition: transform var(--mv-transition-fast);
+
+  .avatar-face {
+    font-size: 22px;
+    user-select: none;
+  }
+
+  &.avatar-left {
+    left: 4px;
+    top: 12px;
+    background: linear-gradient(135deg, #DDECE1 0%, #C4E0CC 100%);
+    z-index: 1;
+    animation: gentleFloatLeft 4s ease-in-out infinite;
+  }
+
+  &.avatar-center {
+    left: 33px;
+    top: 0;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    z-index: 3;
+    border-color: #FFFFFF;
+    box-shadow: 0 8px 18px rgba(180, 83, 9, 0.2);
+    animation: gentleFloatCenter 4s ease-in-out infinite 0.5s;
+
+    .avatar-face { font-size: 24px; }
+  }
+
+  &.avatar-right {
+    right: 4px;
+    top: 12px;
+    background: linear-gradient(135deg, #E0E7FF 0%, #C7D2FE 100%);
+    z-index: 2;
+    animation: gentleFloatRight 4s ease-in-out infinite 1s;
+  }
+}
+
+.floating-bubble {
+  position: absolute;
+  background: #FFFFFF;
+  border: 1px solid rgba(218, 206, 188, 0.8);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--mv-transition-fast);
+
+  &.bubble-left {
+    left: 14px;
+    top: 16px;
+    gap: 3px;
+    padding: 4px 7px;
+    border-bottom-left-radius: 2px;
+    animation: floatBubbleLeft 3.5s ease-in-out infinite;
+
+    .bubble-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #B45309;
+      display: inline-block;
+    }
+  }
+
+  &.bubble-right {
+    right: 14px;
+    top: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    color: #DC2626;
+    background: #FFF5F5;
+    border-color: #FED7D7;
+    animation: floatBubbleRight 3.5s ease-in-out infinite 0.7s;
+
+    .bubble-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.discussion-label-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(254, 243, 199, 0.95);
+  border: 1px solid #FCD34D;
+  border-radius: var(--mv-radius-full);
+  padding: 4px 12px;
+  margin-top: 8px;
+  box-shadow: 0 2px 6px rgba(180, 83, 9, 0.1);
+
+  .pulse-status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #16A34A;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+    animation: pulseDot 2s infinite;
+  }
+
+  .badge-text {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #78350F;
+    letter-spacing: 0.01em;
+  }
+}
+
+@keyframes gentleFloatCenter {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes gentleFloatLeft {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-3px) rotate(1deg); }
+}
+
+@keyframes gentleFloatRight {
+  0%, 100% { transform: translateY(0) rotate(2deg); }
+  50% { transform: translateY(-3px) rotate(-1deg); }
+}
+
+@keyframes floatBubbleLeft {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.04); }
+}
+
+@keyframes floatBubbleRight {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.06); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
 /* 3. 4 Vertical Pastel Clay Statistics Cards (Matching Image 2) */
 .hero-stats-row {
   display: grid;

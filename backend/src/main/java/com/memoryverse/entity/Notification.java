@@ -43,6 +43,27 @@ public class Notification {
     @Builder.Default
     private Boolean isRead = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private ChatGroup group;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_id")
+    private ChatMessage messageEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+    @Column(length = 255)
+    private String title;
+
+    @Column(length = 1000)
+    private String preview;
+
+    @Column(name = "read_at")
+    private Instant readAt;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

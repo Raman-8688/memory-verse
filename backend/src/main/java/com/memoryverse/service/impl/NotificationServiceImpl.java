@@ -10,6 +10,7 @@ import com.memoryverse.entity.User;
 import com.memoryverse.repository.MemoryRepository;
 import com.memoryverse.repository.NotificationRepository;
 import com.memoryverse.repository.UserRepository;
+import com.memoryverse.service.ChatRealtimeEventPublisher;
 import com.memoryverse.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final MemoryRepository memoryRepository;
+    private final ChatRealtimeEventPublisher chatRealtimeEventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -60,6 +62,9 @@ public class NotificationServiceImpl implements NotificationService {
     @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, key = "#userId")
     public void markAsRead(UUID id, UUID userId) {
         notificationRepository.markAsRead(id, userId);
+        if (chatRealtimeEventPublisher != null) {
+            chatRealtimeEventPublisher.publishNotificationRead(userId, id);
+        }
     }
 
     @Override
@@ -67,6 +72,9 @@ public class NotificationServiceImpl implements NotificationService {
     @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, key = "#userId")
     public void markAllAsRead(UUID userId) {
         notificationRepository.markAllAsRead(userId);
+        if (chatRealtimeEventPublisher != null) {
+            chatRealtimeEventPublisher.publishNotificationReadAll(userId);
+        }
     }
 
     @Override
@@ -81,7 +89,47 @@ public class NotificationServiceImpl implements NotificationService {
                 .isRead(false)
                 .build();
 
-        return notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+        if (chatRealtimeEventPublisher != null) {
+            chatRealtimeEventPublisher.publishNotificationCreated(recipient.getId(), NotificationResponseDto.fromEntity(saved));
+        }
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_UNREAD_COUNT, key = "#recipient.id")
+    public Notification createChatNotification(User recipient, User sender, com.memoryverse.entity.ChatGroup group, com.memoryverse.entity.ChatMessage message, NotificationType type, String title, String preview) {
+        if (recipient == null || (sender != null && recipient.getId().equals(sender.getId()))) {
+            return null; // Don't self-notify
+        }
+
+        // Duplicate protection: don't create multiple notifications for the same message & event type
+        if (message != null && notificationRepository.existsByRecipientIdAndMessageEntityIdAndType(recipient.getId(), message.getId(), type)) {
+            log.info("Duplicate chat notification prevented for recipient [{}] and message [{}] of type [{}]",
+                    recipient.getId(), message.getId(), type);
+            return null;
+        }
+
+        String fullMessage = title != null && preview != null ? title + ": " + preview : (title != null ? title : preview);
+        Notification notification = Notification.builder()
+                .recipient(recipient)
+                .sender(sender)
+                .group(group)
+                .messageEntity(message)
+                .type(type)
+                .title(title)
+                .preview(preview)
+                .message(fullMessage != null ? (fullMessage.length() > 500 ? fullMessage.substring(0, 497) + "..." : fullMessage) : "")
+                .relatedEntityId(group != null ? group.getId() : (message != null ? message.getId() : null))
+                .isRead(false)
+                .build();
+
+        Notification saved = notificationRepository.save(notification);
+        if (chatRealtimeEventPublisher != null) {
+            chatRealtimeEventPublisher.publishNotificationCreated(recipient.getId(), NotificationResponseDto.fromEntity(saved));
+        }
+        return saved;
     }
 
     @Override

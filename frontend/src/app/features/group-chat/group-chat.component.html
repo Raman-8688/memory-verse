@@ -1,0 +1,1623 @@
+<div class="group-chat-layout" [class.has-active-group]="!!activeGroupId()">
+
+  <!-- 1. LEFT PANE: GROUPS SIDEBAR -->
+  <aside class="groups-sidebar" [class.mobile-hidden]="!!activeGroupId()">
+    
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <div class="header-title-row">
+        <div class="title-with-icon">
+          <div class="discussion-icon-badge">
+            <mat-icon>forum</mat-icon>
+          </div>
+          <h1 class="sidebar-title">Group Discussion</h1>
+        </div>
+
+        <button 
+          mat-flat-button 
+          class="create-group-btn" 
+          (click)="openCreateModal()"
+          matTooltip="Create a new discussion group">
+          <mat-icon>add</mat-icon>
+          <span class="btn-text">New Group</span>
+        </button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="group-search-bar">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input 
+          type="text" 
+          [ngModel]="searchQuery()" 
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search groups..." 
+          class="search-input"
+          aria-label="Search discussion groups"
+        />
+        @if (searchQuery()) {
+          <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Groups List Body -->
+    <div class="groups-list-body custom-scrollbar">
+
+      <!-- Loading Skeletons -->
+      @if (isGroupsLoading()) {
+        <div class="group-skeletons-list">
+          @for (item of [1, 2, 3, 4, 5]; track item) {
+            <div class="group-item-skeleton">
+              <div class="skeleton-avatar skeleton-pulse"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-title skeleton-pulse"></div>
+                <div class="skeleton-preview skeleton-pulse"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (groupsError()) {
+        <!-- Error State -->
+        <div class="groups-error-state">
+          <mat-icon class="error-icon">error_outline</mat-icon>
+          <p class="error-msg">{{ groupsError() }}</p>
+          <button mat-stroked-button class="retry-btn" (click)="fetchGroups()">
+            <mat-icon>refresh</mat-icon>
+            <span>Retry</span>
+          </button>
+        </div>
+      } @else if (groups().length === 0) {
+        <!-- Empty Groups List State -->
+        <div class="groups-empty-state">
+          <div class="empty-icon-bubble">
+            <mat-icon>groups</mat-icon>
+          </div>
+          <h3 class="empty-heading">No groups found</h3>
+          <p class="empty-sub">
+            @if (searchQuery()) {
+              No discussion groups match "{{ searchQuery() }}".
+            } @else {
+              Create your first group to start reliving memories together.
+            }
+          </p>
+          @if (!searchQuery()) {
+            <button mat-flat-button class="create-first-group-btn" (click)="openCreateModal()">
+              <mat-icon>add</mat-icon>
+              <span>Create Group</span>
+            </button>
+          }
+        </div>
+      } @else {
+        <!-- Group Items -->
+        <div class="groups-nav-list" role="list">
+          @for (group of groups(); track group.id) {
+            <div 
+              class="group-item-card" 
+              [class.active]="activeGroupId() === group.id"
+              (click)="selectGroup(group.id)"
+              role="listitem"
+              tabindex="0"
+              (keyup.enter)="selectGroup(group.id)"
+              [attr.aria-selected]="activeGroupId() === group.id">
+
+              <!-- Group Avatar -->
+              <div class="group-avatar-wrapper">
+                @if (group.avatarUrl) {
+                  <img 
+                    [src]="group.avatarUrl | resolveMediaUrl" 
+                    [alt]="group.name" 
+                    mvFallback
+                    class="group-avatar-img">
+                } @else {
+                  <div class="group-avatar-placeholder">
+                    <span>{{ group.name.charAt(0).toUpperCase() }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Group Info -->
+              <div class="group-info-col">
+                <div class="group-info-top">
+                  <span class="group-name text-truncate">{{ group.name }}</span>
+                  @if (group.lastMessage?.createdAt) {
+                    <span class="group-timestamp">{{ formatTime(group.lastMessage?.createdAt) }}</span>
+                  }
+                </div>
+
+                <div class="group-info-bottom">
+                  <span class="group-message-preview text-truncate">
+                    @if (group.lastMessage) {
+                      <span class="last-sender">{{ group.lastMessage.sender.fullName.split(' ')[0] }}:</span>
+                      {{ group.lastMessage.textContent || 'Shared media' }}
+                    } @else {
+                      <span class="member-count-label">{{ group.memberCount }} {{ group.memberCount === 1 ? 'member' : 'members' }}</span>
+                    }
+                  </span>
+
+                  @if ((group.unreadMentionCount && group.unreadMentionCount > 0) || group.unreadCount > 0) {
+                    <div class="group-badges-col">
+                      @if (group.unreadMentionCount && group.unreadMentionCount > 0) {
+                        <span class="mention-pill" title="You were mentioned in this group">&#64; {{ group.unreadMentionCount }}</span>
+                      }
+                      @if (group.unreadCount > 0) {
+                        <span class="unread-pill" [attr.aria-label]="group.unreadCount + ' unread messages'">
+                          {{ group.unreadCount > 99 ? '99+' : group.unreadCount }}
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </aside>
+
+  <!-- 2. RIGHT PANE: CONVERSATION AREA -->
+  <main class="conversation-pane" [class.mobile-visible]="!!activeGroupId()">
+
+    @if (!activeGroupId()) {
+      <!-- Desktop Placeholder: No Group Selected -->
+      <div class="no-group-selected-view">
+        <div class="memory-illustration-box">
+          <div class="clay-chat-visual">
+            <mat-icon class="hero-chat-icon">forum</mat-icon>
+          </div>
+          <h2 class="welcome-heading">MemoryVerse Group Discussion</h2>
+          <p class="welcome-sub">Select a group from the left to read discussions, or create a new group to connect with family and friends.</p>
+          <button mat-flat-button class="start-group-btn" (click)="openCreateModal()">
+            <mat-icon>add</mat-icon>
+            <span>Create Discussion Group</span>
+          </button>
+        </div>
+      </div>
+    } @else {
+
+      @if (isActiveGroupLoading()) {
+        <!-- Loading Header & Messages -->
+        <div class="conversation-loading-view">
+          <mat-spinner diameter="36"></mat-spinner>
+          <span>Loading discussion...</span>
+        </div>
+      } @else if (activeGroupError()) {
+        <!-- Error / Unauthorized View -->
+        <div class="conversation-error-view">
+          <mat-icon class="error-visual-icon">lock</mat-icon>
+          <h3 class="error-title">{{ activeGroupError() }}</h3>
+          <p class="error-desc">You might need an invitation from the group admin to view this conversation.</p>
+          <button mat-flat-button class="back-to-list-btn" (click)="navigateBackToList()">
+            <mat-icon>arrow_back</mat-icon>
+            <span>Back to Groups</span>
+          </button>
+        </div>
+      } @else {
+        @if (activeGroupDetail(); as groupDetail) {
+
+        <!-- Conversation Top Header -->
+        <header class="chat-header">
+          <div class="header-left">
+            <!-- Mobile Back Button -->
+            <button 
+              mat-icon-button 
+              class="mobile-back-btn" 
+              (click)="navigateBackToList()" 
+              aria-label="Back to group list">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+
+            <!-- Group Avatar -->
+            <div class="header-avatar" (click)="toggleInfoDrawer()">
+              @if (groupDetail.avatarUrl) {
+                <img 
+                  [src]="groupDetail.avatarUrl | resolveMediaUrl" 
+                  [alt]="groupDetail.name" 
+                  mvFallback 
+                  class="header-avatar-img">
+              } @else {
+                <div class="header-avatar-placeholder">
+                  <span>{{ groupDetail.name.charAt(0).toUpperCase() }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Group Title & Metadata -->
+            <div class="header-meta" (click)="toggleInfoDrawer()">
+              <h2 class="header-group-name text-truncate">{{ groupDetail.name }}</h2>
+              <span class="header-member-count">
+                {{ activeGroupMembers().length || groupDetail.members.length }} members
+                @if (onlineMemberCount() > 0) {
+                  <span class="meta-dot">&bull;</span>
+                  <span class="header-online-count">{{ onlineMemberCount() }} online</span>
+                }
+                @if (groupDetail.description) {
+                  <span class="meta-dot">&bull;</span>
+                  <span class="header-desc text-truncate">{{ groupDetail.description }}</span>
+                }
+              </span>
+            </div>
+          </div>
+
+          <!-- Header Right Actions -->
+          <div class="header-right">
+            <!-- Search in conversation button -->
+            <button 
+              mat-icon-button 
+              class="header-action-btn search-toggle-btn" 
+              [class.active]="isSearchOpen()"
+              (click)="toggleSearch()" 
+              matTooltip="Search messages" 
+              aria-label="Search messages in conversation">
+              <mat-icon>search</mat-icon>
+            </button>
+
+            <!-- Group Settings button (Admin only) -->
+            @if (isCurrentUserAdmin()) {
+              <button 
+                mat-icon-button 
+                class="header-action-btn" 
+                (click)="openSettingsModal()" 
+                matTooltip="Group settings" 
+                aria-label="Open group settings">
+                <mat-icon>settings</mat-icon>
+              </button>
+            }
+
+            <!-- Subtle Realtime Live Connection Pill -->
+            <div 
+              class="realtime-status-pill" 
+              [class.connected]="connectionStatus() === 'CONNECTED'" 
+              [class.connecting]="connectionStatus() === 'CONNECTING' || connectionStatus() === 'RECONNECTING'" 
+              [class.offline]="connectionStatus() === 'DISCONNECTED'"
+              [matTooltip]="connectionStatus() === 'CONNECTED' ? 'Realtime live sync active' : (connectionStatus() === 'RECONNECTING' ? 'Reconnecting realtime sync...' : 'Offline')">
+              <span class="status-dot"></span>
+              <span class="status-text">
+                {{ connectionStatus() === 'CONNECTED' ? 'Live' : (connectionStatus() === 'RECONNECTING' ? 'Reconnecting...' : 'Offline') }}
+              </span>
+            </div>
+
+            <!-- Info Drawer Toggle -->
+            <button 
+              mat-icon-button 
+              class="header-action-btn" 
+              (click)="toggleInfoDrawer()" 
+              matTooltip="Group details & media" 
+              aria-label="Toggle group details">
+              <mat-icon>info_outline</mat-icon>
+            </button>
+          </div>
+        </header>
+
+        <!-- Phase 9: In-Conversation Message Search Overlay -->
+        @if (isSearchOpen()) {
+          <div class="message-search-overlay">
+            <div class="message-search-input-wrap">
+              <mat-icon class="search-field-icon">search</mat-icon>
+              <input 
+                type="text" 
+                [ngModel]="messageSearchQuery()" 
+                (ngModelChange)="onMessageSearchChange($event)"
+                placeholder="Search messages in this group..."
+                class="message-search-input"
+                aria-label="Search messages in this group"
+                autofocus
+              />
+              @if (messageSearchQuery()) {
+                <button type="button" class="clear-msg-search-btn" (click)="clearMessageSearch()" aria-label="Clear search query">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+              <button type="button" class="close-search-overlay-btn" (click)="toggleSearch()" aria-label="Close search overlay">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+
+            <!-- Search Dropdown Content -->
+            @if (isSearchingMessages()) {
+              <div class="search-dropdown-loading">
+                <mat-spinner diameter="20"></mat-spinner>
+                <span>Searching conversation...</span>
+              </div>
+            } @else if (messageSearchQuery().trim() && searchResults().length === 0) {
+              <div class="search-dropdown-empty">
+                <mat-icon>search_off</mat-icon>
+                <span>No messages found matching "{{ messageSearchQuery() }}"</span>
+              </div>
+            } @else if (searchResults().length > 0) {
+              <div class="search-dropdown-results custom-scrollbar">
+                <div class="search-results-header">
+                  <span>Found {{ searchResults().length }} {{ searchResults().length === 1 ? 'result' : 'results' }}</span>
+                </div>
+                @for (res of searchResults(); track (res.messageId || res.id)) {
+                  <div class="search-result-item" (click)="selectSearchResult(res)" tabindex="0" (keyup.enter)="selectSearchResult(res)">
+                    <div class="res-sender-row">
+                      <span class="res-sender-name">{{ res.senderName || res.sender?.fullName }}</span>
+                      <span class="res-time">{{ formatTime(res.createdAt) }}</span>
+                    </div>
+                    <div class="res-snippet-row text-truncate">
+                      @if (res.messageType === 'IMAGE') {
+                        <span class="res-photo-badge"><mat-icon>image</mat-icon> Photo</span>
+                      } @else if (res.messageType === 'VIDEO') {
+                        <span class="res-photo-badge video-badge"><mat-icon>videocam</mat-icon> Video</span>
+                      } @else if (res.messageType === 'FILE') {
+                        <span class="res-photo-badge file-badge"><mat-icon>{{ getFileIcon(res.originalFileName) }}</mat-icon> Document</span>
+                      }
+                      <span class="res-text">{{ res.contentPreview || res.textContent }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Main Body: Messages & Details Drawer Container -->
+        <div class="chat-body-container">
+          
+          <!-- Message Thread List -->
+          <div #messagesContainer class="messages-scroll-area custom-scrollbar">
+            
+            @if (isMessagesLoading()) {
+              <div class="messages-loading-wrap">
+                <mat-spinner diameter="28"></mat-spinner>
+                <span>Loading messages...</span>
+              </div>
+            } @else if (messagesError()) {
+              <div class="messages-error-wrap">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ messagesError() }}</span>
+                <button mat-button (click)="loadMessages(groupDetail.id)">Retry</button>
+              </div>
+            } @else if (messages().length === 0) {
+              <!-- Empty Conversation Placeholder -->
+              <div class="empty-conversation-state">
+                <div class="empty-conv-icon">
+                  <mat-icon>chat_bubble_outline</mat-icon>
+                </div>
+                <h4>Start the conversation</h4>
+                <p>Send a message or share a photo memory with the group.</p>
+              </div>
+            } @else {
+              <!-- Render Messages List -->
+              <div class="messages-flow-list">
+                @for (msg of messages(); track msg.id; let idx = $index) {
+                  
+                  <!-- Date Separator -->
+                  @if (shouldShowDateSeparator(msg, idx > 0 ? messages()[idx - 1] : null)) {
+                    <div class="date-separator-row">
+                      <span class="date-chip">{{ getDateSeparatorLabel(msg.createdAt) }}</span>
+                    </div>
+                  }
+
+                  <!-- Unread Messages Divider -->
+                  @if (msg.id === firstUnreadMessageId()) {
+                    <div class="unread-divider" role="separator" aria-label="New messages">
+                      <span class="unread-divider-line"></span>
+                      <span class="unread-divider-text">New messages</span>
+                      <span class="unread-divider-line"></span>
+                    </div>
+                  }
+
+                  <!-- Single Message Row -->
+                  <div 
+                    [id]="'chat-msg-' + msg.id"
+                    class="message-row-wrapper" 
+                    [class.own-row]="isOwnMessage(msg)"
+                    [class.other-row]="!isOwnMessage(msg)"
+                    [class.has-reply]="!!msg.replyToMessage">
+
+                    <!-- Left: Sender Avatar for other users (only shown on grouping break) -->
+                    @if (!isOwnMessage(msg)) {
+                      <div class="message-sender-avatar-col">
+                        @if (shouldShowSenderName(msg, idx > 0 ? messages()[idx - 1] : null)) {
+                          <div class="msg-avatar-circle" [matTooltip]="msg.sender.fullName">
+                            @if (msg.sender.avatarUrl) {
+                              <img [src]="msg.sender.avatarUrl | resolveMediaUrl" [alt]="msg.sender.fullName" mvFallback class="msg-avatar-img">
+                            } @else {
+                              <span>{{ msg.sender.fullName.charAt(0).toUpperCase() }}</span>
+                            }
+                          </div>
+                        } @else {
+                          <div class="msg-avatar-spacer"></div>
+                        }
+                      </div>
+                    }
+
+                    <!-- Center: Bubble & Interactive Layers -->
+                    <div class="message-bubble-column">
+                      
+                      <!-- Sender Name Label for received messages -->
+                      @if (!isOwnMessage(msg) && shouldShowSenderName(msg, idx > 0 ? messages()[idx - 1] : null)) {
+                        <span class="message-author-label">{{ msg.sender.fullName }}</span>
+                      }
+
+                      <!-- Main Bubble Container -->
+                      <div class="message-bubble-container">
+                        
+                        <!-- Floating Interactive Group (Bubble + Actions Wrapper) -->
+                        <div class="bubble-with-floating-actions">
+                          
+                          <!-- Bubble Shell -->
+                          <div 
+                            class="message-bubble-shell" 
+                            [class.is-own]="isOwnMessage(msg)" 
+                            [class.is-deleted]="msg.deleted"
+                            [class.is-image-card]="(msg.messageType === 'IMAGE' || msg.messageType === 'VIDEO') && !msg.deleted"
+                            [class.is-file-card]="msg.messageType === 'FILE' && !msg.deleted">
+
+                            <!-- Quoted Reply Reference Inside Bubble -->
+                            @if (msg.replyToMessage) {
+                              <div 
+                                class="quoted-reply-banner" 
+                                (click)="scrollToMessage(msg.replyToMessage.id)"
+                                matTooltip="Click to jump to quoted message"
+                                role="button"
+                                tabindex="0">
+                                <div class="reply-accent-bar"></div>
+                                <div class="reply-preview-content">
+                                  <span class="reply-sender">{{ msg.replyToMessage.sender.fullName }}</span>
+                                  <p class="reply-text text-truncate">
+                                    @if (msg.replyToMessage.deleted) {
+                                      <em>This message was deleted</em>
+                                    } @else if (msg.replyToMessage.messageType === 'IMAGE') {
+                                      <span class="reply-image-label">[Photo]</span> @if (msg.replyToMessage.textContent) { &bull; {{ msg.replyToMessage.textContent }} }
+                                    } @else if (msg.replyToMessage.messageType === 'VIDEO') {
+                                      <span class="reply-image-label">[Video]</span> @if (msg.replyToMessage.originalFileName || msg.replyToMessage.textContent) { &bull; {{ msg.replyToMessage.originalFileName || msg.replyToMessage.textContent }} }
+                                    } @else if (msg.replyToMessage.messageType === 'FILE') {
+                                      <span class="reply-image-label">[Document]</span> @if (msg.replyToMessage.originalFileName || msg.replyToMessage.textContent) { &bull; {{ msg.replyToMessage.originalFileName || msg.replyToMessage.textContent }} }
+                                    } @else {
+                                      {{ msg.replyToMessage.textContent }}
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                            }
+
+                            <!-- Message Body Content -->
+                            @if (msg.deleted) {
+                              <!-- Deleted Message State -->
+                              <div class="bubble-content-text is-deleted-content">
+                                <mat-icon class="deleted-icon">block</mat-icon>
+                                <span class="deleted-msg-text">This message was deleted</span>
+                              </div>
+                            } @else if (msg.messageType === 'IMAGE') {
+                              <!-- Image Card Bubble -->
+                              <div class="bubble-image-container" (click)="openImageViewer(msg)">
+                                <img 
+                                  [src]="msg.localPreviewUrl || (msg.mediaUrl | resolveMediaUrl) || (msg.thumbnailUrl | resolveMediaUrl)" 
+                                  [alt]="msg.textContent || 'Shared photo'" 
+                                  mvFallback
+                                  class="bubble-image-media"
+                                  loading="lazy"
+                                />
+
+                                <!-- Upload progress overlay if sending -->
+                                @if (msg.deliveryStatus === 'sending') {
+                                  <div class="image-upload-overlay">
+                                    <mat-spinner diameter="32"></mat-spinner>
+                                    @if ((msg.uploadProgress || 0) > 0) {
+                                      <span class="upload-percent-text">{{ msg.uploadProgress }}%</span>
+                                    }
+                                  </div>
+                                }
+                              </div>
+
+                              <!-- Optional Image Caption -->
+                              @if (msg.textContent) {
+                                <div class="bubble-content-text with-image-caption">
+                                  @for (segment of formatMessageWithMentions(msg.textContent); track $index) {
+                                    @if (segment.isMention) {
+                                      <span class="mention-tag" [class.mention-tag-self]="segment.isSelf">{{ segment.text }}</span>
+                                    } @else {
+                                      <span>{{ segment.text }}</span>
+                                    }
+                                  }
+                                </div>
+                              }
+                            } @else if (msg.messageType === 'VIDEO') {
+                              <!-- Video Card Bubble -->
+                              <div class="bubble-video-container" (click)="openVideoViewer(msg)">
+                                <div class="video-preview-wrapper">
+                                  @if (msg.thumbnailUrl) {
+                                    <img [src]="msg.thumbnailUrl | resolveMediaUrl" [alt]="msg.originalFileName || 'Shared video'" mvFallback class="bubble-video-poster" />
+                                  } @else if (msg.localPreviewUrl) {
+                                    <video [src]="msg.localPreviewUrl" class="bubble-video-poster" preload="metadata"></video>
+                                  } @else {
+                                    <div class="video-placeholder-backdrop">
+                                      <mat-icon class="video-generic-icon">videocam</mat-icon>
+                                    </div>
+                                  }
+                                  <div class="video-play-button-overlay">
+                                    <div class="play-btn-circle">
+                                      <mat-icon>play_arrow</mat-icon>
+                                    </div>
+                                  </div>
+                                  @if (msg.mediaDuration) {
+                                    <div class="video-duration-badge">
+                                      <mat-icon>timer</mat-icon>
+                                      <span>{{ formatDuration(msg.mediaDuration) }}</span>
+                                    </div>
+                                  }
+                                  @if (msg.deliveryStatus === 'sending') {
+                                    <div class="image-upload-overlay">
+                                      <mat-spinner diameter="32"></mat-spinner>
+                                      @if ((msg.uploadProgress || 0) > 0) {
+                                        <span class="upload-percent-text">{{ msg.uploadProgress }}%</span>
+                                      }
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+
+                              <!-- Optional Video Caption -->
+                              @if (msg.textContent) {
+                                <div class="bubble-content-text with-image-caption">
+                                  @for (segment of formatMessageWithMentions(msg.textContent); track $index) {
+                                    @if (segment.isMention) {
+                                      <span class="mention-tag" [class.mention-tag-self]="segment.isSelf">{{ segment.text }}</span>
+                                    } @else {
+                                      <span>{{ segment.text }}</span>
+                                    }
+                                  }
+                                </div>
+                              }
+                            } @else if (msg.messageType === 'FILE') {
+                              <!-- Document File Bubble -->
+                              <div class="bubble-file-container">
+                                <div class="file-card-box">
+                                  <div class="file-icon-tile">
+                                    <mat-icon>{{ getFileIcon(msg.originalFileName, msg.mediaFormat) }}</mat-icon>
+                                  </div>
+                                  <div class="file-info-tile text-truncate">
+                                    <span class="file-name text-truncate" [title]="msg.originalFileName || 'Attachment'">{{ msg.originalFileName || 'Attachment' }}</span>
+                                    <span class="file-meta-sub">{{ formatFileSize(msg.mediaBytes) }}</span>
+                                  </div>
+                                  @if (msg.deliveryStatus === 'sending') {
+                                    <div class="file-upload-status">
+                                      <mat-spinner diameter="20"></mat-spinner>
+                                    </div>
+                                  } @else if (msg.mediaUrl) {
+                                    <button 
+                                      type="button" 
+                                      class="file-download-action-btn" 
+                                      (click)="downloadAttachment(msg.mediaUrl, msg.originalFileName, msg.id)" 
+                                      matTooltip="Download attachment" 
+                                      aria-label="Download attachment">
+                                      <mat-icon>download</mat-icon>
+                                    </button>
+                                  }
+                                </div>
+                              </div>
+
+                              <!-- Optional File Caption -->
+                              @if (msg.textContent) {
+                                <div class="bubble-content-text with-image-caption">
+                                  @for (segment of formatMessageWithMentions(msg.textContent); track $index) {
+                                    @if (segment.isMention) {
+                                      <span class="mention-tag" [class.mention-tag-self]="segment.isSelf">{{ segment.text }}</span>
+                                    } @else {
+                                      <span>{{ segment.text }}</span>
+                                    }
+                                  }
+                                </div>
+                              }
+                            } @else {
+                              <!-- Text Message Bubble -->
+                              <div class="bubble-content-text">
+                                @for (segment of formatMessageWithMentions(msg.textContent); track $index) {
+                                  @if (segment.isMention) {
+                                    <span class="mention-tag" [class.mention-tag-self]="segment.isSelf">{{ segment.text }}</span>
+                                  } @else {
+                                    <span>{{ segment.text }}</span>
+                                  }
+                                }
+                              </div>
+                            }
+
+                            <!-- Bubble Footer / Timestamp & Delivery Status -->
+                            <div class="bubble-footer">
+                              @if (msg.edited && !msg.deleted) {
+                                <span class="edited-flag">edited</span>
+                              }
+
+                              @if (msg.deliveryStatus === 'sending') {
+                                <span class="bubble-status sending" matTooltip="Sending message...">
+                                  <mat-spinner diameter="10"></mat-spinner>
+                                  <span class="status-label">Sending</span>
+                                </span>
+                              } @else if (msg.deliveryStatus === 'failed') {
+                                <button 
+                                  type="button"
+                                  class="bubble-status-failed-btn" 
+                                  (click)="retryMessage(msg)" 
+                                  matTooltip="Click to retry" 
+                                  aria-label="Retry sending message">
+                                  <mat-icon class="failed-icon">error_outline</mat-icon>
+                                  <span class="retry-link">Couldn't send &bull; <strong>Retry</strong></span>
+                                </button>
+                              } @else {
+                                <span class="bubble-time">{{ formatTime(msg.createdAt) }}</span>
+                                @if (isOwnMessage(msg) && !msg.deleted) {
+                                  @if (getMessageDeliveryStatus(msg) === 'read') {
+                                    <mat-icon class="delivery-status-icon read" aria-label="Read">done_all</mat-icon>
+                                  } @else if (getMessageDeliveryStatus(msg) === 'sent') {
+                                    <mat-icon class="delivery-status-icon sent" aria-label="Sent">done</mat-icon>
+                                  }
+                                }
+                              }
+                            </div>
+                          </div>
+
+                          <!-- Floating Action Trigger Buttons (Hover on desktop, tap on mobile) -->
+                          @if (!msg.deleted && msg.deliveryStatus === 'sent') {
+                            <div class="message-action-triggers-wrapper">
+                              <button 
+                                type="button" 
+                                class="msg-quick-action-btn react-btn" 
+                                (click)="openReactionPicker(msg.id, $event)" 
+                                matTooltip="Add reaction" 
+                                aria-label="Add reaction">
+                                <mat-icon>add_reaction</mat-icon>
+                              </button>
+                              <button 
+                                type="button" 
+                                class="msg-quick-action-btn menu-btn" 
+                                (click)="toggleActionMenu(msg.id, $event)" 
+                                matTooltip="Message options" 
+                                aria-label="Message options">
+                                <mat-icon>more_horiz</mat-icon>
+                              </button>
+                            </div>
+                          }
+
+                          <!-- Reaction Picker Floating Toolbar -->
+                          @if (activeReactionPickerMessageId() === msg.id) {
+                            <div class="reaction-picker-bar" (click)="$event.stopPropagation()" role="toolbar" aria-label="Reaction picker">
+                              @for (emoji of ALLOWED_REACTIONS; track emoji) {
+                                <button 
+                                  type="button" 
+                                  class="reaction-picker-btn" 
+                                  (click)="toggleReaction(msg, emoji)"
+                                  [attr.aria-label]="'React with ' + emoji">
+                                  <span>{{ emoji }}</span>
+                                </button>
+                              }
+                            </div>
+                          }
+
+                          <!-- Action Menu Floating Dropdown -->
+                          @if (activeActionMenuMessageId() === msg.id) {
+                            <div class="message-action-menu-dropdown" (click)="$event.stopPropagation()" role="menu">
+                              <button type="button" class="menu-action-item" (click)="startReply(msg)" role="menuitem">
+                                <mat-icon>reply</mat-icon>
+                                <span>Reply</span>
+                              </button>
+                              <button type="button" class="menu-action-item" (click)="openReactionPicker(msg.id, $event)" role="menuitem">
+                                <mat-icon>add_reaction</mat-icon>
+                                <span>React</span>
+                              </button>
+                              @if (canEditMessage(msg)) {
+                                <button type="button" class="menu-action-item" (click)="startEdit(msg)" role="menuitem">
+                                  <mat-icon>edit</mat-icon>
+                                  <span>Edit</span>
+                                </button>
+                              }
+                              @if (canDeleteMessage(msg)) {
+                                <button type="button" class="menu-action-item danger-item" (click)="openDeleteDialog(msg)" role="menuitem">
+                                  <mat-icon>delete_outline</mat-icon>
+                                  <span>Delete</span>
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+
+                        <!-- Reactions Display Bar Under Bubble -->
+                        @if (getReactionGroups(msg.reactions); as reactionGroups) {
+                          @if (reactionGroups.length > 0) {
+                            <div class="reactions-display-row" [class.is-own]="isOwnMessage(msg)">
+                              @for (group of reactionGroups; track group.reactionCode) {
+                                <button 
+                                  type="button" 
+                                  class="reaction-chip" 
+                                  [class.active-reacted]="group.hasReacted"
+                                  (click)="toggleReaction(msg, group.reactionCode)"
+                                  [matTooltip]="group.userNames.join(', ')"
+                                  [attr.aria-label]="group.count + ' reactions with ' + group.reactionCode">
+                                  <span class="reaction-emoji">{{ group.reactionCode }}</span>
+                                  <span class="reaction-counter">{{ group.count }}</span>
+                                </button>
+                              }
+                            </div>
+                          }
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- 3. RIGHT SIDEBAR: GROUP INFO DRAWER -->
+          @if (isInfoDrawerOpen()) {
+            <aside class="group-info-drawer custom-scrollbar">
+              <div class="drawer-header">
+                <h3 class="drawer-title">Group Details</h3>
+                <div class="drawer-header-actions">
+                  @if (isCurrentUserAdmin()) {
+                    <button 
+                      mat-icon-button 
+                      class="drawer-action-icon-btn" 
+                      (click)="openSettingsModal()" 
+                      matTooltip="Edit group settings" 
+                      aria-label="Edit group settings">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  }
+                  <button mat-icon-button (click)="closeInfoDrawer()" aria-label="Close group details">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Large Avatar & Title -->
+              <div class="drawer-hero">
+                <div class="drawer-avatar-wrap">
+                  @if (groupDetail.avatarUrl) {
+                    <img 
+                      [src]="groupDetail.avatarUrl | resolveMediaUrl" 
+                      [alt]="groupDetail.name" 
+                      mvFallback 
+                      class="drawer-avatar-img">
+                  } @else {
+                    <div class="drawer-avatar-placeholder">
+                      <span>{{ groupDetail.name.charAt(0).toUpperCase() }}</span>
+                    </div>
+                  }
+                  @if (isCurrentUserAdmin()) {
+                    <button 
+                      type="button" 
+                      class="avatar-edit-overlay-btn" 
+                      (click)="openSettingsModal()"
+                      matTooltip="Change avatar"
+                      aria-label="Change group avatar">
+                      <mat-icon>photo_camera</mat-icon>
+                    </button>
+                  }
+                </div>
+                <h4 class="drawer-group-name">{{ groupDetail.name }}</h4>
+                <span class="drawer-group-meta">
+                  Created by {{ groupDetail.createdBy.fullName }}
+                </span>
+              </div>
+
+              @if (groupDetail.description) {
+                <div class="drawer-section">
+                  <span class="section-label">DESCRIPTION</span>
+                  <p class="drawer-description-text">{{ groupDetail.description }}</p>
+                </div>
+              }
+
+              <!-- Drawer Tabs Navigation -->
+              <div class="drawer-nav-tabs">
+                <button 
+                  type="button" 
+                  class="drawer-tab-btn" 
+                  [class.active]="drawerActiveTab() === 'members'" 
+                  (click)="setDrawerTab('members')"
+                  aria-label="View members list">
+                  <mat-icon>group</mat-icon>
+                  <span>Members ({{ activeGroupMembers().length }})</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="drawer-tab-btn" 
+                  [class.active]="drawerActiveTab() === 'media'" 
+                  (click)="setDrawerTab('media')"
+                  aria-label="View shared media gallery">
+                  <mat-icon>photo_library</mat-icon>
+                  <span>Media ({{ groupDetail.mediaCount || mediaGalleryItems().length }})</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="drawer-tab-btn" 
+                  [class.active]="drawerActiveTab() === 'files'" 
+                  (click)="setDrawerTab('files')"
+                  aria-label="View shared files and documents">
+                  <mat-icon>description</mat-icon>
+                  <span>Files ({{ fileGalleryItems().length }})</span>
+                </button>
+              </div>
+
+              <!-- Tab 1: Members List -->
+              @if (drawerActiveTab() === 'members') {
+                <div class="drawer-section">
+                  <div class="members-header-row">
+                    <div class="members-count-indicator">
+                      @if (onlineMemberCount() > 0) {
+                        <span class="online-pill-badge">{{ onlineMemberCount() }} online</span>
+                      }
+                    </div>
+
+                    @if (isCurrentUserAdmin()) {
+                      <button 
+                        mat-button 
+                        class="drawer-add-member-btn" 
+                        (click)="openAddMemberModal()"
+                        aria-label="Add new member to group">
+                        <mat-icon>person_add</mat-icon>
+                        <span>Add Member</span>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="drawer-members-list">
+                    @for (member of activeGroupMembers(); track member.id) {
+                      <div class="drawer-member-item">
+                        <div class="member-avatar-wrap">
+                          <img 
+                            [src]="(member.user.avatarUrl | resolveMediaUrl) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80'" 
+                            [alt]="member.user.fullName" 
+                            mvFallback 
+                            class="member-avatar-img">
+                          <span class="avatar-presence-dot" [class.online]="isMemberOnline(member.user.id)" [matTooltip]="isMemberOnline(member.user.id) ? 'Online' : 'Offline'"></span>
+                        </div>
+
+                        <div class="member-info">
+                          <div class="member-name-row">
+                            <span class="member-name text-truncate">
+                              {{ member.user.fullName }}
+                              @if (currentUser()?.id === member.user.id) {
+                                <span class="you-badge">(You)</span>
+                              }
+                            </span>
+                            <span class="presence-tag" [class.online]="isMemberOnline(member.user.id)">
+                              {{ isMemberOnline(member.user.id) ? 'Online' : 'Offline' }}
+                            </span>
+                          </div>
+                          <span class="member-email text-truncate">{{ member.user.email }}</span>
+                        </div>
+
+                        @if (member.role === 'ADMIN') {
+                          <span class="admin-role-badge">
+                            <mat-icon class="admin-shield-icon">admin_panel_settings</mat-icon>
+                            Admin
+                          </span>
+                        }
+
+                        <!-- Admin Management Menu for other members -->
+                        @if (isCurrentUserAdmin() && member.user.id !== currentUser()?.id) {
+                          <button 
+                            mat-icon-button 
+                            [matMenuTriggerFor]="memberMenu" 
+                            class="member-menu-btn" 
+                            aria-label="Member management options">
+                            <mat-icon>more_vert</mat-icon>
+                          </button>
+                          <mat-menu #memberMenu="matMenu" class="custom-chat-menu">
+                            @if (member.role === 'MEMBER') {
+                              <button mat-menu-item (click)="updateMemberRole(member, 'ADMIN')">
+                                <mat-icon>admin_panel_settings</mat-icon>
+                                <span>Make Admin</span>
+                              </button>
+                            } @else {
+                              <button mat-menu-item (click)="updateMemberRole(member, 'MEMBER')">
+                                <mat-icon>person_remove</mat-icon>
+                                <span>Dismiss as Admin</span>
+                              </button>
+                            }
+                            <button mat-menu-item (click)="promptRemoveMember(member)" class="menu-item-danger">
+                              <mat-icon>delete_outline</mat-icon>
+                              <span>Remove from Group</span>
+                            </button>
+                          </mat-menu>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Tab 2: Shared Media Gallery (Images & Videos) -->
+              @if (drawerActiveTab() === 'media') {
+                <div class="drawer-section media-tab-section">
+                  @if (isMediaLoading()) {
+                    <div class="gallery-loading-wrap">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Loading media...</span>
+                    </div>
+                  } @else if (mediaGalleryItems().length === 0) {
+                    <div class="gallery-empty-state">
+                      <div class="empty-media-icon">
+                        <mat-icon>photo_library</mat-icon>
+                      </div>
+                      <h5>No media shared</h5>
+                      <p>Photos and videos sent in this discussion will appear here.</p>
+                    </div>
+                  } @else {
+                    <div class="shared-media-grid">
+                      @for (item of mediaGalleryItems(); track (item.messageId || item.id); let mIdx = $index) {
+                        <div 
+                          class="media-grid-item" 
+                          (click)="openGalleryLightbox(item, mIdx)"
+                          tabindex="0"
+                          (keyup.enter)="openGalleryLightbox(item, mIdx)"
+                          [matTooltip]="(item.senderName || item.sender?.fullName || 'Member') + ' &bull; ' + formatTime(item.createdAt)">
+                          <img 
+                            [src]="(item.thumbnailUrl || item.mediaUrl) | resolveMediaUrl" 
+                            [alt]="item.caption || item.originalFileName || 'Shared media'" 
+                            mvFallback 
+                            class="grid-thumb-img" 
+                            loading="lazy" 
+                          />
+                          @if (item.messageType === 'VIDEO') {
+                            <div class="grid-video-badge">
+                              <mat-icon>videocam</mat-icon>
+                              @if (item.mediaDuration) {
+                                <span>{{ formatDuration(item.mediaDuration) }}</span>
+                              }
+                            </div>
+                          }
+                          <div class="thumb-hover-overlay">
+                            <mat-icon>fullscreen</mat-icon>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Tab 3: Shared Files & Documents -->
+              @if (drawerActiveTab() === 'files') {
+                <div class="drawer-section files-tab-section">
+                  @if (isFilesLoading()) {
+                    <div class="gallery-loading-wrap">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Loading files...</span>
+                    </div>
+                  } @else if (fileGalleryItems().length === 0) {
+                    <div class="gallery-empty-state">
+                      <div class="empty-media-icon">
+                        <mat-icon>description</mat-icon>
+                      </div>
+                      <h5>No documents shared</h5>
+                      <p>Documents and files sent in this discussion will appear here.</p>
+                    </div>
+                  } @else {
+                    <div class="drawer-files-list custom-scrollbar">
+                      @for (fileItem of fileGalleryItems(); track (fileItem.messageId || fileItem.id)) {
+                        <div class="drawer-file-item-card">
+                          <div class="drawer-file-icon">
+                            <mat-icon>{{ getFileIcon(fileItem.originalFileName, fileItem.mediaFormat) }}</mat-icon>
+                          </div>
+                          <div class="drawer-file-info text-truncate">
+                            <span class="drawer-file-name text-truncate" [title]="fileItem.originalFileName || 'Attachment'">{{ fileItem.originalFileName || 'Attachment' }}</span>
+                            <span class="drawer-file-sub">{{ formatFileSize(fileItem.mediaBytes) }} &bull; {{ formatTime(fileItem.createdAt) }}</span>
+                          </div>
+                          @if (fileItem.mediaUrl) {
+                            <button 
+                              type="button" 
+                              class="drawer-file-dl-btn" 
+                              (click)="downloadAttachment(fileItem.mediaUrl, fileItem.originalFileName, fileItem.messageId)" 
+                              matTooltip="Download file" 
+                              aria-label="Download file">
+                              <mat-icon>download</mat-icon>
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </aside>
+          }
+        </div>
+
+        <!-- Composer Shell -->
+        <footer class="chat-composer-shell">
+          <!-- Hidden File Input -->
+          <input 
+            #fileInput 
+            type="file" 
+            [accept]="attachmentAccept()" 
+            (change)="onFileSelected($event)" 
+            style="display: none" 
+          />
+
+          <!-- Ephemeral Typing Indicator Bar -->
+          @if (typingDisplayText()) {
+            <div class="typing-indicator-bar" aria-live="polite" role="status">
+              <div class="typing-dots" aria-hidden="true">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+              <span class="typing-text">{{ typingDisplayText() }}</span>
+            </div>
+          }
+
+          <!-- Reply Preview Bar -->
+          @if (replyingToMessage(); as replying) {
+            <div class="composer-context-banner reply-context-banner">
+              <div class="context-bar-left">
+                <mat-icon class="context-icon">reply</mat-icon>
+                <div class="context-meta">
+                  <span class="context-title">Replying to {{ replying.sender.fullName }}</span>
+                  <span class="context-snippet text-truncate">
+                    @if (replying.deleted) {
+                      <em>This message was deleted</em>
+                    } @else if (replying.messageType === 'IMAGE') {
+                      <span class="reply-image-label">[Photo]</span> @if (replying.textContent) { &bull; {{ replying.textContent }} }
+                    } @else if (replying.messageType === 'VIDEO') {
+                      <span class="reply-image-label">[Video]</span> @if (replying.originalFileName || replying.textContent) { &bull; {{ replying.originalFileName || replying.textContent }} }
+                    } @else if (replying.messageType === 'FILE') {
+                      <span class="reply-image-label">[Document]</span> @if (replying.originalFileName || replying.textContent) { &bull; {{ replying.originalFileName || replying.textContent }} }
+                    } @else {
+                      {{ replying.textContent }}
+                    }
+                  </span>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                class="context-cancel-btn" 
+                (click)="cancelReply()" 
+                matTooltip="Cancel reply" 
+                aria-label="Cancel reply">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+
+          <!-- Edit Message Banner -->
+          @if (editingMessage(); as editing) {
+            <div class="composer-context-banner edit-context-banner">
+              <div class="context-bar-left">
+                <mat-icon class="context-icon">edit</mat-icon>
+                <div class="context-meta">
+                  <span class="context-title">Editing message</span>
+                  <span class="context-snippet text-truncate">Press Enter to save changes, Escape to cancel</span>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                class="context-cancel-btn" 
+                (click)="cancelEdit()" 
+                matTooltip="Cancel edit" 
+                aria-label="Cancel edit">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+
+          <!-- Attachment Preview Bar (Image, Video, or Document) -->
+          @if (selectedAttachmentFile(); as attached) {
+            <div class="composer-attachment-preview">
+              <div class="attachment-thumb-wrap">
+                @if (selectedAttachmentType() === 'image' && attachmentPreviewUrl()) {
+                  <img [src]="attachmentPreviewUrl()" alt="Selected preview" class="attachment-thumb-img" />
+                } @else if (selectedAttachmentType() === 'video') {
+                  <div class="attachment-icon-box video-box">
+                    <mat-icon>videocam</mat-icon>
+                  </div>
+                } @else {
+                  <div class="attachment-icon-box file-box">
+                    <mat-icon>{{ getFileIcon(attached.name) }}</mat-icon>
+                  </div>
+                }
+              </div>
+              <div class="attachment-meta">
+                <span class="attachment-filename text-truncate">{{ attached.name }}</span>
+                <span class="attachment-filesize">{{ formatFileSize(attached.size) }}</span>
+              </div>
+              <button 
+                type="button" 
+                class="attachment-cancel-btn" 
+                (click)="cancelAttachmentSelection()" 
+                matTooltip="Remove attachment" 
+                aria-label="Remove selected attachment">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+
+          <!-- Phase 10: Mention Autocomplete Popup -->
+          @if (isMentionAutocompleteOpen() && mentionFilteredMembers().length > 0) {
+            <div class="mention-autocomplete-popup" role="listbox" aria-label="Mention group members">
+              <div class="mention-popup-header">
+                <mat-icon class="mention-header-icon">alternate_email</mat-icon>
+                <span>Mention a group member</span>
+              </div>
+              <div class="mention-popup-list">
+                @for (member of mentionFilteredMembers(); track member.id; let idx = $index) {
+                  <div 
+                    class="mention-member-option"
+                    [class.active]="idx === mentionSelectedIndex()"
+                    (click)="selectMention(member)"
+                    role="option"
+                    [attr.aria-selected]="idx === mentionSelectedIndex()">
+                    <div class="mention-opt-avatar">
+                      @if (member.user.avatarUrl) {
+                        <img [src]="member.user.avatarUrl | resolveMediaUrl" [alt]="member.user.fullName" mvImageFallback />
+                      } @else {
+                        <div class="mention-opt-initials">{{ member.user.fullName.charAt(0) || 'U' }}</div>
+                      }
+                    </div>
+                    <div class="mention-opt-info">
+                      <span class="mention-opt-name">{{ member.user.fullName }}</span>
+                      <span class="mention-opt-handle">&#64;{{ member.user.fullName }}</span>
+                    </div>
+                    @if (member.role === 'ADMIN') {
+                      <span class="mention-opt-badge admin">Admin</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="composer-card">
+            <!-- Multi-Type Attachment Menu Trigger Button (Disabled during edit mode) -->
+            <button 
+              type="button" 
+              class="composer-tool-btn" 
+              [class.disabled-tool]="!!editingMessage()"
+              [disabled]="!!editingMessage()"
+              [matMenuTriggerFor]="attachmentMenu"
+              matTooltip="Attach photo, video or document" 
+              aria-label="Add attachment">
+              <mat-icon>attach_file</mat-icon>
+            </button>
+
+            <mat-menu #attachmentMenu="matMenu" class="custom-chat-menu attachment-picker-menu">
+              <button mat-menu-item (click)="triggerPhotoPicker()">
+                <mat-icon>add_photo_alternate</mat-icon>
+                <span>Photos & Images</span>
+              </button>
+              <button mat-menu-item (click)="triggerVideoPicker()">
+                <mat-icon>videocam</mat-icon>
+                <span>Videos</span>
+              </button>
+              <button mat-menu-item (click)="triggerDocumentPicker()">
+                <mat-icon>description</mat-icon>
+                <span>Documents & Files</span>
+              </button>
+            </mat-menu>
+
+            <textarea 
+              #composerTextarea
+              [(ngModel)]="composerText" 
+              (input)="onComposerInput($event)"
+              (keydown)="onComposerKeyDown($event)"
+              [placeholder]="editingMessage() ? 'Edit message... (Enter to save, Esc to cancel)' : (selectedAttachmentFile() ? 'Add a caption (optional)...' : (replyingToMessage() ? 'Type a reply...' : 'Type a message... (Press Enter to send, Shift+Enter for newline)'))" 
+              class="composer-input-textarea"
+              aria-label="Type a message or caption"
+              rows="1"
+              maxlength="4000"
+            ></textarea>
+
+            <button 
+              type="button" 
+              class="composer-tool-btn disabled-tool" 
+              matTooltip="Add emoji" 
+              aria-label="Add emoji"
+              disabled>
+              <mat-icon>sentiment_satisfied</mat-icon>
+            </button>
+
+            <button 
+              type="button" 
+              class="composer-send-btn" 
+              [class.active]="composerText.trim().length > 0 || !!selectedAttachmentFile()"
+              [disabled]="composerText.trim().length === 0 && !selectedAttachmentFile()"
+              (click)="sendMessage()"
+              [matTooltip]="editingMessage() ? 'Save changes (Enter)' : (selectedAttachmentFile() ? 'Send attachment' : 'Send message (Enter)')"
+              [attr.aria-label]="editingMessage() ? 'Save edit' : 'Send message'">
+              <mat-icon>{{ editingMessage() ? 'check' : 'send' }}</mat-icon>
+            </button>
+          </div>
+        </footer>
+        }
+      }
+    }
+  </main>
+
+  <!-- 3. CREATE GROUP MODAL -->
+  @if (isCreateModalOpen()) {
+    <div class="modal-backdrop" (click)="closeCreateModal()">
+      <div class="create-group-modal" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="modal-title">
+        
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <div class="modal-icon-tile">
+              <mat-icon>group_add</mat-icon>
+            </div>
+            <div>
+              <h2 class="modal-title" id="modal-title">Create Discussion Group</h2>
+              <p class="modal-subtitle">Start a private space for your friends and family.</p>
+            </div>
+          </div>
+          <button mat-icon-button (click)="closeCreateModal()" aria-label="Close modal">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form (ngSubmit)="submitCreateGroup()" class="create-group-form">
+          <div class="form-field-group">
+            <label for="groupNameInput" class="field-label">Group Name *</label>
+            <input 
+              id="groupNameInput"
+              type="text" 
+              [(ngModel)]="newGroupName" 
+              name="groupName"
+              placeholder="e.g. Family Vacations, High School Crew" 
+              class="field-input"
+              maxlength="100"
+              required
+            />
+          </div>
+
+          <div class="form-field-group">
+            <label for="groupDescInput" class="field-label">Description (Optional)</label>
+            <textarea 
+              id="groupDescInput"
+              [(ngModel)]="newGroupDescription" 
+              name="groupDescription"
+              placeholder="What is this group about?" 
+              class="field-textarea"
+              rows="3"
+              maxlength="500"
+            ></textarea>
+          </div>
+
+          <div class="form-field-group">
+            <label for="groupAvatarInput" class="field-label">Group Avatar URL (Optional)</label>
+            <input 
+              id="groupAvatarInput"
+              type="url" 
+              [(ngModel)]="newGroupAvatarUrl" 
+              name="groupAvatarUrl"
+              placeholder="https://images.unsplash.com/..." 
+              class="field-input"
+            />
+          </div>
+
+          <div class="modal-actions-row">
+            <button type="button" mat-stroked-button (click)="closeCreateModal()" class="cancel-modal-btn">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              mat-flat-button 
+              class="submit-modal-btn" 
+              [disabled]="isCreatingGroup() || !newGroupName.trim()">
+              @if (isCreatingGroup()) {
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Creating...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>check</mat-icon>
+                  <span>Create Group</span>
+                </ng-container>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- 4. DELETE CONFIRMATION MODAL -->
+  @if (confirmDeleteMessage(); as msgToDelete) {
+    <div class="modal-backdrop delete-dialog-backdrop" (click)="cancelDeleteDialog()">
+      <div class="delete-confirmation-card" (click)="$event.stopPropagation()" role="alertdialog" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-desc">
+        <div class="delete-card-header">
+          <div class="delete-card-icon-tile">
+            <mat-icon>delete_outline</mat-icon>
+          </div>
+          <div>
+            <h3 class="delete-dialog-title" id="delete-dialog-title">Delete message?</h3>
+            <p class="delete-dialog-desc" id="delete-dialog-desc">This message will be deleted for everyone in this discussion group.</p>
+          </div>
+        </div>
+
+        <div class="delete-card-actions">
+          <button type="button" mat-stroked-button class="cancel-delete-btn" (click)="cancelDeleteDialog()">
+            Cancel
+          </button>
+          <button type="button" mat-flat-button class="confirm-delete-btn" (click)="confirmDelete()">
+            <mat-icon>delete</mat-icon>
+            <span>Delete for everyone</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 5. GROUP SETTINGS MODAL (ADMIN) -->
+  @if (isSettingsModalOpen()) {
+    <div class="modal-backdrop" (click)="closeSettingsModal()">
+      <div class="create-group-modal group-settings-modal" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="settings-modal-title">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <div class="modal-icon-tile">
+              <mat-icon>settings</mat-icon>
+            </div>
+            <div>
+              <h2 class="modal-title" id="settings-modal-title">Group Settings</h2>
+              <p class="modal-subtitle">Update discussion group details and avatar.</p>
+            </div>
+          </div>
+          <button mat-icon-button (click)="closeSettingsModal()" aria-label="Close settings">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form (ngSubmit)="submitGroupSettings()" class="create-group-form">
+          <!-- Avatar Uploader -->
+          <div class="avatar-upload-section">
+            <div class="avatar-preview-box" (click)="avatarFileInput.click()">
+              @if (avatarPreviewUrl()) {
+                <img [src]="avatarPreviewUrl()" alt="New Avatar Preview" class="settings-avatar-preview" />
+              } @else if (activeGroupDetail()?.avatarUrl) {
+                <img [src]="activeGroupDetail()?.avatarUrl | resolveMediaUrl" [alt]="activeGroupDetail()?.name" mvFallback class="settings-avatar-preview" />
+              } @else {
+                <div class="avatar-placeholder-large">
+                  <span>{{ (editGroupName || 'G').charAt(0).toUpperCase() }}</span>
+                </div>
+              }
+              <div class="avatar-upload-overlay">
+                <mat-icon>photo_camera</mat-icon>
+                <span>Change</span>
+              </div>
+            </div>
+            <input 
+              #avatarFileInput 
+              type="file" 
+              accept="image/jpeg,image/png,image/webp,image/gif" 
+              (change)="onAvatarFileSelected($event)" 
+              style="display: none" 
+            />
+            <span class="avatar-upload-hint">Click avatar to upload new group photo</span>
+          </div>
+
+          <div class="form-field-group">
+            <label for="editGroupNameInput" class="field-label">Group Name *</label>
+            <input 
+              id="editGroupNameInput"
+              type="text" 
+              [(ngModel)]="editGroupName" 
+              name="editGroupName"
+              placeholder="Group name" 
+              class="field-input"
+              maxlength="100"
+              required
+            />
+          </div>
+
+          <div class="form-field-group">
+            <label for="editGroupDescInput" class="field-label">Description</label>
+            <textarea 
+              id="editGroupDescInput"
+              [(ngModel)]="editGroupDescription" 
+              name="editGroupDescription"
+              placeholder="What is this group about?" 
+              class="field-textarea"
+              rows="3"
+              maxlength="500"
+            ></textarea>
+          </div>
+
+          <div class="modal-actions-row">
+            <button type="button" mat-stroked-button (click)="closeSettingsModal()" class="cancel-modal-btn">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              mat-flat-button 
+              class="submit-modal-btn" 
+              [disabled]="isUpdatingSettings() || !editGroupName.trim()">
+              @if (isUpdatingSettings()) {
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Saving...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>check</mat-icon>
+                  <span>Save Changes</span>
+                </ng-container>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- 6. ADD MEMBER MODAL (ADMIN) -->
+  @if (isAddMemberModalOpen()) {
+    <div class="modal-backdrop" (click)="closeAddMemberModal()">
+      <div class="create-group-modal add-member-modal" (click)="$event.stopPropagation()" role="dialog" aria-labelledby="add-member-title">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <div class="modal-icon-tile">
+              <mat-icon>person_add</mat-icon>
+            </div>
+            <div>
+              <h2 class="modal-title" id="add-member-title">Add Member</h2>
+              <p class="modal-subtitle">Invite a user to join this group discussion.</p>
+            </div>
+          </div>
+          <button mat-icon-button (click)="closeAddMemberModal()" aria-label="Close modal">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <form (ngSubmit)="submitAddMember()" class="create-group-form">
+          <div class="form-field-group">
+            <label for="memberUserIdInput" class="field-label">User ID *</label>
+            <input 
+              id="memberUserIdInput"
+              type="text" 
+              [(ngModel)]="newMemberUserId" 
+              name="newMemberUserId"
+              placeholder="Enter user UUID (e.g. 1c24cead-927e-4f20-b2db-f576218f4489)" 
+              class="field-input"
+              required
+            />
+          </div>
+
+          <div class="modal-actions-row">
+            <button type="button" mat-stroked-button (click)="closeAddMemberModal()" class="cancel-modal-btn">
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              mat-flat-button 
+              class="submit-modal-btn" 
+              [disabled]="isAddingMember() || !newMemberUserId.trim()">
+              @if (isAddingMember()) {
+                <mat-spinner diameter="18"></mat-spinner>
+                <span>Adding...</span>
+              } @else {
+                <ng-container>
+                  <mat-icon>person_add</mat-icon>
+                  <span>Add Member</span>
+                </ng-container>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- 7. REMOVE MEMBER CONFIRMATION MODAL -->
+  @if (confirmRemoveMember(); as targetMember) {
+    <div class="modal-backdrop delete-dialog-backdrop" (click)="cancelRemoveMember()">
+      <div class="delete-confirmation-card" (click)="$event.stopPropagation()" role="alertdialog" aria-labelledby="remove-dialog-title">
+        <div class="delete-card-header">
+          <div class="delete-card-icon-tile">
+            <mat-icon>person_remove</mat-icon>
+          </div>
+          <div>
+            <h3 class="delete-dialog-title" id="remove-dialog-title">Remove {{ targetMember.user.fullName }}?</h3>
+            <p class="delete-dialog-desc">This user will immediately lose access to this group discussion.</p>
+          </div>
+        </div>
+
+        <div class="delete-card-actions">
+          <button type="button" mat-stroked-button class="cancel-delete-btn" (click)="cancelRemoveMember()">
+            Cancel
+          </button>
+          <button type="button" mat-flat-button class="confirm-delete-btn" (click)="confirmRemoveMemberAction()" [disabled]="isRemovingMember()">
+            @if (isRemovingMember()) {
+              <mat-spinner diameter="16"></mat-spinner>
+              <span>Removing...</span>
+            } @else {
+              <ng-container>
+                <mat-icon>person_remove</mat-icon>
+                <span>Remove Member</span>
+              </ng-container>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- 8. ENHANCED LIGHTBOX MEDIA VIEWER OVERLAY WITH GALLERY NAVIGATION -->
+  @if (activeViewerItem(); as viewer) {
+    <div class="image-viewer-lightbox" (click)="closeImageViewer()">
+      <div class="lightbox-toolbar" (click)="$event.stopPropagation()">
+        <div class="lightbox-meta">
+          <span class="lightbox-sender">{{ viewer.senderName }}</span>
+          <span class="lightbox-time">{{ formatTime(viewer.timestamp) }}</span>
+          @if (viewer.originalFileName) {
+            <span class="lightbox-filename-tag text-truncate">{{ viewer.originalFileName }}</span>
+          }
+          @if (activeViewerGallery().length > 1 && activeViewerIndex() >= 0) {
+            <span class="lightbox-index-badge">({{ activeViewerIndex() + 1 }} of {{ activeViewerGallery().length }})</span>
+          }
+        </div>
+        <div class="lightbox-actions-group">
+          @if (viewer.url) {
+            <button 
+              mat-stroked-button 
+              class="lightbox-download-btn" 
+              (click)="downloadAttachment(viewer.url, viewer.originalFileName)" 
+              matTooltip="Download media" 
+              aria-label="Download media">
+              <mat-icon>download</mat-icon>
+              <span>Download</span>
+            </button>
+          }
+          @if (activeViewerIndex() >= 0) {
+            <button 
+              mat-stroked-button 
+              class="lightbox-jump-btn" 
+              (click)="jumpToMessageFromLightbox()"
+              matTooltip="Jump to message in chat"
+              aria-label="Jump to message in chat">
+              <mat-icon>chat</mat-icon>
+              <span>View in Chat</span>
+            </button>
+          }
+          <button mat-icon-button (click)="closeImageViewer()" class="lightbox-close-btn" aria-label="Close media viewer">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="lightbox-content-stage" (click)="$event.stopPropagation()">
+        <!-- Previous Arrow -->
+        @if (activeViewerGallery().length > 1 && activeViewerIndex() > 0) {
+          <button 
+            type="button" 
+            class="lightbox-nav-btn prev-btn" 
+            (click)="prevLightboxImage()" 
+            aria-label="Previous media">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+        }
+
+        @if (viewer.messageType === 'VIDEO') {
+          <div class="lightbox-video-container">
+            <video 
+              [src]="viewer.url | resolveMediaUrl" 
+              controls 
+              autoplay 
+              playsinline
+              class="lightbox-main-video">
+            </video>
+          </div>
+        } @else {
+          <img [src]="viewer.url | resolveMediaUrl" [alt]="viewer.caption || viewer.originalFileName || 'Shared photo'" class="lightbox-main-img" />
+        }
+
+        <!-- Next Arrow -->
+        @if (activeViewerGallery().length > 1 && activeViewerIndex() < activeViewerGallery().length - 1) {
+          <button 
+            type="button" 
+            class="lightbox-nav-btn next-btn" 
+            (click)="nextLightboxImage()" 
+            aria-label="Next media">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        }
+
+        @if (viewer.caption) {
+          <div class="lightbox-caption-bar">
+            <span>{{ viewer.caption }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

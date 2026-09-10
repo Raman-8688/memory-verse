@@ -3,6 +3,7 @@ import { ApiService } from './api.service';
 import { PagedResponse } from '../models/api-response.model';
 import { NotificationItem } from '../models/notification.model';
 import { AuthService } from '../auth/auth.service';
+import { ChatRealtimeService } from './chat-realtime.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +11,7 @@ import { AuthService } from '../auth/auth.service';
 export class NotificationStateService {
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly realtime = inject(ChatRealtimeService);
 
   readonly notifications = signal<NotificationItem[]>([]);
   readonly unreadCount = signal<number>(0);
@@ -30,6 +32,38 @@ export class NotificationStateService {
         this.stopPolling();
         this.unreadCount.set(0);
         this.notifications.set([]);
+      }
+    });
+
+    // Listen to realtime notifications over STOMP
+    this.realtime.incomingEvent$.subscribe((event) => {
+      if (!event) return;
+      if (event.eventType === 'NOTIFICATION_CREATED') {
+        const item: NotificationItem = {
+          ...event.payload,
+          isRead: Boolean(event.payload.isRead),
+          read: Boolean(event.payload.isRead)
+        };
+        this.notifications.update((list) => {
+          if (list.some((existing) => existing.id === item.id)) {
+            return list;
+          }
+          return [item, ...list];
+        });
+        if (!item.isRead) {
+          this.unreadCount.update((c) => c + 1);
+        }
+      } else if (event.eventType === 'NOTIFICATION_READ') {
+        const notifId = event.payload;
+        this.notifications.update((list) =>
+          list.map((item) => (item.id === notifId ? { ...item, isRead: true, read: true } : item))
+        );
+        this.unreadCount.update((c) => Math.max(0, c - 1));
+      } else if (event.eventType === 'NOTIFICATION_READ_ALL') {
+        this.notifications.update((list) =>
+          list.map((item) => ({ ...item, isRead: true, read: true }))
+        );
+        this.unreadCount.set(0);
       }
     });
 

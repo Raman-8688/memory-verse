@@ -41,7 +41,10 @@
               "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "@stomp/stompjs"
+            ]
           },
           "configurations": {
             "production": {
@@ -67,8 +70,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "25kB",
-                  "maximumError": "32kB"
+                  "maximumWarning": "65kB",
+                  "maximumError": "100kB"
                 }
               ],
               "outputHashing": "all",

@@ -20,4 +20,5 @@ public class UploadedMediaResult {
     private Integer width;
     private Integer height;
     private Integer durationSeconds;
+    private String format;
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -44,9 +44,106 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   readonly isDashboard = signal<boolean>(false);
   readonly isScrolled = signal<boolean>(false);
-  readonly pageTitle = signal<string>('Dashboard');
+  readonly pageTitle = signal<string>( 'Dashboard');
+  readonly isNotificationPanelOpen = signal<boolean>(false);
+
+  readonly recentNotifications = computed(() => {
+    const list = this.notificationState.notifications();
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return list.filter((item) => new Date(item.createdAt).getTime() >= cutoff);
+  });
+
+  readonly earlierNotifications = computed(() => {
+    const list = this.notificationState.notifications();
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return list.filter((item) => new Date(item.createdAt).getTime() < cutoff);
+  });
 
   private readonly destroy$ = new Subject<void>();
+
+  toggleNotificationPanel(): void {
+    const nextState = !this.isNotificationPanelOpen();
+    this.isNotificationPanelOpen.set(nextState);
+    if (nextState) {
+      this.notificationState.loadNotifications(0, 30);
+    }
+  }
+
+  closeNotificationPanel(): void {
+    this.isNotificationPanelOpen.set(false);
+  }
+
+  onNotificationClick(item: any): void {
+    if (!item.isRead) {
+      this.notificationState.markAsRead(item.id);
+    }
+    this.closeNotificationPanel();
+
+    if (item.type === 'MENTION' || item.type === 'REPLY') {
+      const gId = item.groupId || item.relatedEntityId;
+      const mId = item.messageId;
+      if (gId) {
+        this.router.navigate(['/group-chat', gId], {
+          queryParams: mId ? { messageId: mId } : undefined
+        });
+        return;
+      }
+    } else if (item.type === 'GROUP_MEMBER_ADDED' || item.type === 'GROUP_MEMBER_REMOVED' || item.type === 'GROUP_ROLE_CHANGED') {
+      const gId = item.groupId || item.relatedEntityId;
+      if (gId) {
+        this.router.navigate(['/group-chat', gId]);
+        return;
+      }
+    } else if (item.relatedEntityId) {
+      if (item.type === 'JOURNEY_UPDATED' || item.type === 'CHAPTER_UPDATED') {
+        this.router.navigate(['/journeys', item.relatedEntityId]);
+      } else {
+        this.router.navigate(['/memories', item.relatedEntityId]);
+      }
+    }
+  }
+
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'MENTION':
+        return 'alternate_email';
+      case 'REPLY':
+        return 'reply';
+      case 'GROUP_MEMBER_ADDED':
+        return 'group_add';
+      case 'GROUP_MEMBER_REMOVED':
+        return 'person_remove';
+      case 'GROUP_ROLE_CHANGED':
+        return 'admin_panel_settings';
+      case 'TAGGED':
+        return 'person_add';
+      case 'MEMORY_CREATED':
+      case 'MEMORY_UPDATED':
+        return 'auto_stories';
+      case 'MEDIA_ADDED':
+        return 'photo_library';
+      case 'JOURNEY_UPDATED':
+      case 'CHAPTER_UPDATED':
+        return 'collections_bookmark';
+      case 'SYSTEM':
+      default:
+        return 'notifications';
+    }
+  }
+
+  formatTime(dateStr?: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+    if (diffSec < 604800) return `${Math.floor(diffSec / 86400)}d ago`;
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
 
   ngOnInit(): void {
     this.updateRouteStatus(this.router.url);

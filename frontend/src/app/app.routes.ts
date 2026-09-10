@@ -70,6 +70,14 @@ export const routes: Routes = [
         loadComponent: () => import('./features/moments/moments-page.component').then(m => m.MomentsPageComponent)
       },
       {
+        path: 'group-chat',
+        loadComponent: () => import('./features/group-chat/group-chat.component').then(m => m.GroupChatComponent)
+      },
+      {
+        path: 'group-chat/:groupId',
+        loadComponent: () => import('./features/group-chat/group-chat.component').then(m => m.GroupChatComponent)
+      },
+      {
         path: 'collections',
         loadComponent: () => import('./features/collections/collections-list.component').then(m => m.CollectionsListComponent)
       },

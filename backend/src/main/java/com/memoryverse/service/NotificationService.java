@@ -21,6 +21,8 @@ public interface NotificationService {
 
     Notification createNotification(User recipient, String message, NotificationType type, UUID relatedEntityId);
 
+    Notification createChatNotification(User recipient, User sender, com.memoryverse.entity.ChatGroup group, com.memoryverse.entity.ChatMessage message, NotificationType type, String title, String preview);
+
     void notifyGroup(User actor, String actorMessage, String othersMessage, NotificationType type, UUID relatedEntityId);
 
     int checkAndGenerateOnThisDayNotifications();
