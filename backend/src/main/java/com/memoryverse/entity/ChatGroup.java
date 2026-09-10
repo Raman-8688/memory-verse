@@ -49,7 +49,7 @@ public class ChatGroup {
     @Builder.Default
     private boolean archived = false;
 
-    @OneToMany(mappedBy = "chatGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "chatGroup", fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChatGroupMember> members = new ArrayList<>();
 

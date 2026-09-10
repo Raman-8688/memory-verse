@@ -15,9 +15,11 @@ import java.util.UUID;
 @Repository
 public interface ChatGroupRepository extends JpaRepository<ChatGroup, UUID> {
 
+    @EntityGraph(attributePaths = {"createdBy"})
     @Query("SELECT g FROM ChatGroup g JOIN g.members m WHERE m.user.id = :userId AND g.archived = false ORDER BY g.updatedAt DESC")
     Page<ChatGroup> findUserGroups(@Param("userId") UUID userId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"createdBy"})
     @Query("SELECT g FROM ChatGroup g JOIN g.members m WHERE m.user.id = :userId AND LOWER(g.name) LIKE LOWER(CONCAT('%', :query, '%')) AND g.archived = false ORDER BY g.updatedAt DESC")
     Page<ChatGroup> searchUserGroups(@Param("userId") UUID userId, @Param("query") String query, Pageable pageable);
 

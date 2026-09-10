@@ -227,7 +227,8 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   // Create Group Form Model
   newGroupName = '';
   newGroupDescription = '';
-  newGroupAvatarUrl = '';
+  readonly newGroupAvatarFile = signal<File | null>(null);
+  readonly newGroupAvatarPreviewUrl = signal<string | null>(null);
 
   // Composer Model
   composerText = '';
@@ -2089,12 +2090,46 @@ export class GroupChatComponent implements OnInit, OnDestroy {
   openCreateModal(): void {
     this.newGroupName = '';
     this.newGroupDescription = '';
-    this.newGroupAvatarUrl = '';
+    this.removeNewGroupAvatar();
     this.isCreateModalOpen.set(true);
   }
 
   closeCreateModal(): void {
     this.isCreateModalOpen.set(false);
+    this.removeNewGroupAvatar();
+  }
+
+  onNewGroupAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Please select a valid image file (PNG, JPG, WebP, GIF)', 'Dismiss', { duration: 3000 });
+      input.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.snackBar.open('Avatar image size cannot exceed 5MB', 'Dismiss', { duration: 3000 });
+      input.value = '';
+      return;
+    }
+
+    if (this.newGroupAvatarPreviewUrl()) {
+      URL.revokeObjectURL(this.newGroupAvatarPreviewUrl()!);
+    }
+    const preview = URL.createObjectURL(file);
+    this.newGroupAvatarFile.set(file);
+    this.newGroupAvatarPreviewUrl.set(preview);
+  }
+
+  removeNewGroupAvatar(): void {
+    if (this.newGroupAvatarPreviewUrl()) {
+      URL.revokeObjectURL(this.newGroupAvatarPreviewUrl()!);
+    }
+    this.newGroupAvatarPreviewUrl.set(null);
+    this.newGroupAvatarFile.set(null);
   }
 
   submitCreateGroup(): void {
@@ -2106,16 +2141,36 @@ export class GroupChatComponent implements OnInit, OnDestroy {
     this.isCreatingGroup.set(true);
     const dto: ChatGroupCreateDto = {
       name: this.newGroupName.trim(),
-      description: this.newGroupDescription ? this.newGroupDescription.trim() : undefined,
-      avatarUrl: this.newGroupAvatarUrl ? this.newGroupAvatarUrl.trim() : undefined
+      description: this.newGroupDescription ? this.newGroupDescription.trim() : undefined
     };
 
     this.chatService.createGroup(dto).subscribe({
       next: created => {
-        this.isCreatingGroup.set(false);
-        this.closeCreateModal();
-        this.snackBar.open(`Group "${created.name}" created!`, 'OK', { duration: 3000 });
-        this.selectGroup(created.id);
+        const avatarFile = this.newGroupAvatarFile();
+        if (avatarFile) {
+          this.chatService.uploadGroupAvatar(created.id, avatarFile).subscribe({
+            next: (withAvatar) => {
+              this.isCreatingGroup.set(false);
+              this.closeCreateModal();
+              this.snackBar.open(`Group "${withAvatar.name}" created with avatar!`, 'OK', { duration: 3000 });
+              this.fetchGroups();
+              this.selectGroup(withAvatar.id);
+            },
+            error: (err) => {
+              this.isCreatingGroup.set(false);
+              this.closeCreateModal();
+              this.snackBar.open(`Group "${created.name}" created (avatar upload failed).`, 'OK', { duration: 4000 });
+              this.fetchGroups();
+              this.selectGroup(created.id);
+            }
+          });
+        } else {
+          this.isCreatingGroup.set(false);
+          this.closeCreateModal();
+          this.snackBar.open(`Group "${created.name}" created!`, 'OK', { duration: 3000 });
+          this.fetchGroups();
+          this.selectGroup(created.id);
+        }
       },
       error: err => {
         this.isCreatingGroup.set(false);

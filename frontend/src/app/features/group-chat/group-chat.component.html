@@ -1261,44 +1261,70 @@
           </button>
         </div>
 
-        <form (ngSubmit)="submitCreateGroup()" class="create-group-form">
+        <form (ngSubmit)="submitCreateGroup()" class="modal-form">
           <div class="form-field-group">
-            <label for="groupNameInput" class="field-label">Group Name *</label>
+            <label for="groupNameInput" class="form-label">Group Name <span class="required-star">*</span></label>
             <input 
               id="groupNameInput"
               type="text" 
               [(ngModel)]="newGroupName" 
               name="groupName"
               placeholder="e.g. Family Vacations, High School Crew" 
-              class="field-input"
+              class="form-text-input"
               maxlength="100"
               required
+              autocomplete="off"
             />
           </div>
 
           <div class="form-field-group">
-            <label for="groupDescInput" class="field-label">Description (Optional)</label>
+            <label for="groupDescInput" class="form-label">Description (Optional)</label>
             <textarea 
               id="groupDescInput"
               [(ngModel)]="newGroupDescription" 
               name="groupDescription"
               placeholder="What is this group about?" 
-              class="field-textarea"
+              class="form-textarea"
               rows="3"
               maxlength="500"
             ></textarea>
           </div>
 
           <div class="form-field-group">
-            <label for="groupAvatarInput" class="field-label">Group Avatar URL (Optional)</label>
+            <label class="form-label">Group Avatar (Optional)</label>
             <input 
-              id="groupAvatarInput"
-              type="url" 
-              [(ngModel)]="newGroupAvatarUrl" 
-              name="groupAvatarUrl"
-              placeholder="https://images.unsplash.com/..." 
-              class="field-input"
+              #createAvatarFileInput
+              type="file" 
+              accept="image/jpeg,image/png,image/webp,image/gif" 
+              (change)="onNewGroupAvatarSelected($event)" 
+              style="display: none;" 
             />
+
+            @if (newGroupAvatarPreviewUrl()) {
+              <div class="avatar-preview-container">
+                <img [src]="newGroupAvatarPreviewUrl()" alt="New group avatar preview" class="avatar-preview-img" />
+                <div class="avatar-preview-actions">
+                  <button type="button" mat-stroked-button class="change-avatar-btn" (click)="createAvatarFileInput.click()">
+                    <mat-icon>photo_camera</mat-icon>
+                    <span>Change Photo</span>
+                  </button>
+                  <button type="button" mat-button color="warn" class="remove-avatar-btn" (click)="removeNewGroupAvatar()">
+                    <mat-icon>delete_outline</mat-icon>
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+            } @else {
+              <div class="avatar-upload-dropzone" (click)="createAvatarFileInput.click()" role="button" tabindex="0" (keydown.enter)="createAvatarFileInput.click()">
+                <div class="avatar-dropzone-icon">
+                  <mat-icon>add_photo_alternate</mat-icon>
+                </div>
+                <div class="avatar-dropzone-text">
+                  <span class="dropzone-primary-text">Upload Group Photo</span>
+                  <span class="dropzone-hint-text">PNG, JPG, WebP or GIF up to 5MB</span>
+                </div>
+              </div>
+            }
           </div>
 
           <div class="modal-actions-row">
@@ -1315,7 +1341,7 @@
                 <span>Creating...</span>
               } @else {
                 <ng-container>
-                  <mat-icon>check</mat-icon>
+                  <mat-icon>group_add</mat-icon>
                   <span>Create Group</span>
                 </ng-container>
               }

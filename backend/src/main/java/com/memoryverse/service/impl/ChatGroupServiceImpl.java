@@ -129,7 +129,8 @@ public class ChatGroupServiceImpl implements ChatGroupService {
                 .user(creator)
                 .role(ChatGroupRole.ADMIN)
                 .build();
-        chatGroupMemberRepository.save(creatorMember);
+        ChatGroupMember savedCreatorMember = chatGroupMemberRepository.save(creatorMember);
+        savedGroup.getMembers().add(savedCreatorMember);
 
         if (dto.getMemberUserIds() != null) {
             for (UUID memberId : dto.getMemberUserIds()) {
@@ -140,7 +141,8 @@ public class ChatGroupServiceImpl implements ChatGroupService {
                             .user(user)
                             .role(ChatGroupRole.MEMBER)
                             .build();
-                    chatGroupMemberRepository.save(member);
+                    ChatGroupMember savedMember = chatGroupMemberRepository.save(member);
+                    savedGroup.getMembers().add(savedMember);
                 });
             }
         }
@@ -409,35 +411,49 @@ public class ChatGroupServiceImpl implements ChatGroupService {
 
         // 1. Batch member counts
         java.util.Map<UUID, Long> memberCountMap = new java.util.HashMap<>();
-        List<Object[]> memberCounts = chatGroupMemberRepository.countMembersByGroupIds(groupIds);
-        if (memberCounts != null) {
-            for (Object[] row : memberCounts) {
-                if (row != null && row.length >= 2 && row[0] instanceof UUID gId && row[1] instanceof Number count) {
-                    memberCountMap.put(gId, count.longValue());
+        try {
+            List<Object[]> memberCounts = chatGroupMemberRepository.countMembersByGroupIds(groupIds);
+            if (memberCounts != null) {
+                for (Object[] row : memberCounts) {
+                    if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                        UUID gId = row[0] instanceof UUID id ? id : UUID.fromString(row[0].toString());
+                        long count = row[1] instanceof Number num ? num.longValue() : Long.parseLong(row[1].toString());
+                        memberCountMap.put(gId, count);
+                    }
                 }
             }
+        } catch (Exception ex) {
+            log.warn("Failed to batch count group members: {}", ex.getMessage());
         }
 
         // 2. Batch user memberships for lastReadAt
         java.util.Map<UUID, Instant> lastReadAtMap = new java.util.HashMap<>();
-        List<ChatGroupMember> userMemberships = chatGroupMemberRepository.findByChatGroupIdInAndUserId(groupIds, currentUserId);
-        if (userMemberships != null) {
-            for (ChatGroupMember m : userMemberships) {
-                if (m.getChatGroup() != null) {
-                    lastReadAtMap.put(m.getChatGroup().getId(), m.getLastReadAt() != null ? m.getLastReadAt() : Instant.EPOCH);
+        try {
+            List<ChatGroupMember> userMemberships = chatGroupMemberRepository.findByChatGroupIdInAndUserId(groupIds, currentUserId);
+            if (userMemberships != null) {
+                for (ChatGroupMember m : userMemberships) {
+                    if (m.getChatGroup() != null) {
+                        lastReadAtMap.put(m.getChatGroup().getId(), m.getLastReadAt() != null ? m.getLastReadAt() : Instant.EPOCH);
+                    }
                 }
             }
+        } catch (Exception ex) {
+            log.warn("Failed to batch fetch user memberships: {}", ex.getMessage());
         }
 
         // 3. Batch latest messages
         java.util.Map<UUID, ChatMessageDto> latestMessageMap = new java.util.HashMap<>();
-        List<ChatMessage> latestMessages = chatMessageRepository.findLatestMessagesInGroups(groupIds);
-        if (latestMessages != null) {
-            for (ChatMessage msg : latestMessages) {
-                if (msg.getChatGroup() != null) {
-                    latestMessageMap.putIfAbsent(msg.getChatGroup().getId(), ChatMessageDto.fromEntity(msg));
+        try {
+            List<ChatMessage> latestMessages = chatMessageRepository.findLatestMessagesInGroups(groupIds);
+            if (latestMessages != null) {
+                for (ChatMessage msg : latestMessages) {
+                    if (msg.getChatGroup() != null) {
+                        latestMessageMap.putIfAbsent(msg.getChatGroup().getId(), ChatMessageDto.fromEntity(msg));
+                    }
                 }
             }
+        } catch (Exception ex) {
+            log.warn("Failed to batch fetch latest messages: {}", ex.getMessage());
         }
 
         // 4. Assemble DTOs

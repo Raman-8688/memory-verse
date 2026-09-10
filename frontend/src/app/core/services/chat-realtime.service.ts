@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import { Injectable, inject, signal, computed, effect, untracked } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
 import { AuthService } from '../auth/auth.service';
@@ -48,13 +48,15 @@ export class ChatRealtimeService {
     // Auto-manage connection based on authentication state
     effect(() => {
       const token = this.authService.token();
-      if (token) {
-        this.isTerminalAuthError = false;
-        this.connect();
-      } else {
-        this.disconnect();
-      }
-    });
+      untracked(() => {
+        if (token) {
+          this.isTerminalAuthError = false;
+          this.connect();
+        } else {
+          this.disconnect();
+        }
+      });
+    }, { allowSignalWrites: true });
   }
 
   connect(): void {

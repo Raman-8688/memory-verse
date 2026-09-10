@@ -1310,6 +1310,117 @@
   min-height: 80px;
 }
 
+.avatar-upload-dropzone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: #FAF7F2;
+  border: 1.5px dashed rgba(218, 206, 188, 0.95);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all var(--mv-transition-fast);
+
+  &:hover {
+    background: #FFFDF9;
+    border-color: #D97706;
+    box-shadow: 0 2px 10px rgba(217, 119, 6, 0.08);
+  }
+
+  .avatar-dropzone-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #FEF3C7;
+    color: #B45309;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  .avatar-dropzone-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .dropzone-primary-text {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #262320;
+    }
+
+    .dropzone-hint-text {
+      font-size: 0.74rem;
+      color: #8C7E72;
+    }
+  }
+}
+
+.avatar-preview-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: #FAF7F2;
+  border: 1px solid rgba(218, 206, 188, 0.8);
+  border-radius: 14px;
+
+  .avatar-preview-img {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    flex-shrink: 0;
+  }
+
+  .avatar-preview-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .change-avatar-btn {
+      height: 32px;
+      padding: 0 12px !important;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--mv-radius-full) !important;
+      border-color: rgba(218, 206, 188, 0.9) !important;
+      color: #5C4F44 !important;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+      }
+    }
+
+    .remove-avatar-btn {
+      height: 32px;
+      padding: 0 10px !important;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--mv-radius-full) !important;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
 .modal-actions-row {
   display: flex;
   align-items: center;
@@ -1318,6 +1429,7 @@
   margin-top: 8px;
 }
 
+.cancel-modal-btn,
 .modal-cancel-btn {
   border-radius: var(--mv-radius-full) !important;
   font-weight: 600;
@@ -1325,6 +1437,7 @@
   border-color: rgba(218, 206, 188, 0.9) !important;
 }
 
+.submit-modal-btn,
 .modal-submit-btn {
   background: linear-gradient(135deg, #D97706 0%, #B45309 100%) !important;
   color: #FFFFFF !important;
@@ -1332,8 +1445,15 @@
   font-weight: 700;
   padding: 0 18px !important;
   box-shadow: 0 4px 12px rgba(180, 83, 9, 0.28);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
-  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  mat-icon { 
+    font-size: 18px; 
+    width: 18px; 
+    height: 18px; 
+  }
 }
 
 /* --- 6. RESPONSIVE BREAKPOINTS --- */
