@@ -23,7 +23,7 @@ public interface ChatMessageMentionRepository extends JpaRepository<ChatMessageM
            "JOIN m.message msg " +
            "WHERE msg.chatGroup.id = :groupId " +
            "AND m.mentionedUser.id = :userId " +
-           "AND msg.isDeleted = false " +
+           "AND msg.deleted = false " +
            "AND (:lastReadAt IS NULL OR msg.createdAt > :lastReadAt)")
     long countUnreadMentionsInGroup(
             @Param("groupId") UUID groupId,
