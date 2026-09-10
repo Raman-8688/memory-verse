@@ -626,7 +626,7 @@
                               }
                             } @else {
                               <!-- Text Message Bubble -->
-                              <div class="bubble-content-text">
+                              <span class="bubble-content-text">
                                 @for (segment of formatMessageWithMentions(msg.textContent); track $index) {
                                   @if (segment.isMention) {
                                     <span class="mention-tag" [class.mention-tag-self]="segment.isSelf">{{ segment.text }}</span>
@@ -634,11 +634,11 @@
                                     <span>{{ segment.text }}</span>
                                   }
                                 }
-                              </div>
+                              </span>
                             }
 
                             <!-- Bubble Footer / Timestamp & Delivery Status -->
-                            <div class="bubble-footer">
+                            <span class="bubble-footer">
                               @if (msg.edited && !msg.deleted) {
                                 <span class="edited-flag">edited</span>
                               }
@@ -668,7 +668,7 @@
                                   }
                                 }
                               }
-                            </div>
+                            </span>
                           </div>
 
                           <!-- Floating Action Trigger Buttons (Hover on desktop, tap on mobile) -->
