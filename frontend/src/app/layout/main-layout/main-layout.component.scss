@@ -169,8 +169,8 @@
     }
 
     &:has(mv-group-chat) {
-      height: calc(100vh - 60px);
-      height: calc(100dvh - 60px);
+      height: 100vh;
+      height: 100dvh;
       padding: 0;
       overflow: hidden;
       display: flex;
@@ -178,7 +178,10 @@
     }
   }
 
-  .layout-container:has(mv-group-chat) mv-moment-fab {
-    display: none !important;
+  .layout-container:has(mv-group-chat) {
+    mv-moment-fab,
+    mv-mobile-nav {
+      display: none !important;
+    }
   }
 }
