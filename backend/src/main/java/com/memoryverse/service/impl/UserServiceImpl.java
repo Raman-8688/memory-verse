@@ -99,10 +99,14 @@ public class UserServiceImpl implements UserService {
 
         log.info("Admin updating user {}: name='{}', role={}", id, request.getFullName(), request.getRole());
 
-        user.setFullName(request.getFullName());
-        user.setRole(request.getRole());
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName().trim());
+        }
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
         if (request.getAvatarUrl() != null && !request.getAvatarUrl().isBlank()) {
-            user.setAvatarUrl(request.getAvatarUrl());
+            user.setAvatarUrl(request.getAvatarUrl().trim());
         }
 
         User updatedUser = userRepository.save(user);

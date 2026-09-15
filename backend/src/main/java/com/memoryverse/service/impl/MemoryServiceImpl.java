@@ -66,8 +66,25 @@ public class MemoryServiceImpl implements MemoryService {
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", creatorId));
 
-        Journey journey = journeyRepository.findById(dto.getJourneyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Journey", "id", dto.getJourneyId()));
+        Journey journey = null;
+        if (dto.getJourneyId() != null) {
+            journey = journeyRepository.findById(dto.getJourneyId()).orElse(null);
+        }
+        if (journey == null) {
+            List<Journey> userJourneys = journeyRepository.findByCreatedByIdOrderByCreatedAtAsc(creatorId);
+            if (!userJourneys.isEmpty()) {
+                journey = userJourneys.get(0);
+            } else {
+                journey = Journey.builder()
+                        .title("My Journey")
+                        .slug("my-journey-" + UUID.randomUUID().toString().substring(0, 8))
+                        .description("Default journey for personal memories")
+                        .createdBy(creator)
+                        .isActive(true)
+                        .build();
+                journey = journeyRepository.save(journey);
+            }
+        }
 
         JourneySection section = null;
         if (dto.getSectionId() != null) {
@@ -75,10 +92,12 @@ public class MemoryServiceImpl implements MemoryService {
                     .orElse(null);
         }
 
+        LocalDate memDate = dto.getMemoryDate() != null ? dto.getMemoryDate() : LocalDate.now();
+
         Memory memory = Memory.builder()
                 .title(dto.getTitle().trim())
                 .story(dto.getStory().trim())
-                .memoryDate(dto.getMemoryDate())
+                .memoryDate(memDate)
                 .coverImageUrl(dto.getCoverImageUrl() != null && !dto.getCoverImageUrl().isBlank() ? dto.getCoverImageUrl().trim() : null)
                 .locationName(dto.getLocationName())
                 .latitude(dto.getLatitude())

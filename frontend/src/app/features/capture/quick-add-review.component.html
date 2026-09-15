@@ -176,13 +176,13 @@
       <!-- Date & Location -->
       <div class="form-row-duo">
         <div class="form-group-clean">
-          <label for="memoryDate" class="clean-label">Date of Memory *</label>
-          <input 
-            id="memoryDate"
-            type="date" 
-            formControlName="memoryDate" 
-            class="clean-input" 
-          />
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date of Memory *</mat-label>
+            <input matInput [matDatepicker]="quickPicker" formControlName="memoryDate" placeholder="YYYY-MM-DD">
+            <mat-icon matPrefix>event</mat-icon>
+            <mat-datepicker-toggle matIconSuffix [for]="quickPicker"></mat-datepicker-toggle>
+            <mat-datepicker #quickPicker></mat-datepicker>
+          </mat-form-field>
         </div>
 
         <div class="form-group-clean">

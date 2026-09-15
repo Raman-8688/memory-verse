@@ -7,8 +7,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { JourneyService } from '@core/services/journey.service';
 import { MediaService } from '@core/services/media.service';
+import { formatLocalDateString } from '@core/utils/date-utils';
 
 @Component({
   selector: 'mv-journey-form-dialog',
@@ -21,6 +24,8 @@ import { MediaService } from '@core/services/media.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatProgressSpinnerModule
   ],
   template: `
@@ -104,12 +109,16 @@ import { MediaService } from '@core/services/media.service';
           <div class="two-col">
             <mat-form-field appearance="outline">
               <mat-label>Start Date</mat-label>
-              <input matInput formControlName="startDate" type="date">
+              <input matInput [matDatepicker]="startPicker" formControlName="startDate" placeholder="YYYY-MM-DD">
+              <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>End Date</mat-label>
-              <input matInput formControlName="endDate" type="date">
+              <input matInput [matDatepicker]="endPicker" formControlName="endDate" placeholder="YYYY-MM-DD">
+              <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
             </mat-form-field>
           </div>
 
@@ -537,8 +546,11 @@ export class JourneyFormDialogComponent {
   }
 
   private executeCreate(coverUrl: string | null): void {
+    const rawVal = this.form.value;
     const formValue = {
-      ...this.form.value,
+      ...rawVal,
+      startDate: rawVal.startDate ? formatLocalDateString(rawVal.startDate) : undefined,
+      endDate: rawVal.endDate ? formatLocalDateString(rawVal.endDate) : undefined,
       coverImageUrl: coverUrl || undefined
     };
 

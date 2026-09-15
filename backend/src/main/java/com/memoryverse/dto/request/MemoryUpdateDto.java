@@ -27,7 +27,6 @@ public class MemoryUpdateDto {
     @NotBlank(message = "Story is required")
     private String story;
 
-    @NotNull(message = "Memory date is required")
     private LocalDate memoryDate;
 
     private String coverImageUrl;

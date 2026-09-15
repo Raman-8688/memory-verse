@@ -29,10 +29,12 @@ public class MomentController {
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ApiResponse<MomentDto>> createMoment(
-            @RequestPart("files") List<MultipartFile> files,
-            @RequestPart(value = "caption", required = false) String caption) {
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "file", required = false) List<MultipartFile> singleFiles,
+            @RequestParam(value = "caption", required = false) String caption) {
+        List<MultipartFile> uploadFiles = files != null && !files.isEmpty() ? files : singleFiles;
         UUID currentUserId = SecurityUtils.getCurrentUserId();
-        MomentDto created = momentService.createMoment(files, caption, currentUserId);
+        MomentDto created = momentService.createMoment(uploadFiles, caption, currentUserId);
         return new ResponseEntity<>(ApiResponse.success("Moment shared successfully", created), HttpStatus.CREATED);
     }
 

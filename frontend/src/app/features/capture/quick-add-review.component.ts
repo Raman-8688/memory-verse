@@ -7,12 +7,17 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MediaCaptureService } from '@core/services/media-capture.service';
 import { MemoryService } from '@core/services/memory.service';
 import { JourneyService } from '@core/services/journey.service';
 import { Journey, JourneySection } from '@core/models/journey.model';
 import { MemoryCreateDto } from '@core/models/memory.model';
 import { DesktopUploadDropzoneComponent } from './desktop-upload-dropzone.component';
+import { formatLocalDateString } from '@core/utils/date-utils';
 
 interface PreviewItem {
   file: File;
@@ -37,6 +42,10 @@ interface AiSuggestedMetadata {
     RouterModule,
     MatButtonModule,
     MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     DesktopUploadDropzoneComponent
@@ -248,9 +257,7 @@ export class QuickAddReviewComponent implements OnInit, OnDestroy {
     }
 
     const formVal = this.reviewForm.value;
-    const rawDate = formVal.memoryDate instanceof Date
-      ? formVal.memoryDate.toISOString().split('T')[0]
-      : new Date(formVal.memoryDate).toISOString().split('T')[0];
+    const rawDate = formatLocalDateString(formVal.memoryDate);
 
     const dto: MemoryCreateDto = {
       title: formVal.title.trim(),

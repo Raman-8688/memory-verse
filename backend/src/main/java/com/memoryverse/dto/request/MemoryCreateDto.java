@@ -27,7 +27,6 @@ public class MemoryCreateDto {
     @NotBlank(message = "Story description is required")
     private String story;
 
-    @NotNull(message = "Memory date is required")
     private LocalDate memoryDate;
 
     private String coverImageUrl;
@@ -38,7 +37,6 @@ public class MemoryCreateDto {
 
     private Double longitude;
 
-    @NotNull(message = "Journey ID is required")
     private UUID journeyId;
 
     private UUID sectionId;

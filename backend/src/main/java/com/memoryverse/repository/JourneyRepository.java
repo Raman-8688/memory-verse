@@ -20,6 +20,8 @@ public interface JourneyRepository extends JpaRepository<Journey, UUID> {
 
     boolean existsBySlug(String slug);
 
+    List<Journey> findByCreatedByIdOrderByCreatedAtAsc(UUID createdById);
+
     @EntityGraph(attributePaths = {"sections", "createdBy"})
     Optional<Journey> findWithDetailsById(UUID id);
 }

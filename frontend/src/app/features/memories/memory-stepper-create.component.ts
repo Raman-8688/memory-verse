@@ -11,6 +11,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { Journey, JourneySection } from '@core/models/journey.model';
 import { User } from '@core/models/user.model';
 import { JourneyService } from '@core/services/journey.service';
@@ -18,6 +20,7 @@ import { UserService } from '@core/services/user.service';
 import { MemoryService } from '@core/services/memory.service';
 import { AiAssistantService } from '@core/services/ai-assistant.service';
 import { MemoryCreateDto } from '@core/models/memory.model';
+import { formatLocalDateString } from '@core/utils/date-utils';
 
 interface PreviewMedia {
   file?: File;
@@ -47,6 +50,8 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     ImageFallbackDirective,
     ResolveMediaUrlPipe
   ],
@@ -91,8 +96,10 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
                 <div class="two-col">
                   <mat-form-field appearance="outline">
                     <mat-label>Date of Memory</mat-label>
-                    <input matInput formControlName="memoryDate" type="date">
+                    <input matInput [matDatepicker]="memPicker" formControlName="memoryDate" placeholder="YYYY-MM-DD">
                     <mat-icon matPrefix class="field-icon">event</mat-icon>
+                    <mat-datepicker-toggle matIconSuffix [for]="memPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #memPicker></mat-datepicker>
                     @if (storyForm.get('memoryDate')?.hasError('required') && storyForm.get('memoryDate')?.touched) {
                       <mat-error>Date is required</mat-error>
                     }
@@ -1179,7 +1186,7 @@ export class MemoryStepperCreateComponent implements OnInit {
     const dto: MemoryCreateDto = {
       title: this.storyForm.value.title,
       story: this.storyForm.value.story,
-      memoryDate: this.storyForm.value.memoryDate,
+      memoryDate: formatLocalDateString(this.storyForm.value.memoryDate),
       locationName: this.storyForm.value.locationName,
       journeyId: this.orgForm.value.journeyId,
       sectionId: this.orgForm.value.sectionId || undefined,

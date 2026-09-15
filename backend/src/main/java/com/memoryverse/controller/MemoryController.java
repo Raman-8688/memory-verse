@@ -43,8 +43,14 @@ public class MemoryController {
             MemoryResponseDto created = memoryService.createMemory(dto, files, currentUserId);
             return new ResponseEntity<>(ApiResponse.success("Memory published successfully", created), HttpStatus.CREATED);
         } catch (Exception e) {
-            log.error("Failed to parse memory json or process upload", e);
-            throw new RuntimeException("Error processing memory upload: " + e.getMessage(), e);
+            log.error("Failed to parse memory json or process upload. Raw JSON: {}", dataJson, e);
+            if (e instanceof com.memoryverse.exception.ResourceNotFoundException) {
+                throw (com.memoryverse.exception.ResourceNotFoundException) e;
+            }
+            if (e instanceof com.memoryverse.exception.BusinessValidationException) {
+                throw (com.memoryverse.exception.BusinessValidationException) e;
+            }
+            throw new com.memoryverse.exception.BusinessValidationException("Error processing memory upload: " + e.getMessage());
         }
     }
 
@@ -126,9 +132,11 @@ public class MemoryController {
     @PostMapping(value = "/{id}/media", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<ApiResponse<MemoryResponseDto>> appendMedia(
             @PathVariable UUID id,
-            @RequestPart("files") List<MultipartFile> files) {
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "file", required = false) List<MultipartFile> singleFiles) {
+        List<MultipartFile> uploadFiles = files != null && !files.isEmpty() ? files : singleFiles;
         UUID currentUserId = SecurityUtils.getCurrentUserId();
-        MemoryResponseDto updated = memoryService.appendMedia(id, files, currentUserId);
+        MemoryResponseDto updated = memoryService.appendMedia(id, uploadFiles, currentUserId);
         return ResponseEntity.ok(ApiResponse.success("Media appended successfully", updated));
     }
 

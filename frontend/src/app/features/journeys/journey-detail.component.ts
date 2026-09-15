@@ -23,6 +23,10 @@ import { NotificationStateService } from '@core/services/notification-state.serv
 
 import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { formatLocalDateString } from '@core/utils/date-utils';
+
 @Component({
   selector: 'mv-journey-detail',
   standalone: true,
@@ -37,6 +41,8 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
     MatMenuModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     ImageFallbackDirective,
     ResolveMediaUrlPipe
   ],
@@ -179,12 +185,16 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
 
                     <mat-form-field appearance="outline" class="flex-1">
                       <mat-label>Start Date</mat-label>
-                      <input matInput formControlName="startDate" type="date">
+                      <input matInput [matDatepicker]="startPicker" formControlName="startDate" placeholder="YYYY-MM-DD">
+                      <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #startPicker></mat-datepicker>
                     </mat-form-field>
 
                     <mat-form-field appearance="outline" class="flex-1">
                       <mat-label>End Date</mat-label>
-                      <input matInput formControlName="endDate" type="date">
+                      <input matInput [matDatepicker]="endPicker" formControlName="endDate" placeholder="YYYY-MM-DD">
+                      <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #endPicker></mat-datepicker>
                     </mat-form-field>
                   </div>
 
@@ -1133,8 +1143,8 @@ export class JourneyDetailComponent implements OnInit {
       const payload = {
         title: formVal.title.trim(),
         description: formVal.description?.trim() || '',
-        startDate: formVal.startDate || undefined,
-        endDate: formVal.endDate || undefined,
+        startDate: formVal.startDate ? formatLocalDateString(formVal.startDate) : undefined,
+        endDate: formVal.endDate ? formatLocalDateString(formVal.endDate) : undefined,
         imageUrl: imageUrl || undefined
       };
 
