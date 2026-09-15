@@ -122,6 +122,13 @@
     min-height: 100vh;
     flex-direction: column;
     overflow: visible;
+
+    &:has(mv-group-chat) {
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+    }
   }
 
   .desktop-sidebar-wrapper {
@@ -132,6 +139,12 @@
     height: auto;
     min-height: 100vh;
     overflow: visible;
+
+    .layout-container:has(mv-group-chat) & {
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
   }
 
   .layout-navbar {
@@ -160,6 +173,8 @@
       height: calc(100dvh - 60px);
       padding: 0;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
   }
 
