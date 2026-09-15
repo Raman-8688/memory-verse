@@ -486,8 +486,8 @@ public class CloudinaryStorageService implements StorageService {
         }
         // Remove directory paths (both forward and backward slashes)
         String cleaned = Paths.get(rawFilename).getFileName().toString();
-        // Remove null bytes and control chars
-        cleaned = cleaned.replaceAll("[\\p{Cntrl}\\0]", "");
+        // Remove null bytes and control chars cleanly
+        cleaned = cleaned.replaceAll("[\\x00-\\x1F\\x7F]", "");
         // Limit length to 255 chars
         if (cleaned.length() > 255) {
             cleaned = cleaned.substring(cleaned.length() - 255);
