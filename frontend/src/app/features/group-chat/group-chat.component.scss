@@ -2508,13 +2508,12 @@
 /* --- Mobile Responsive Rules --- */
 @media (max-width: 768px) {
   .message-action-triggers-wrapper {
-    opacity: 0.85;
-    pointer-events: auto;
-    transform: translateY(-50%) scale(0.9);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .msg-bubble-column {
-    max-width: 86%;
+    max-width: 78%;
   }
 
   .reaction-picker-bar {
@@ -4014,13 +4013,62 @@
 }
 
 /* Phase 12E: Mobile Responsiveness, Viewport Height & Touch Target Optimization */
+.desktop-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-overflow-btn {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
+  .desktop-header-actions {
+    display: none !important;
+  }
+
+  .mobile-overflow-btn {
+    display: inline-flex !important;
+    color: #52473D;
+  }
+
+  .chat-header {
+    height: 52px;
+    padding: 0 10px;
+    background: #FFFFFF;
+    border-bottom: 1px solid rgba(225, 215, 200, 0.85);
+
+    .header-left {
+      gap: 6px;
+    }
+
+    .header-avatar {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+    }
+
+    .header-group-name {
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .header-member-count {
+      font-size: 0.72rem;
+    }
+  }
+
   .group-chat-layout {
     height: 100%;
+    border-radius: 0;
+    border: none;
   }
 
   .groups-sidebar {
     width: 100%;
+    max-width: 100%;
+    min-width: 100%;
     &.mobile-hidden {
       display: none;
     }
@@ -4031,8 +4079,71 @@
     height: 100%;
   }
 
+  /* Rules 3 & 4: Lightweight messages & 75-80% Max Bubble Width */
+  .message-row-wrapper {
+    margin-bottom: 8px;
+    width: 100%;
+    display: flex;
+
+    &.own-row {
+      justify-content: flex-end;
+    }
+
+    &.other-row {
+      justify-content: flex-start;
+    }
+  }
+
+  .message-bubble-column {
+    max-width: 78% !important;
+    min-width: 70px;
+  }
+
+  .message-bubble-container {
+    max-width: 100%;
+  }
+
+  .bubble-with-floating-actions {
+    max-width: 100%;
+  }
+
+  .message-bubble-shell {
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &.is-own {
+      background: #FEF3C7;
+      border: 1px solid #FCD34D;
+      border-radius: 14px 14px 2px 14px;
+      padding: 6px 10px;
+    }
+
+    &:not(.is-own) {
+      background: #FFFFFF;
+      border: 1px solid rgba(225, 215, 200, 0.75);
+      border-radius: 14px 14px 14px 2px;
+      padding: 6px 10px;
+    }
+  }
+
+  /* Rule 6: Lightweight Media Previews */
+  .bubble-image-container,
+  .bubble-video-container {
+    max-width: 240px;
+    max-height: 240px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* Rule 7: Sticky Composer at Bottom */
   .chat-composer-shell {
+    padding: 8px 10px;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
+    background: #FAF7F2;
+    border-top: 1px solid rgba(225, 215, 200, 0.75);
   }
 
   .composer-action-btn,
@@ -4040,12 +4151,8 @@
   .header-action-btn,
   .file-download-action-btn,
   .drawer-file-dl-btn {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .message-bubble-wrapper {
-    max-width: 90%;
+    min-width: 40px;
+    min-height: 40px;
   }
 
   .group-info-drawer {

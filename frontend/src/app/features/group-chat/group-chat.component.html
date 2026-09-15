@@ -247,51 +247,80 @@
 
           <!-- Header Right Actions -->
           <div class="header-right">
-            <!-- Search in conversation button -->
-            <button 
-              mat-icon-button 
-              class="header-action-btn search-toggle-btn" 
-              [class.active]="isSearchOpen()"
-              (click)="toggleSearch()" 
-              matTooltip="Search messages" 
-              aria-label="Search messages in conversation">
-              <mat-icon>search</mat-icon>
-            </button>
+            <!-- Desktop-Only Header Actions -->
+            <div class="desktop-header-actions">
+              <!-- Search in conversation button -->
+              <button 
+                mat-icon-button 
+                class="header-action-btn search-toggle-btn" 
+                [class.active]="isSearchOpen()"
+                (click)="toggleSearch()" 
+                matTooltip="Search messages" 
+                aria-label="Search messages in conversation">
+                <mat-icon>search</mat-icon>
+              </button>
 
-            <!-- Group Settings button (Admin only) -->
-            @if (isCurrentUserAdmin()) {
+              <!-- Group Settings button (Admin only) -->
+              @if (isCurrentUserAdmin()) {
+                <button 
+                  mat-icon-button 
+                  class="header-action-btn" 
+                  (click)="openSettingsModal()" 
+                  matTooltip="Group settings" 
+                  aria-label="Open group settings">
+                  <mat-icon>settings</mat-icon>
+                </button>
+              }
+
+              <!-- Subtle Realtime Live Connection Pill -->
+              <div 
+                class="realtime-status-pill" 
+                [class.connected]="connectionStatus() === 'CONNECTED'" 
+                [class.connecting]="connectionStatus() === 'CONNECTING' || connectionStatus() === 'RECONNECTING'" 
+                [class.offline]="connectionStatus() === 'DISCONNECTED'"
+                [matTooltip]="connectionStatus() === 'CONNECTED' ? 'Realtime live sync active' : (connectionStatus() === 'RECONNECTING' ? 'Reconnecting realtime sync...' : 'Offline')">
+                <span class="status-dot"></span>
+                <span class="status-text">
+                  {{ connectionStatus() === 'CONNECTED' ? 'Live' : (connectionStatus() === 'RECONNECTING' ? 'Reconnecting...' : 'Offline') }}
+                </span>
+              </div>
+
+              <!-- Info Drawer Toggle -->
               <button 
                 mat-icon-button 
                 class="header-action-btn" 
-                (click)="openSettingsModal()" 
-                matTooltip="Group settings" 
-                aria-label="Open group settings">
-                <mat-icon>settings</mat-icon>
+                (click)="toggleInfoDrawer()" 
+                matTooltip="Group details & media" 
+                aria-label="Toggle group details">
+                <mat-icon>info_outline</mat-icon>
               </button>
-            }
-
-            <!-- Subtle Realtime Live Connection Pill -->
-            <div 
-              class="realtime-status-pill" 
-              [class.connected]="connectionStatus() === 'CONNECTED'" 
-              [class.connecting]="connectionStatus() === 'CONNECTING' || connectionStatus() === 'RECONNECTING'" 
-              [class.offline]="connectionStatus() === 'DISCONNECTED'"
-              [matTooltip]="connectionStatus() === 'CONNECTED' ? 'Realtime live sync active' : (connectionStatus() === 'RECONNECTING' ? 'Reconnecting realtime sync...' : 'Offline')">
-              <span class="status-dot"></span>
-              <span class="status-text">
-                {{ connectionStatus() === 'CONNECTED' ? 'Live' : (connectionStatus() === 'RECONNECTING' ? 'Reconnecting...' : 'Offline') }}
-              </span>
             </div>
 
-            <!-- Info Drawer Toggle -->
+            <!-- Mobile-Only Overflow Menu ⋮ -->
             <button 
               mat-icon-button 
-              class="header-action-btn" 
-              (click)="toggleInfoDrawer()" 
-              matTooltip="Group details & media" 
-              aria-label="Toggle group details">
-              <mat-icon>info_outline</mat-icon>
+              class="mobile-overflow-btn" 
+              [matMenuTriggerFor]="mobileGroupMenu"
+              aria-label="Group options">
+              <mat-icon>more_vert</mat-icon>
             </button>
+
+            <mat-menu #mobileGroupMenu="matMenu" xPosition="before">
+              <button mat-menu-item (click)="toggleInfoDrawer()">
+                <mat-icon>info_outline</mat-icon>
+                <span>Group Info</span>
+              </button>
+              <button mat-menu-item (click)="toggleSearch()">
+                <mat-icon>search</mat-icon>
+                <span>Search Messages</span>
+              </button>
+              @if (isCurrentUserAdmin()) {
+                <button mat-menu-item (click)="openSettingsModal()">
+                  <mat-icon>settings</mat-icon>
+                  <span>Group Settings</span>
+                </button>
+              }
+            </mat-menu>
           </div>
         </header>
 
