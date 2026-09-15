@@ -67,7 +67,10 @@ import { ResolveMediaUrlPipe } from '@shared/pipes/resolve-media-url.pipe';
     ResolveMediaUrlPipe
   ],
   templateUrl: './group-chat.component.html',
-  styleUrl: './group-chat.component.scss'
+  styleUrl: './group-chat.component.scss',
+  host: {
+    '[class.has-active-chat]': '!!activeGroupId()'
+  }
 })
 export class GroupChatComponent implements OnInit, OnDestroy {
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLElement>;

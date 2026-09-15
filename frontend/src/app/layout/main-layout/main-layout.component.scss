@@ -123,7 +123,7 @@
     flex-direction: column;
     overflow: visible;
 
-    &:has(mv-group-chat) {
+    &:has(mv-group-chat.has-active-chat) {
       height: 100vh;
       height: 100dvh;
       min-height: 0;
@@ -140,7 +140,7 @@
     min-height: 100vh;
     overflow: visible;
 
-    .layout-container:has(mv-group-chat) & {
+    .layout-container:has(mv-group-chat.has-active-chat) & {
       height: 100%;
       min-height: 0;
       overflow: hidden;
@@ -151,7 +151,7 @@
     position: sticky;
     top: 0;
 
-    .layout-container:has(mv-group-chat) & {
+    .layout-container:has(mv-group-chat.has-active-chat) & {
       display: none;
     }
   }
@@ -168,7 +168,7 @@
       overflow: hidden;
     }
 
-    &:has(mv-group-chat) {
+    &:has(mv-group-chat.has-active-chat) {
       height: 100vh;
       height: 100dvh;
       padding: 0;
@@ -176,9 +176,16 @@
       display: flex;
       flex-direction: column;
     }
+
+    &:has(mv-group-chat:not(.has-active-chat)) {
+      height: calc(100vh - 52px - 60px);
+      height: calc(100dvh - 52px - 60px);
+      padding: 0;
+      overflow: hidden;
+    }
   }
 
-  .layout-container:has(mv-group-chat) {
+  .layout-container:has(mv-group-chat.has-active-chat) {
     mv-moment-fab,
     mv-mobile-nav {
       display: none !important;
