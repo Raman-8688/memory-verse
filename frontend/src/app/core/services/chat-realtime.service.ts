@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed, effect, untracked } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
-import { Client, IMessage, StompSubscription } from '@stomp/stompjs';
+import { Client, IMessage, IFrame, StompSubscription } from '@stomp/stompjs';
 import { AuthService } from '../auth/auth.service';
 import { environment } from '../../../environments/environment';
 import {
@@ -119,7 +119,7 @@ export class ChatRealtimeService {
         this.connectionStatus.set('DISCONNECTED');
         this.scheduleReconnect();
       },
-      onStompError: (frame) => {
+      onStompError: (frame: IFrame) => {
         this.clearConnectionStableTimer();
         const errorMsg = frame.headers['message'] || '';
         const body = frame.body || '';
@@ -140,7 +140,7 @@ export class ChatRealtimeService {
         this.connectionStatus.set('DISCONNECTED');
         this.scheduleReconnect();
       },
-      onWebSocketClose: (event) => {
+      onWebSocketClose: (event: CloseEvent) => {
         this.clearConnectionStableTimer();
 
         // Codes 4001/4003 or policy violations imply auth failure

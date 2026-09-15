@@ -53,7 +53,8 @@
   box-sizing: border-box;
   scroll-behavior: smooth;
 
-  &:has(mv-assistant) {
+  &:has(mv-assistant),
+  &:has(mv-group-chat) {
     padding: 0;
     overflow: hidden;
     display: flex;
@@ -136,6 +137,10 @@
   .layout-navbar {
     position: sticky;
     top: 0;
+
+    .layout-container:has(mv-group-chat) & {
+      display: none;
+    }
   }
 
   .layout-main-content {
@@ -149,5 +154,16 @@
       padding: 0;
       overflow: hidden;
     }
+
+    &:has(mv-group-chat) {
+      height: calc(100vh - 60px);
+      height: calc(100dvh - 60px);
+      padding: 0;
+      overflow: hidden;
+    }
+  }
+
+  .layout-container:has(mv-group-chat) mv-moment-fab {
+    display: none !important;
   }
 }

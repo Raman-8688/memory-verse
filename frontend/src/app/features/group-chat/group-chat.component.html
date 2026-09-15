@@ -676,6 +676,14 @@
                             <div class="message-action-triggers-wrapper">
                               <button 
                                 type="button" 
+                                class="msg-quick-action-btn reply-btn" 
+                                (click)="startReply(msg); $event.stopPropagation()" 
+                                matTooltip="Reply to message" 
+                                aria-label="Reply to message">
+                                <mat-icon>reply</mat-icon>
+                              </button>
+                              <button 
+                                type="button" 
                                 class="msg-quick-action-btn react-btn" 
                                 (click)="openReactionPicker(msg.id, $event)" 
                                 matTooltip="Add reaction" 

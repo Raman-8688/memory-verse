@@ -5,8 +5,8 @@
 :host {
   display: block;
   width: 100%;
-  height: calc(100vh - 76px);
-  min-height: 560px;
+  height: 100%;
+  min-height: 0;
   box-sizing: border-box;
 }
 
@@ -828,7 +828,9 @@
   align-items: center;
   max-width: 100%;
 
-  &:hover .message-action-triggers-wrapper {
+  &:hover .message-action-triggers-wrapper,
+  &:focus-within .message-action-triggers-wrapper,
+  &:active .message-action-triggers-wrapper {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(-50%) scale(1);
@@ -1684,7 +1686,7 @@
 
 @media (max-width: 768px) {
   :host {
-    height: calc(100vh - 64px);
+    height: 100%;
   }
 
   .group-chat-layout {
@@ -1996,34 +1998,47 @@
   transform: translateY(-50%) scale(0.92);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   opacity: 0;
   pointer-events: none;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 15;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(8px);
-  padding: 3px 6px;
+  padding: 3px 5px;
   border-radius: var(--mv-radius-full);
-  border: 1px solid rgba(218, 206, 188, 0.8);
-  box-shadow: 0 4px 12px rgba(44, 38, 30, 0.08);
+  border: 1px solid rgba(218, 206, 188, 0.85);
+  box-shadow: 0 4px 14px rgba(44, 38, 30, 0.12);
 
   .msg-quick-action-btn {
     background: none;
     border: none;
     cursor: pointer;
     color: #8C7A70;
-    padding: 3px;
+    padding: 4px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 30px;
+    min-height: 30px;
     transition: all var(--mv-transition-fast);
 
     mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
+      font-size: 17px;
+      width: 17px;
+      height: 17px;
+    }
+
+    &.reply-btn {
+      color: #B45309;
+      background: rgba(254, 243, 199, 0.6);
+
+      &:hover {
+        background: #FDE68A;
+        color: #92400E;
+        transform: scale(1.12);
+      }
     }
 
     &:hover {
@@ -4001,8 +4016,7 @@
 /* Phase 12E: Mobile Responsiveness, Viewport Height & Touch Target Optimization */
 @media (max-width: 768px) {
   .group-chat-layout {
-    height: 100dvh;
-    height: 100vh;
+    height: 100%;
   }
 
   .groups-sidebar {
